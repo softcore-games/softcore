@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { WagmiConfig } from 'wagmi';
 import { wagmiConfig, Web3ModalProvider } from '@/lib/wagmi';

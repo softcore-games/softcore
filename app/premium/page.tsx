@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 import { useWallet } from '@/lib/hooks/useWallet';
@@ -57,8 +57,8 @@ export default function PremiumFeatures() {
     return (
       <div className="container mx-auto px-4 py-8">
         <Card className="p-6">
-          <h1 className="text-2xl font-bold mb-4">Connect Wallet to Access Premium Features</h1>
-          <p className="text-gray-600 mb-4">
+          <h1 className="mb-4 text-2xl font-bold">Connect Wallet to Access Premium Features</h1>
+          <p className="mb-4 text-gray-600">
             You need to connect your wallet and switch to Core Network to access premium features.
           </p>
         </Card>
@@ -69,37 +69,27 @@ export default function PremiumFeatures() {
   return (
     <div className="container mx-auto px-4 py-8">
       <Card className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Premium Features</h1>
-        
+        <h1 className="mb-6 text-2xl font-bold">Premium Features</h1>
+
         <div className="space-y-6">
-          <div className="p-4 bg-gray-100 rounded-lg">
-            <h2 className="text-lg font-semibold mb-2">Your Token Balance</h2>
+          <div className="rounded-lg bg-gray-100 p-4">
+            <h2 className="mb-2 text-lg font-semibold">Your Token Balance</h2>
             <p className="text-3xl font-bold">{tokenBalance} SCT</p>
-            <Button 
-              onClick={() => checkTokenBalance()}
-              variant="outline"
-              className="mt-2"
-            >
+            <Button onClick={() => checkTokenBalance()} variant="outline" className="mt-2">
               Refresh Balance
             </Button>
           </div>
 
           <div className="space-y-4">
             <h2 className="text-lg font-semibold">Stake Tokens for Premium Access</h2>
-            <p className="text-gray-600">
-              Stake 100 SCT tokens to unlock premium features:
-            </p>
-            <ul className="list-disc list-inside space-y-2 text-gray-600">
+            <p className="text-gray-600">Stake 100 SCT tokens to unlock premium features:</p>
+            <ul className="list-inside list-disc space-y-2 text-gray-600">
               <li>Exclusive dialogue options</li>
               <li>Special character interactions</li>
               <li>Unique story paths</li>
               <li>Premium NFT minting</li>
             </ul>
-            <Button
-              onClick={() => stakeTokens('100')}
-              disabled={loading}
-              className="w-full"
-            >
+            <Button onClick={() => stakeTokens('100')} disabled={loading} className="w-full">
               {loading ? 'Staking...' : 'Stake 100 SCT'}
             </Button>
           </div>

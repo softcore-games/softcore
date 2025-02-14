@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useCallback, useEffect } from 'react';
 import { ethers } from 'ethers';
@@ -36,11 +36,11 @@ export function useWallet() {
 
     try {
       setError(null);
-      const accounts = await window.ethereum.request({ 
-        method: 'eth_requestAccounts' 
+      const accounts = await window.ethereum.request({
+        method: 'eth_requestAccounts',
       });
       setAccount(accounts[0]);
-      
+
       await checkNetwork();
     } catch (error: any) {
       console.error('Failed to connect wallet:', error);
@@ -82,20 +82,21 @@ export function useWallet() {
         setError('Failed to switch to Core network');
       }
     }
-    
+
     await checkNetwork();
   }, [checkNetwork]);
 
   useEffect(() => {
     if (window.ethereum) {
-      window.ethereum.request({ method: 'eth_accounts' })
-        .then(accounts => {
+      window.ethereum
+        .request({ method: 'eth_accounts' })
+        .then((accounts) => {
           if (accounts.length > 0) {
             setAccount(accounts[0]);
             checkNetwork();
           }
         })
-        .catch(err => {
+        .catch((err) => {
           console.error('Failed to get accounts:', err);
           setError('Failed to check wallet connection');
         });
@@ -117,6 +118,6 @@ export function useWallet() {
     isConnectedToCore,
     connectWallet,
     switchToCore,
-    error
+    error,
   };
 }

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { create } from 'zustand';
 import { Scene, Character, GameState } from '@/lib/types';
@@ -20,32 +20,30 @@ export const useGameStore = create<GameStore>((set) => ({
   nfts: [],
   isPremium: false,
 
-  setScene: (sceneId) => 
-    set({ currentScene: sceneId }),
+  setScene: (sceneId) => set({ currentScene: sceneId }),
 
   addToInventory: (item) =>
-    set((state) => ({ 
-      inventory: [...state.inventory, item] 
+    set((state) => ({
+      inventory: [...state.inventory, item],
     })),
 
   updateRelationship: (characterId, value) =>
     set((state) => ({
       relationships: {
         ...state.relationships,
-        [characterId]: (state.relationships[characterId] || 0) + value
-      }
+        [characterId]: (state.relationships[characterId] || 0) + value,
+      },
     })),
 
   makeChoice: (choice) =>
     set((state) => ({
-      choices: [...state.choices, choice]
+      choices: [...state.choices, choice],
     })),
 
   addNft: (nftId) =>
     set((state) => ({
-      nfts: [...state.nfts, nftId]
+      nfts: [...state.nfts, nftId],
     })),
 
-  setPremiumStatus: (status) =>
-    set({ isPremium: status })
+  setPremiumStatus: (status) => set({ isPremium: status }),
 }));

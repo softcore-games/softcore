@@ -4,8 +4,9 @@ import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum'
 import { Web3Modal } from '@web3modal/react';
 import { configureChains, createConfig } from 'wagmi';
 import { coreTestnet } from './chains';
+import { Fragment } from 'react';
 
-const projectId = 'YOUR_WALLETCONNECT_PROJECT_ID';
+const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || '';
 
 const chains = [coreTestnet];
 
@@ -21,13 +22,13 @@ export const ethereumClient = new EthereumClient(wagmiConfig, chains);
 
 export function Web3ModalProvider({ children }: { children: React.ReactNode }) {
   return (
-    <>
+    <Fragment>
       {children}
       <Web3Modal
         projectId={projectId}
         ethereumClient={ethereumClient}
         themeMode="dark"
       />
-    </>
+    </Fragment>
   );
 }

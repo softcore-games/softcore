@@ -7,10 +7,7 @@ export async function GET(request: Request) {
     const userId = searchParams.get('userId');
 
     if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'User ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: 'User ID is required' }, { status: 400 });
     }
 
     const progress = await prisma.gameProgress.findUnique({
@@ -20,10 +17,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ success: true, progress });
   } catch (error) {
     console.error('Get progress error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to get progress' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Failed to get progress' }, { status: 500 });
   }
 }
 
@@ -33,10 +27,7 @@ export async function POST(request: Request) {
     const { userId, ...progressData } = data;
 
     if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'User ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: 'User ID is required' }, { status: 400 });
     }
 
     const progress = await prisma.gameProgress.upsert({
@@ -55,9 +46,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, progress });
   } catch (error) {
     console.error('Save progress error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to save progress' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Failed to save progress' }, { status: 500 });
   }
 }

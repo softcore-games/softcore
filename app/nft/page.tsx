@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 import { useWallet } from '@/lib/hooks/useWallet';
@@ -52,7 +52,7 @@ export default function NFTMinting() {
 
       const balance = await nftContract.balanceOf(account);
       const nfts = [];
-      
+
       for (let i = 0; i < balance; i++) {
         const tokenId = await nftContract.tokenOfOwnerByIndex(account, i);
         const tokenType = await nftContract.getItemType(tokenId);
@@ -69,8 +69,8 @@ export default function NFTMinting() {
     return (
       <div className="container mx-auto px-4 py-8">
         <Card className="p-6">
-          <h1 className="text-2xl font-bold mb-4">Connect Wallet to Mint NFTs</h1>
-          <p className="text-gray-600 mb-4">
+          <h1 className="mb-4 text-2xl font-bold">Connect Wallet to Mint NFTs</h1>
+          <p className="mb-4 text-gray-600">
             You need to connect your wallet and switch to Core Network to mint NFTs.
           </p>
         </Card>
@@ -81,32 +81,24 @@ export default function NFTMinting() {
   return (
     <div className="container mx-auto px-4 py-8">
       <Card className="p-6">
-        <h1 className="text-2xl font-bold mb-6">NFT Minting</h1>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <h1 className="mb-6 text-2xl font-bold">NFT Minting</h1>
+
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {/* Available NFTs */}
           <div className="space-y-4">
             <h2 className="text-lg font-semibold">Available Items</h2>
             <div className="grid grid-cols-2 gap-4">
               <Card className="p-4">
-                <h3 className="font-semibold mb-2">Character Companion</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  A unique AI companion for your journey
-                </p>
-                <Button
-                  onClick={() => mintNFT('companion')}
-                  disabled={loading}
-                  className="w-full"
-                >
+                <h3 className="mb-2 font-semibold">Character Companion</h3>
+                <p className="mb-4 text-sm text-gray-600">A unique AI companion for your journey</p>
+                <Button onClick={() => mintNFT('companion')} disabled={loading} className="w-full">
                   {loading ? 'Minting...' : 'Mint Companion'}
                 </Button>
               </Card>
-              
+
               <Card className="p-4">
-                <h3 className="font-semibold mb-2">Special Item</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Unlock unique dialogue options
-                </p>
+                <h3 className="mb-2 font-semibold">Special Item</h3>
+                <p className="mb-4 text-sm text-gray-600">Unlock unique dialogue options</p>
                 <Button
                   onClick={() => mintNFT('special_item')}
                   disabled={loading}
@@ -121,14 +113,10 @@ export default function NFTMinting() {
           {/* Owned NFTs */}
           <div className="space-y-4">
             <h2 className="text-lg font-semibold">Your NFTs</h2>
-            <Button
-              onClick={fetchOwnedNFTs}
-              variant="outline"
-              className="w-full mb-4"
-            >
+            <Button onClick={fetchOwnedNFTs} variant="outline" className="mb-4 w-full">
               Refresh NFTs
             </Button>
-            
+
             <div className="space-y-2">
               {ownedNFTs.map((nft) => (
                 <Card key={nft.id} className="p-4">
@@ -136,11 +124,9 @@ export default function NFTMinting() {
                   <p className="text-sm text-gray-600">{nft.type}</p>
                 </Card>
               ))}
-              
+
               {ownedNFTs.length === 0 && (
-                <p className="text-gray-600 text-center py-4">
-                  No NFTs owned yet
-                </p>
+                <p className="py-4 text-center text-gray-600">No NFTs owned yet</p>
               )}
             </div>
           </div>

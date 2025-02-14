@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
 import { Scene, Choice, GameState } from '@/lib/types';
 import { prisma } from '@/lib/prisma';
 
 export class SceneManager {
   private scenes: Map<string, Scene>;
-  
+
   constructor() {
     this.scenes = new Map();
   }
@@ -18,7 +18,7 @@ export class SceneManager {
   }
 
   loadScenes(scenes: Scene[]) {
-    scenes.forEach(scene => this.loadScene(scene));
+    scenes.forEach((scene) => this.loadScene(scene));
   }
 
   getScene(sceneId: string): Scene | undefined {
@@ -60,24 +60,26 @@ export class SceneManager {
               push: {
                 sceneId: gameState.currentScene,
                 choiceText: choice.text,
-                timestamp: new Date()
-              }
+                timestamp: new Date(),
+              },
             },
-            currentScene: choice.nextScene
+            currentScene: choice.nextScene,
           },
           create: {
             userId: gameState.userId,
             currentScene: choice.nextScene,
             relationships: updatedRelationships,
             inventory: gameState.inventory,
-            choices: [{
-              sceneId: gameState.currentScene,
-              choiceText: choice.text,
-              timestamp: new Date()
-            }],
+            choices: [
+              {
+                sceneId: gameState.currentScene,
+                choiceText: choice.text,
+                timestamp: new Date(),
+              },
+            ],
             nfts: gameState.nfts,
-            isPremium: gameState.isPremium
-          }
+            isPremium: gameState.isPremium,
+          },
         });
       }
 
@@ -93,10 +95,8 @@ export class SceneManager {
       scene.id &&
       scene.dialogue &&
       Array.isArray(scene.choices) &&
-      scene.choices.every(choice => 
-        choice.text && 
-        choice.nextScene && 
-        this.scenes.has(choice.nextScene)
+      scene.choices.every(
+        (choice) => choice.text && choice.nextScene && this.scenes.has(choice.nextScene)
       )
     );
   }

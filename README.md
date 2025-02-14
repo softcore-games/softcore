@@ -2,7 +2,6 @@
 
 SoftCore is an innovative interactive visual novel game that combines blockchain technology, AI-powered characters, and dynamic storytelling. Built on Core Blockchain, it offers players a unique experience where their choices matter and interactions with characters are enhanced by artificial intelligence.
 
-
 ## 🎮 Features
 
 ### Core Gameplay
@@ -16,6 +15,31 @@ SoftCore is an innovative interactive visual novel game that combines blockchain
 - **Token-Gated Content**: Access premium choices and storylines using Core tokens
 - **On-Chain Progress**: Save key decisions on the blockchain
 - **NFT Collectibles**: Earn limited-edition NFTs for completing story arcs
+
+### NFT Mechanics
+- **Unique Digital Assets**: Each NFT scene is a one-of-a-kind digital asset representing ownership
+- **Transferability**: NFT scenes can be traded, collected, and shared between players
+- **Verifiable Ownership**: Blockchain technology ensures authenticity and security of assets
+- **Scene Creation**: Players can create and customize erotic scenes as NFTs
+- **Private Sharing**: NFT scenes can be shared privately or publicly
+- **Character Customization**: Personalize character traits and preferences
+
+### Tokenomics
+#### Token Allocation
+| Category                          | Percentage | Vesting                        |
+|----------------------------------|------------|--------------------------------|
+| Liquidity                        | 40%        | -                              |
+| Seed Sale                        | 25%        | -                              |
+| Community, Strategic & Marketing  | 17.5%      | 25% at TGE, 3 Months Linear   |
+| Private Sale, Advisors & Partners | 7.5%       | -                              |
+| Treasury                         | 5%         | -                              |
+| Team                             | 5%         | 0% at TGE, 3 Months Linear     |
+
+#### Token Utility
+- **In-Game Transactions**: Buy and sell digital assets, customizations, and premium content
+- **Rewards & Incentives**: Token rewards for active engagement and content creation
+- **Governance**: Community participation in decision-making processes
+- **Staking**: Users can stake tokens for additional benefits and rewards
 
 ### AI-Powered Features
 #### Free Mode
@@ -52,12 +76,13 @@ SoftCore is an innovative interactive visual novel game that combines blockchain
 - MongoDB Atlas account
 - Core testnet CORE tokens for testing
 - OpenAI API key
+- WalletConnect Project ID (Get it from [WalletConnect Cloud](https://cloud.walletconnect.com/))
 
 ## 🚀 Getting Started
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/softcore.git
+   git clone https://github.com/developla/softcore.git
    cd softcore
    ```
 
@@ -75,6 +100,7 @@ SoftCore is an innovative interactive visual novel game that combines blockchain
    - `NEXT_PUBLIC_GAME_TOKEN_ADDRESS`: Core token contract address
    - `NEXT_PUBLIC_GAME_ITEMS_ADDRESS`: NFT contract address
    - `NEXT_PUBLIC_OPENAI_API_KEY`: OpenAI API key for AI features
+   - `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`: Your WalletConnect Project ID from WalletConnect Cloud
 
 4. Run the development server:
    ```bash
@@ -102,39 +128,7 @@ SoftCore is an innovative interactive visual novel game that combines blockchain
 - Dynamic responses based on relationship levels
 - Memory of previous interactions
 - Premium dialogue options
-
-### Data Models
-
-#### Chat History
-```typescript
-{
-  userId: string;
-  characterId: string;
-  messages: Array<{
-    role: 'user' | 'assistant';
-    content: string;
-    timestamp: Date;
-  }>;
-  relationshipValue: number;
-}
-```
-
-#### Game Progress
-```typescript
-{
-  userId: string;
-  currentScene: string;
-  inventory: string[];
-  relationships: Map<string, number>;
-  choices: Array<{
-    sceneId: string;
-    choiceText: string;
-    timestamp: Date;
-  }>;
-  nfts: string[];
-  isPremium: boolean;
-}
-```
+- 
 
 ## 🔗 Smart Contracts
 

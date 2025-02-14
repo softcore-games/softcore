@@ -5,7 +5,7 @@ import { AICharacterSystem } from '@/lib/game/AICharacterSystem';
 export async function POST(request: Request) {
   try {
     const { userId, characterId, message, context } = await request.json();
-    
+
     // Get or create chat history
     let chatHistory = await prisma.chatHistory.findFirst({
       where: {
@@ -60,9 +60,6 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error('Chat API error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to process chat' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Failed to process chat' }, { status: 500 });
   }
 }
