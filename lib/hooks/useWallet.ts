@@ -7,21 +7,29 @@ import { CORE_TESTNET_CONFIG } from '../core-config';
 export function useWallet() {
   const [account, setAccount] = useState<string | null>(null);
   const [isConnectedToCore, setIsConnectedToCore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const checkNetwork = useCallback(async () => {
     if (window.ethereum) {
-      const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-      setIsConnectedToCore(chainId === CORE_TESTNET_CONFIG.chainId);
+      try {
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        setIsConnectedToCore(chainId === CORE_TESTNET_CONFIG.chainId);
+        setError(null);
+      } catch (err) {
+        console.error('Failed to check network:', err);
+        setError('Failed to check network status');
+      }
     }
   }, []);
 
   const connectWallet = useCallback(async () => {
     if (!window.ethereum) {
-      alert('Please install MetaMask or another Web3 wallet');
+      setError('Please install MetaMask or another Web3 wallet');
       return;
     }
 
     try {
+      setError(null);
       // Request account access
       const accounts = await window.ethereum.request({ 
         method: 'eth_requestAccounts' 
@@ -30,8 +38,14 @@ export function useWallet() {
       
       // Check if we're on Core network
       await checkNetwork();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to connect wallet:', error);
+      // Handle user rejection gracefully
+      if (error.code === 4001) {
+        setError('Connection request was cancelled');
+      } else {
+        setError('Failed to connect wallet. Please try again.');
+      }
     }
   }, [checkNetwork]);
 
@@ -39,6 +53,7 @@ export function useWallet() {
     if (!window.ethereum) return;
 
     try {
+      setError(null);
       // Try to switch to Core network
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
@@ -52,9 +67,18 @@ export function useWallet() {
             method: 'wallet_addEthereumChain',
             params: [CORE_TESTNET_CONFIG],
           });
-        } catch (addError) {
+        } catch (addError: any) {
           console.error('Failed to add Core network:', addError);
+          if (addError.code === 4001) {
+            setError('Network change was cancelled');
+          } else {
+            setError('Failed to add Core network');
+          }
         }
+      } else if (switchError.code === 4001) {
+        setError('Network change was cancelled');
+      } else {
+        setError('Failed to switch to Core network');
       }
     }
     
@@ -70,16 +94,22 @@ export function useWallet() {
             setAccount(accounts[0]);
             checkNetwork();
           }
+        })
+        .catch(err => {
+          console.error('Failed to get accounts:', err);
+          setError('Failed to check wallet connection');
         });
 
       // Listen for account changes
       window.ethereum.on('accountsChanged', (accounts: string[]) => {
         setAccount(accounts[0] || null);
+        setError(null);
       });
 
       // Listen for chain changes
       window.ethereum.on('chainChanged', () => {
         checkNetwork();
+        setError(null);
       });
     }
   }, [checkNetwork]);
@@ -88,6 +118,7 @@ export function useWallet() {
     account,
     isConnectedToCore,
     connectWallet,
-    switchToCore
+    switchToCore,
+    error
   };
 }

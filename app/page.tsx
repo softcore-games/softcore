@@ -7,7 +7,7 @@ import { BookOpen, Wallet } from "lucide-react";
 import { useWallet } from "@/lib/hooks/useWallet";
 
 export default function Home() {
-  const { account, isConnectedToCore, connectWallet, switchToCore } = useWallet();
+  const { account, isConnectedToCore, connectWallet, switchToCore, error } = useWallet();
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-background to-accent">
@@ -35,6 +35,12 @@ export default function Home() {
 
             {/* Game Controls */}
             <div className="mt-6 space-y-4">
+              {error && (
+                <div className="p-4 mb-4 text-sm text-red-800 bg-red-100 rounded-lg dark:bg-red-900/50 dark:text-red-200">
+                  {error}
+                </div>
+              )}
+              
               {!account ? (
                 <Button 
                   size="lg" 
