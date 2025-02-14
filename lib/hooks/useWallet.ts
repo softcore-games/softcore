@@ -4,6 +4,12 @@ import { useState, useCallback, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { CORE_TESTNET_CONFIG } from '../core-config';
 
+declare global {
+  interface Window {
+    ethereum?: any;
+  }
+}
+
 export function useWallet() {
   const [account, setAccount] = useState<string | null>(null);
   const [isConnectedToCore, setIsConnectedToCore] = useState(false);
@@ -30,17 +36,14 @@ export function useWallet() {
 
     try {
       setError(null);
-      // Request account access
       const accounts = await window.ethereum.request({ 
         method: 'eth_requestAccounts' 
       });
       setAccount(accounts[0]);
       
-      // Check if we're on Core network
       await checkNetwork();
     } catch (error: any) {
       console.error('Failed to connect wallet:', error);
-      // Handle user rejection gracefully
       if (error.code === 4001) {
         setError('Connection request was cancelled');
       } else {
@@ -54,13 +57,11 @@ export function useWallet() {
 
     try {
       setError(null);
-      // Try to switch to Core network
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: CORE_TESTNET_CONFIG.chainId }],
       });
     } catch (switchError: any) {
-      // If the chain hasn't been added, add it
       if (switchError.code === 4902) {
         try {
           await window.ethereum.request({
@@ -86,7 +87,6 @@ export function useWallet() {
   }, [checkNetwork]);
 
   useEffect(() => {
-    // Check initial connection status
     if (window.ethereum) {
       window.ethereum.request({ method: 'eth_accounts' })
         .then(accounts => {
@@ -100,13 +100,11 @@ export function useWallet() {
           setError('Failed to check wallet connection');
         });
 
-      // Listen for account changes
       window.ethereum.on('accountsChanged', (accounts: string[]) => {
         setAccount(accounts[0] || null);
         setError(null);
       });
 
-      // Listen for chain changes
       window.ethereum.on('chainChanged', () => {
         checkNetwork();
         setError(null);
