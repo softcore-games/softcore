@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum';
 import { Web3Modal } from '@web3modal/react';
@@ -8,19 +8,24 @@ import { Fragment } from 'react';
 
 const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || '';
 
-const chains = [coreTestnet];
-
-const { publicClient } = configureChains(chains, [w3mProvider({ projectId })]);
+const { chains, publicClient } = configureChains(
+  [coreTestnet],
+  [w3mProvider({ projectId })]
+);
 
 export const wagmiConfig = createConfig({
   autoConnect: true,
-  connectors: w3mConnectors({ projectId, version: 2, chains }),
+  connectors: w3mConnectors({ projectId, chains, version: 2 }),
   publicClient,
 });
 
 export const ethereumClient = new EthereumClient(wagmiConfig, chains);
 
-export function Web3ModalProvider({ children }: { children: React.ReactNode }) {
+interface Web3ModalProviderProps {
+  children: React.ReactNode;
+}
+
+export function Web3ModalProvider({ children }: Web3ModalProviderProps) {
   return (
     <Fragment>
       {children}
@@ -28,6 +33,10 @@ export function Web3ModalProvider({ children }: { children: React.ReactNode }) {
         projectId={projectId}
         ethereumClient={ethereumClient}
         themeMode="dark"
+        themeVariables={{
+          '--w3m-font-family': 'Inter, sans-serif',
+          '--w3m-accent-color': '#000000',
+        }}
       />
     </Fragment>
   );
