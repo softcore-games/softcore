@@ -7,11 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "deploy:contracts": "hardhat run scripts/deploy.js --network core_testnet"
+    "deploy:contracts": "hardhat run scripts/deploy.js --network core_testnet",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",
     "@openzeppelin/contracts": "^4.9.3",
+    "@prisma/client": "^5.3.1",
     "@radix-ui/react-alert-dialog": "^1.0.5",
     "@radix-ui/react-aspect-ratio": "^1.0.3",
     "@radix-ui/react-avatar": "^1.0.4",
@@ -55,6 +57,7 @@
     "autoprefixer": "^10.4.16",
     "eslint": "^8.50.0",
     "eslint-config-next": "13.5.4",
-    "postcss": "^8.4.30"
+    "postcss": "^8.4.30",
+    "prisma": "^5.3.1"
   }
 }

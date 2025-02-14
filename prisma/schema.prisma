@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGODB_URI")
+}
+
+model ChatHistory {
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId           String
+  characterId      String
+  messages         Message[]
+  relationshipValue Int      @default(0)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([userId, characterId])
+}
+
+type Message {
+  role      String
+  content   String
+  timestamp DateTime @default(now())
+}
+
+model GameProgress {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String    @unique
+  currentScene String
+  inventory   String[]
+  relationships Json
+  choices     Choice[]
+  nfts        String[]
+  isPremium   Boolean   @default(false)
+  lastSaved   DateTime  @default(now())
+}
+
+type Choice {
+  sceneId    String
+  choiceText String
+  timestamp  DateTime @default(now())
+}
