@@ -1,39 +1,51 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { WalletIcon } from "lucide-react";
+import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { InjectedConnector } from "wagmi/connectors/injected";
 
 interface WalletStatusProps {
   onConnectedChange: (connected: boolean) => void;
 }
 
 export function WalletStatus({ onConnectedChange }: WalletStatusProps) {
-  const [address, setAddress] = useState<string | null>(null);
+  const { address, isConnected } = useAccount();
+  const { connect } = useConnect({
+    connector: new InjectedConnector(),
+  });
+  const { disconnect } = useDisconnect();
 
-  const connectWallet = async () => {
-    // TODO: Implement actual wallet connection
-    const mockAddress = "0x1234...5678";
-    setAddress(mockAddress);
-    onConnectedChange(true);
+  useEffect(() => {
+    onConnectedChange(isConnected);
+  }, [isConnected, onConnectedChange]);
+
+  const handleConnect = async () => {
+    try {
+      await connect();
+    } catch (error) {
+      console.error("Failed to connect wallet:", error);
+    }
   };
 
-  const disconnectWallet = () => {
-    setAddress(null);
-    onConnectedChange(false);
+  const handleDisconnect = () => {
+    disconnect();
   };
 
   return (
     <div className="flex items-center gap-4">
-      {address ? (
+      {isConnected && address ? (
         <>
-          <span className="text-sm text-muted-foreground">{address}</span>
-          <Button variant="outline" onClick={disconnectWallet}>
+          <span className="text-sm text-muted-foreground">
+            {address.slice(0, 6)}...{address.slice(-4)}
+          </span>
+          <Button variant="outline" onClick={handleDisconnect}>
             Disconnect
           </Button>
         </>
       ) : (
-        <Button onClick={connectWallet}>
+        <Button onClick={handleConnect}>
           <WalletIcon className="mr-2 h-4 w-4" />
           Connect Wallet
         </Button>
