@@ -29,10 +29,12 @@ export default function GamePage() {
     const fetchScenes = async () => {
       try {
         const fetchedScenes = await getGameScript();
-        setScenes(fetchedScenes);
         if (fetchedScenes.length > 0) {
-          setCurrentScene(fetchedScenes[0]);
-          setDisplayText(fetchedScenes[0].text);
+          setScenes(fetchedScenes);
+          // Find the intro scene or use the first scene
+          const introScene = fetchedScenes.find(scene => scene.sceneId === 'intro') || fetchedScenes[0];
+          setCurrentScene(introScene);
+          setDisplayText(introScene.text);
         }
       } catch (error) {
         console.error('Failed to fetch scenes:', error);
@@ -61,8 +63,12 @@ export default function GamePage() {
 
         // Generate new response
         const response = await generateDialogue(currentScene, choices);
-        setDisplayText(response);
-        cacheDialogue(currentScene.id, choices, response);
+        if (response) {
+          setDisplayText(response);
+          cacheDialogue(currentScene.id, choices, response);
+        } else {
+          setDisplayText(currentScene.text);
+        }
         setIsLoading(false);
       } else {
         setDisplayText(currentScene.text);
@@ -111,14 +117,12 @@ export default function GamePage() {
     );
   }
 
-  const backgroundImage = currentScene.background || 'classroom';
-
   return (
     <main className="relative w-full h-screen overflow-hidden">
       <div className="absolute inset-0">
         <Image
-          src={`/backgrounds/${backgroundImage}.jpg`}
-          alt={`${backgroundImage} background`}
+          src={`/backgrounds/${currentScene.background || 'classroom'}.jpg`}
+          alt={`${currentScene.background || 'classroom'} background`}
           fill
           className="object-cover"
           priority
@@ -141,19 +145,11 @@ export default function GamePage() {
         }}
       />
 
-      {isLoading ? (
-        <div className="fixed bottom-0 left-0 right-0 bg-black/80 text-white p-6 min-h-[200px] flex items-center justify-center">
-          <div className="animate-pulse text-xl text-blue-400">
-            Thinking...
-          </div>
-        </div>
-      ) : (
-        <DialogueBox
-          speaker={currentScene.character === 'mei' ? 'Mei' : undefined}
-          text={displayText}
-          onComplete={handleDialogueComplete}
-        />
-      )}
+      <DialogueBox
+        speaker={currentScene.character === 'mei' ? 'Mei' : 'Lily'}
+        text={displayText}
+        onComplete={handleDialogueComplete}
+      />
 
       {isDialogueComplete && currentScene.choices && (
         <ChoiceMenu

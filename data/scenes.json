@@ -1,56 +1,228 @@
-{
-  "scenes": [
-    {
-      "sceneId": "intro",
-      "character": "mei",
-      "emotion": "happy",
-      "text": "*adjusts her glasses with a warm smile* Welcome to our story! I'm Mei, and I'm excited to get to know you.",
-      "next": "cafe-scene",
-      "choices": null,
-      "context": null,
-      "requiresAI": false,
-      "background": "classroom",
-      "type": "dialogue",
-      "metadata": null
-    },
-    {
-      "sceneId": "cafe-scene",
-      "character": "mei",
-      "emotion": "curious",
-      "text": "*stirring her coffee thoughtfully* So, what brings you here today?",
-      "next": null,
-      "choices": [
-        {
-          "text": "I'm looking for a fresh start",
-          "next": "fresh-start"
-        },
-        {
-          "text": "I heard this place has great stories",
-          "next": "story-lover"
-        },
-        {
-          "text": "I'm following my dreams",
-          "next": "dreamer"
-        }
-      ],
-      "context": null,
-      "requiresAI": false,
-      "background": "classroom",
-      "type": "choice",
-      "metadata": null
-    },
-    {
-      "sceneId": "fresh-start",
-      "character": "mei",
-      "emotion": "encouraging",
-      "text": "*smiles warmly* A fresh start can be exactly what we need sometimes. Everyone has their own path to follow.",
-      "next": "tutorial-intro",
-      "choices": null,
-      "context": "Player is seeking a new beginning, show understanding and encouragement",
-      "requiresAI": true,
-      "background": "classroom",
-      "type": "dialogue",
-      "metadata": null
+[
+  {
+    "sceneId": "intro",
+    "character": "mei",
+    "emotion": "happy",
+    "text": "*adjusts her glasses with a warm smile* Welcome to our programming adventure! I'm Mei, and I'll be your guide through this journey of learning and discovery.",
+    "next": "intro_choice",
+    "choices": null,
+    "context": null,
+    "requiresAI": false,
+    "background": "classroom",
+    "type": "dialogue",
+    "metadata": {
+      "chapter": 1,
+      "position": 1
     }
-  ]
-}
+  },
+  {
+    "sceneId": "intro_choice",
+    "character": "mei",
+    "emotion": "curious",
+    "text": "*tilts her head thoughtfully* Before we begin, I'd love to know what brings you here. What interests you most about programming?",
+    "next": null,
+    "choices": [
+      {
+        "text": "I want to create something meaningful",
+        "next": "meaningful_path"
+      },
+      {
+        "text": "I'm curious about how things work",
+        "next": "curious_path"
+      },
+      {
+        "text": "I'm looking for a new challenge",
+        "next": "challenge_path"
+      }
+    ],
+    "context": null,
+    "requiresAI": false,
+    "background": "classroom",
+    "type": "choice",
+    "metadata": {
+      "chapter": 1,
+      "position": 2
+    }
+  },
+  {
+    "sceneId": "meaningful_path",
+    "character": "mei",
+    "emotion": "encouraging",
+    "text": "*eyes lighting up* That's wonderful! Creating meaningful solutions is what drew me to programming too. We can make a real difference with code.",
+    "next": "meet_lily",
+    "choices": null,
+    "context": "Player wants to create meaningful things with programming",
+    "requiresAI": true,
+    "background": "classroom",
+    "type": "dialogue",
+    "metadata": {
+      "chapter": 1,
+      "position": 3,
+      "relationship": {
+        "mei": 2
+      }
+    }
+  },
+  {
+    "sceneId": "curious_path",
+    "character": "mei",
+    "emotion": "excited",
+    "text": "*clasps hands together enthusiastically* That curiosity will take you far! Understanding the 'how' and 'why' is essential in programming.",
+    "next": "meet_lily",
+    "choices": null,
+    "context": "Player is curious about how programming works",
+    "requiresAI": true,
+    "background": "classroom",
+    "type": "dialogue",
+    "metadata": {
+      "chapter": 1,
+      "position": 3,
+      "relationship": {
+        "mei": 1
+      }
+    }
+  },
+  {
+    "sceneId": "challenge_path",
+    "character": "mei",
+    "emotion": "thoughtful",
+    "text": "*nods appreciatively* Programming offers endless opportunities for growth and learning. Each challenge you overcome makes you stronger.",
+    "next": "meet_lily",
+    "choices": null,
+    "context": "Player seeks challenges in programming",
+    "requiresAI": true,
+    "background": "classroom",
+    "type": "dialogue",
+    "metadata": {
+      "chapter": 1,
+      "position": 3,
+      "relationship": {
+        "mei": 1
+      }
+    }
+  },
+  {
+    "sceneId": "meet_lily",
+    "character": "lily",
+    "emotion": "happy",
+    "text": "*bursts into the room with energy* Hey there! I heard we had someone new joining us! I'm Lily, and I specialize in making technology beautiful!",
+    "next": "lily_intro_choice",
+    "choices": null,
+    "context": null,
+    "requiresAI": false,
+    "background": "classroom",
+    "type": "dialogue",
+    "metadata": {
+      "chapter": 1,
+      "position": 4
+    }
+  },
+  {
+    "sceneId": "lily_intro_choice",
+    "character": "lily",
+    "emotion": "excited",
+    "text": "*pulls out her tablet enthusiastically* Want to see how we can blend creativity with code? I've got some amazing projects to show you!",
+    "next": null,
+    "choices": [
+      {
+        "text": "I'd love to see your creative work",
+        "next": "creative_path"
+      },
+      {
+        "text": "How did you combine art and programming?",
+        "next": "art_tech_path"
+      }
+    ],
+    "context": null,
+    "requiresAI": false,
+    "background": "lab",
+    "type": "choice",
+    "metadata": {
+      "chapter": 1,
+      "position": 5
+    }
+  },
+  {
+    "sceneId": "creative_path",
+    "character": "lily",
+    "emotion": "inspired",
+    "text": "*eyes sparkling with excitement* Oh, you're going to love this! Let me show you how we can use code to create interactive art!",
+    "next": "first_project",
+    "choices": null,
+    "context": "Player shows interest in creative coding",
+    "requiresAI": true,
+    "background": "lab",
+    "type": "dialogue",
+    "metadata": {
+      "chapter": 1,
+      "position": 6,
+      "relationship": {
+        "lily": 2
+      }
+    }
+  },
+  {
+    "sceneId": "art_tech_path",
+    "character": "lily",
+    "emotion": "thoughtful",
+    "text": "*sketches while speaking* It all started when I realized code could bring my art to life. Technology is just another canvas!",
+    "next": "first_project",
+    "choices": null,
+    "context": "Player is curious about combining art and technology",
+    "requiresAI": true,
+    "background": "lab",
+    "type": "dialogue",
+    "metadata": {
+      "chapter": 1,
+      "position": 6,
+      "relationship": {
+        "lily": 1
+      }
+    }
+  },
+  {
+    "sceneId": "first_project",
+    "character": "mei",
+    "emotion": "teaching",
+    "text": "*steps forward with a gentle smile* Now that you've met both of us, shall we start with your first project? We can work together to create something special.",
+    "next": "project_choice",
+    "choices": null,
+    "context": null,
+    "requiresAI": false,
+    "background": "lab",
+    "type": "dialogue",
+    "metadata": {
+      "chapter": 1,
+      "position": 7
+    }
+  },
+  {
+    "sceneId": "project_choice",
+    "character": "mei",
+    "emotion": "curious",
+    "text": "*opens her laptop* What kind of project would you like to start with?",
+    "next": null,
+    "choices": [
+      {
+        "text": "Let's create an interactive story",
+        "next": "story_project"
+      },
+      {
+        "text": "I want to build a game",
+        "next": "game_project"
+      },
+      {
+        "text": "Show me how to make a useful app",
+        "next": "app_project"
+      }
+    ],
+    "context": null,
+    "requiresAI": false,
+    "background": "lab",
+    "type": "choice",
+    "metadata": {
+      "chapter": 1,
+      "position": 8
+    }
+  }
+]

@@ -1,4 +1,3 @@
-import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 
 export const SceneType = z.object({
@@ -25,62 +24,18 @@ export type Scene = z.infer<typeof SceneType>;
 
 export async function getGameScript(): Promise<Scene[]> {
   try {
-    const scenes = await prisma.scene.findMany({
-      orderBy: { createdAt: 'asc' },
+    const response = await fetch('/api/game/scenes', {
+      credentials: 'include',
     });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch scenes');
+    }
 
-    return scenes;
+    const data = await response.json();
+    return data.scenes;
   } catch (error) {
     console.error('Failed to fetch scenes:', error);
     return [];
   }
 }
-
-// Sample scenes for testing
-export const initialScenes: Scene[] = [
-  {
-    id: '1',
-    sceneId: 'intro',
-    character: 'mei',
-    emotion: 'happy',
-    text: '*adjusts her glasses with a warm smile* Welcome to our story! I\'m Mei, and I\'m excited to get to know you.',
-    next: 'cafe-scene',
-    choices: null,
-    context: null,
-    requiresAI: false,
-    background: 'classroom',
-    type: 'dialogue',
-    metadata: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '2',
-    sceneId: 'cafe-scene',
-    character: 'mei',
-    emotion: 'curious',
-    text: '*stirring her coffee thoughtfully* So, what brings you here today?',
-    next: null,
-    choices: [
-      {
-        text: 'I\'m looking for a fresh start',
-        next: 'fresh-start',
-      },
-      {
-        text: 'I heard this place has great stories',
-        next: 'story-lover',
-      },
-      {
-        text: 'I\'m following my dreams',
-        next: 'dreamer',
-      },
-    ],
-    context: null,
-    requiresAI: false,
-    background: 'cafe',
-    type: 'choice',
-    metadata: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];

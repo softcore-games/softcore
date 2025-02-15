@@ -41,7 +41,7 @@ async function getCharacterProfiles() {
   }
 }
 
-// Fallback responses for different scene types
+// Fallback responses
 const fallbackResponses: Record<string, string> = {
   dialogue: '*continues the conversation thoughtfully* That\'s an interesting perspective.',
   event: '*observes the situation carefully* This could change everything.',
@@ -78,11 +78,11 @@ export async function generateDialogue(
     Previous Choices: ${previousChoices.join(', ')}
     
     Generate a natural, in-character response that:
-    1. Perfectly matches the character's personality and traits
-    2. Includes appropriate gestures and expressions in *asterisks*
-    3. Maintains the character's unique voice and mannerisms
-    4. Fits the scene type (${scene.type})
-    5. Keeps the response concise (2-3 sentences)
+    1. Reflects the character's personality and background
+    2. Responds appropriately to the context and player's choices
+    3. Includes appropriate gestures and expressions in *asterisks*
+    4. Maintains the character's unique voice and mannerisms
+    5. Keeps responses concise (2-3 sentences)
     
     Response:
   `;
@@ -93,7 +93,7 @@ export async function generateDialogue(
       messages: [
         {
           role: 'system',
-          content: 'You are generating dialogue for characters in a visual novel. Each character has unique traits and mannerisms that should be reflected in their responses.',
+          content: 'You are generating dialogue for characters in a visual novel game. Keep responses concise and in character.',
         },
         {
           role: 'user',
@@ -123,9 +123,12 @@ export function getCachedDialogue(sceneId: string, choices: string[]): string | 
 export function cacheDialogue(sceneId: string, choices: string[], response: string): void {
   const key = `${sceneId}-${choices.join('-')}`;
   
+  // If cache is at max size, remove the oldest entry
   if (responseCache.size >= MAX_CACHE_SIZE) {
-    const firstKey = responseCache.keys().next().value;
-    responseCache.delete(firstKey);
+    const keys = Array.from(responseCache.keys());
+    if (keys.length > 0) {
+      responseCache.delete(keys[0]);
+    }
   }
   
   responseCache.set(key, response);
