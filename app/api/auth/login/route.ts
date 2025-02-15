@@ -16,6 +16,13 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.findUnique({
       where: { email },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        password: true,
+        isAdmin: true,
+      },
     });
 
     if (!user) {
@@ -34,9 +41,12 @@ export async function POST(req: Request) {
       );
     }
 
-    // Generate token
+    // Generate token with isAdmin claim
     const accessToken = sign(
-      { userId: user.id },
+      { 
+        userId: user.id,
+        isAdmin: user.isAdmin 
+      },
       process.env.NEXTAUTH_SECRET!,
       { expiresIn: '1d' }
     );
@@ -47,6 +57,7 @@ export async function POST(req: Request) {
           id: user.id,
           email: user.email,
           username: user.username,
+          isAdmin: user.isAdmin,
         },
       },
       { status: 200 }

@@ -6,26 +6,47 @@ import { DialogueBox } from '@/components/game/DialogueBox';
 import { CharacterSprite } from '@/components/game/CharacterSprite';
 import { ChoiceMenu } from '@/components/game/ChoiceMenu';
 import { useGameStore } from '@/store/gameStore';
-import { gameScript } from '@/lib/game/script';
+import { getGameScript, type Scene } from '@/lib/game/script';
 import { generateDialogue, getCachedDialogue, cacheDialogue } from '@/lib/game/dialogue';
 import Image from 'next/image';
 
 export default function GamePage() {
   const router = useRouter();
-  const [currentScene, setCurrentScene] = useState(gameScript[0]);
-  const [displayText, setDisplayText] = useState(currentScene.text);
+  const [scenes, setScenes] = useState<Scene[]>([]);
+  const [currentScene, setCurrentScene] = useState<Scene | null>(null);
+  const [displayText, setDisplayText] = useState('');
   const [isDialogueComplete, setIsDialogueComplete] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { addChoice, choices } = useGameStore();
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
       router.push('/login');
+      return;
     }
+
+    const fetchScenes = async () => {
+      try {
+        const fetchedScenes = await getGameScript();
+        setScenes(fetchedScenes);
+        if (fetchedScenes.length > 0) {
+          setCurrentScene(fetchedScenes[0]);
+          setDisplayText(fetchedScenes[0].text);
+        }
+      } catch (error) {
+        console.error('Failed to fetch scenes:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchScenes();
   }, [router]);
 
   useEffect(() => {
+    if (!currentScene) return;
+
     const loadDialogue = async () => {
       if (currentScene.requiresAI) {
         setIsLoading(true);
@@ -57,7 +78,7 @@ export default function GamePage() {
 
   const handleChoice = (choice: { text: string; next: string }) => {
     addChoice(choice.text);
-    const nextScene = gameScript.find((scene) => scene.id === choice.next);
+    const nextScene = scenes.find((scene) => scene.sceneId === choice.next);
     if (nextScene) {
       setCurrentScene(nextScene);
       setIsDialogueComplete(false);
@@ -65,14 +86,30 @@ export default function GamePage() {
   };
 
   const handleContinue = () => {
-    if (currentScene.next) {
-      const nextScene = gameScript.find((scene) => scene.id === currentScene.next);
+    if (currentScene?.next) {
+      const nextScene = scenes.find((scene) => scene.sceneId === currentScene.next);
       if (nextScene) {
         setCurrentScene(nextScene);
         setIsDialogueComplete(false);
       }
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <div className="animate-pulse text-xl text-gray-400">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!currentScene) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <div className="text-xl text-gray-400">No scenes available</div>
+      </div>
+    );
+  }
 
   const backgroundImage = currentScene.background || 'classroom';
 

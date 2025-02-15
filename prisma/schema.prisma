@@ -12,6 +12,7 @@ model User {
   email     String     @unique
   username  String     @unique
   password  String
+  isAdmin   Boolean    @default(false)
   gameState GameState?
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -28,4 +29,47 @@ model GameState {
   lastSaved     DateTime @default(now())
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+model Scene {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  sceneId       String   @unique
+  character     String
+  emotion       String
+  text          String
+  next          String?
+  choices       Json?
+  context       String?
+  requiresAI    Boolean  @default(false)
+  background    String?
+  type          String   @default("dialogue")
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Character {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  characterId   String   @unique
+  name          String
+  personality   String
+  background    String
+  traits        String[]
+  relationships Json?
+  emotions      Json
+  images        Json     // Store emotion -> image URL mappings
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Asset {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  type      String   // "background" or "character"
+  name      String   // Identifier for the asset
+  url       String   // URL to the image
+  category  String?  // For backgrounds: category like "indoor", "outdoor", etc.
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([type, name])
 }

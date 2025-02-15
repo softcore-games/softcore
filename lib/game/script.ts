@@ -1,201 +1,86 @@
+import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 
 export const SceneType = z.object({
   id: z.string(),
+  sceneId: z.string(),
   character: z.string(),
   emotion: z.string(),
   text: z.string(),
-  next: z.string().optional(),
+  next: z.string().nullable(),
   choices: z.array(z.object({
     text: z.string(),
     next: z.string(),
-  })).optional(),
-  context: z.string().optional(),
-  requiresAI: z.boolean().optional(),
-  background: z.string().optional(),
-  codeChallenge: z.object({
-    code: z.string(),
-    task: z.string(),
-    solution: z.string(),
-  }).optional(),
+  })).nullable(),
+  context: z.string().nullable(),
+  requiresAI: z.boolean(),
+  background: z.string().nullable(),
+  type: z.string(),
+  metadata: z.record(z.any()).nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
 });
 
 export type Scene = z.infer<typeof SceneType>;
 
-export const gameScript: Scene[] = [
+export async function getGameScript(): Promise<Scene[]> {
+  try {
+    const scenes = await prisma.scene.findMany({
+      orderBy: { createdAt: 'asc' },
+    });
+
+    return scenes;
+  } catch (error) {
+    console.error('Failed to fetch scenes:', error);
+    return [];
+  }
+}
+
+// Sample scenes for testing
+export const initialScenes: Scene[] = [
   {
-    id: 'intro',
+    id: '1',
+    sceneId: 'intro',
     character: 'mei',
     emotion: 'happy',
+    text: '*adjusts her glasses with a warm smile* Welcome to our story! I\'m Mei, and I\'m excited to get to know you.',
+    next: 'cafe-scene',
+    choices: null,
+    context: null,
+    requiresAI: false,
     background: 'classroom',
-    text: '*smiles warmly, her eyes sparkling with genuine interest* Welcome, darling. I'm Mei, and I'll be here to guide you through your programming journey. *gently adjusts her glasses*',
-    next: 'lily-intro',
+    type: 'dialogue',
+    metadata: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
   {
-    id: 'lily-intro',
-    character: 'lily',
-    emotion: 'happy',
-    background: 'classroom',
-    text: '*bounces excitedly with a bright smile* Hi! I'm Lily! *clasps her hands together* I just know we're going to have the most wonderful time learning together!',
-    next: 'mei-response',
-  },
-  {
-    id: 'mei-response',
+    id: '2',
+    sceneId: 'cafe-scene',
     character: 'mei',
     emotion: 'curious',
-    background: 'classroom',
-    text: '*chuckles softly, leaning forward with gentle interest* Lily's enthusiasm is absolutely infectious, isn't it? *tilts her head thoughtfully* Tell me, sweetheart, what aspect of programming captures your imagination?',
+    text: '*stirring her coffee thoughtfully* So, what brings you here today?',
+    next: null,
     choices: [
       {
-        text: 'I want to build websites and apps!',
-        next: 'web-dev',
+        text: 'I\'m looking for a fresh start',
+        next: 'fresh-start',
       },
       {
-        text: 'I'm interested in AI and machine learning.',
-        next: 'ai-ml',
+        text: 'I heard this place has great stories',
+        next: 'story-lover',
       },
       {
-        text: 'I want to make games!',
-        next: 'game-dev',
+        text: 'I\'m following my dreams',
+        next: 'dreamer',
       },
     ],
-  },
-  {
-    id: 'web-dev',
-    character: 'mei',
-    emotion: 'excited',
-    background: 'office',
-    text: '*leans closer with a warm smile* Ah, web development! I adore your ambition, darling. *gestures elegantly* Together, we'll create beautiful digital experiences that touch people's hearts.',
-    next: 'lily-web-response',
-  },
-  {
-    id: 'lily-web-response',
-    character: 'lily',
-    emotion: 'excited',
-    background: 'office',
-    text: '*hugs herself excitedly* Oh my gosh, yes! *eyes sparkling* We can make the cutest websites ever! I just love how we can make things pretty with CSS and make them come alive with JavaScript!',
-    next: 'first-lesson',
-  },
-  {
-    id: 'ai-ml',
-    character: 'mei',
-    emotion: 'thoughtful',
-    background: 'lab',
-    text: '*eyes lighting up with admiration* How fascinating, darling. *places her hand gently on the desk* The realm of artificial intelligence is as complex as it is beautiful. I'll be delighted to explore its mysteries with you.',
-    next: 'lily-ai-response',
-  },
-  {
-    id: 'lily-ai-response',
-    character: 'lily',
-    emotion: 'curious',
-    background: 'lab',
-    text: '*rocks on her heels with wonder* It's like teaching computers to think and dream! *giggles softly* Sometimes they come up with the most surprising things, don't they?',
-    next: 'first-lesson',
-  },
-  {
-    id: 'game-dev',
-    character: 'mei',
-    emotion: 'excited',
-    background: 'gaming_room',
-    text: '*smirks playfully, eyes twinkling* Games are where logic meets imagination, darling. *traces patterns in the air* We'll weave code and creativity together to bring your visions to life.',
-    next: 'lily-game-response',
-  },
-  {
-    id: 'lily-game-response',
-    character: 'lily',
-    emotion: 'happy',
-    background: 'gaming_room',
-    text: '*jumps with joy* Yaaay! Games are the best! *twirls around* We can make something super special together, with adorable characters and magical effects!',
-    next: 'first-lesson',
-  },
-  {
-    id: 'first-lesson',
-    character: 'mei',
-    emotion: 'teaching',
-    background: 'classroom',
-    text: '*moves closer with a gentle smile* Let's start with something fundamental, sweetheart. *gestures gracefully* Variables are like precious little containers for our data.',
-    next: 'lily-variable-intro',
-  },
-  {
-    id: 'lily-variable-intro',
-    character: 'lily',
-    emotion: 'teaching',
-    background: 'classroom',
-    text: '*nods enthusiastically* Think of variables like special treasure boxes! *holds up imaginary box* We can put all sorts of wonderful things inside and give them cute names!',
-    choices: [
-      {
-        text: 'That makes sense! Can you give me an example?',
-        next: 'variable-example',
-      },
-      {
-        text: 'I'm a bit confused. Can you explain it differently?',
-        next: 'variable-alternative',
-      },
-    ],
-  },
-  {
-    id: 'variable-example',
-    character: 'mei',
-    emotion: 'happy',
-    background: 'classroom',
-    text: '*smiles warmly* Of course, darling. *gestures elegantly* Imagine we're creating a profile for you. We might have a variable called "name" that holds your lovely name, just like a digital nameplate.',
-    next: 'lily-example-response',
-  },
-  {
-    id: 'lily-example-response',
-    character: 'lily',
-    emotion: 'excited',
-    background: 'classroom',
-    text: '*bounces excitedly* Oh! And we could have another variable for your favorite color! *clasps hands together* It's like keeping all your special things in perfectly labeled boxes!',
-    next: 'variable-practice',
-  },
-  {
-    id: 'variable-alternative',
-    character: 'mei',
-    emotion: 'encouraging',
-    background: 'classroom',
-    text: '*leans in with a reassuring smile* Let me paint you a different picture, sweetheart. *gestures gracefully* Think of variables as your personal assistants, each one responsible for remembering something important for you.',
-    next: 'lily-alternative-response',
-  },
-  {
-    id: 'lily-alternative-response',
-    character: 'lily',
-    emotion: 'happy',
-    background: 'classroom',
-    text: '*nods eagerly* Yeah! Like having a friend who always remembers your birthday! *giggles* Variables are just as helpful and never forget what we tell them to remember!',
-    next: 'variable-practice',
-  },
-  {
-    id: 'variable-practice',
-    character: 'mei',
-    emotion: 'teaching',
-    background: 'classroom',
-    text: '*gazes encouragingly* Shall we try creating our first variable together, darling? *extends her hand invitingly* Don't worry, I'll guide you every step of the way.',
-    choices: [
-      {
-        text: 'I'll try it!',
-        next: 'practice-feedback',
-      },
-      {
-        text: 'Can we review variables one more time?',
-        next: 'variable-review',
-      },
-    ],
-  },
-  {
-    id: 'practice-feedback',
-    character: 'lily',
-    emotion: 'happy',
-    background: 'classroom',
-    text: '*claps excitedly* You're doing great! *gives a supportive thumbs up* See how easy it is when we break it down into tiny, manageable steps?',
-    next: 'mei-practice-response',
-  },
-  {
-    id: 'mei-practice-response',
-    character: 'mei',
-    emotion: 'happy',
-    background: 'classroom',
-    text: '*beams with pride* Beautifully done, my dear. *touches her heart* Your willingness to learn and try new things is truly admirable. Shall we continue our journey together?',
-    next: 'variable-success',
+    context: null,
+    requiresAI: false,
+    background: 'cafe',
+    type: 'choice',
+    metadata: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
 ];

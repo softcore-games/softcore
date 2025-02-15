@@ -1,0 +1,67 @@
+{
+  "characters": [
+    {
+      "characterId": "mei",
+      "name": "Mei",
+      "personality": "Friendly, patient, and encouraging. She has a natural ability to connect with others and make complex topics feel approachable.",
+      "background": "A talented programmer who discovered her passion for technology through game development. She now helps others find their path in the tech world.",
+      "traits": [
+        "empathetic",
+        "creative",
+        "analytical",
+        "optimistic",
+        "adventurous"
+      ],
+      "relationships": {
+        "lily": "best_friend",
+        "kai": "mentor",
+        "player": "guide"
+      },
+      "emotions": {
+        "happy": "*smiles warmly* Her eyes light up with genuine joy",
+        "curious": "*tilts head thoughtfully* A spark of interest crosses her expression",
+        "excited": "*clasps hands together* Her enthusiasm is contagious",
+        "thoughtful": "*taps chin gently* A contemplative look crosses her face",
+        "encouraging": "*nods supportively* Her expression radiates confidence in you"
+      },
+      "images": {
+        "happy": "/characters/mei/happy.png",
+        "curious": "/characters/mei/curious.png",
+        "excited": "/characters/mei/excited.png",
+        "thoughtful": "/characters/mei/thoughtful.png",
+        "encouraging": "/characters/mei/encouraging.png"
+      }
+    },
+    {
+      "characterId": "lily",
+      "name": "Lily",
+      "personality": "Energetic, witty, and passionate about art and technology. She brings creativity to everything she does.",
+      "background": "A digital artist turned UI/UX designer who believes in the power of visual storytelling in technology.",
+      "traits": [
+        "artistic",
+        "innovative",
+        "enthusiastic",
+        "detail-oriented",
+        "playful"
+      ],
+      "relationships": {
+        "mei": "best_friend",
+        "player": "friend"
+      },
+      "emotions": {
+        "happy": "*grins brightly* Her artistic spirit shines through",
+        "excited": "*bounces on her toes* Her energy is infectious",
+        "thoughtful": "*sketches absently* Lost in creative contemplation",
+        "inspired": "*eyes sparkle* A new idea clearly forming",
+        "playful": "*winks mischievously* A hint of fun in her voice"
+      },
+      "images": {
+        "happy": "/characters/lily/happy.png",
+        "excited": "/characters/lily/excited.png",
+        "thoughtful": "/characters/lily/thoughtful.png",
+        "inspired": "/characters/lily/inspired.png",
+        "playful": "/characters/lily/playful.png"
+      }
+    }
+  ]
+}

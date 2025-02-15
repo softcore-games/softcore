@@ -14,19 +14,28 @@ export function Header() {
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [showRegisterDialog, setShowRegisterDialog] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    // Check for authentication cookie
+    // Check for authentication and admin status
     const checkAuth = async () => {
       try {
         const response = await fetch('/api/profile', {
           credentials: 'include',
         });
-        setIsAuthenticated(response.ok);
+        if (response.ok) {
+          const data = await response.json();
+          setIsAuthenticated(true);
+          setIsAdmin(data.user.isAdmin || false);
+        } else {
+          setIsAuthenticated(false);
+          setIsAdmin(false);
+        }
       } catch (error) {
         setIsAuthenticated(false);
+        setIsAdmin(false);
       }
     };
     checkAuth();
@@ -42,6 +51,8 @@ export function Header() {
         credentials: 'include',
       });
       setIsAuthenticated(false);
+      setIsAdmin(false);
+      localStorage.removeItem('accessToken');
       toast({
         title: 'Success',
         description: 'Logged out successfully',
@@ -79,6 +90,16 @@ export function Header() {
                   <Play className="w-4 h-4 mr-2" />
                   Play
                 </GradientButton>
+
+                {isAdmin && (
+                  <GradientButton
+                    variant="settings"
+                    onClick={() => router.push('/admin')}
+                  >
+                    Admin
+                  </GradientButton>
+                )}
+
                 <GradientButton
                   variant="settings"
                   onClick={() => router.push('/settings')}
