@@ -2,131 +2,172 @@
 
 Softcore is an interactive visual novel game that combines programming education with engaging storytelling. Built with Next.js, TypeScript, and MongoDB, it offers a unique learning experience through character interactions and story-driven programming challenges.
 
+## Core Features
 
-## Features
+### 1. Visual Novel Engine
+- Dynamic dialogue system with character expressions and animations
+- Branching storylines based on player choices
+- Background scene management
+- Character sprite system with multiple emotions
+- Smooth transitions and animations using Framer Motion
 
-- 🎮 Interactive Visual Novel Gameplay
-- 👥 Character Relationship System
-- 💾 Automatic Save/Load Progress
-- 🔐 Secure Authentication System
-- ⚡ Real-time Dialogue Generation
-- 🎨 Beautiful UI with Custom Gradient Buttons
-- 🌙 Dark Mode Support
-- 📱 Responsive Design
+### 2. AI-Powered Dialogue Generation
+- OpenAI integration for dynamic character responses
+- Context-aware dialogue generation
+- Caching system for performance optimization
+- Fallback responses for offline functionality
 
-## Tech Stack
+### 3. User System
+- Secure authentication with JWT
+- Email and password registration
+- Profile management
+- Game progress saving/loading
+- User settings persistence
 
-- **Frontend:**
-  - Next.js 14
-  - TypeScript
-  - Tailwind CSS
-  - Framer Motion
-  - shadcn/ui Components
-  - Zustand (State Management)
+### 4. Game Mechanics
+- Choice-based narrative progression
+- Character relationship system
+- Multiple story paths
+- Auto-save functionality
+- Game settings customization:
+  - Text speed control
+  - Volume settings
+  - Autoplay options
 
-- **Backend:**
-  - MongoDB (Database)
-  - Prisma (ORM)
-  - JWT Authentication
-  - OpenAI API Integration
+### 5. Admin Dashboard
+- Comprehensive content management system
+- Scene Management:
+  - Create, edit, and delete scenes
+  - Configure dialogue, choices, and transitions
+  - Set scene backgrounds and character emotions
+  - Enable/disable AI generation for responses
+  
+- Character Management:
+  - Create and edit character profiles
+  - Define personality traits and backgrounds
+  - Manage character emotions and expressions
+  - Configure character relationships
+  
+- Asset Management:
+  - Upload and organize background images
+  - Manage character sprites
+  - Categorize assets by type
+  - Track asset usage
 
-## Getting Started
+### 6. Database Integration
+- MongoDB with Prisma ORM
+- Efficient data modeling for:
+  - User profiles
+  - Game states
+  - Scenes
+  - Characters
+  - Assets
+- Automatic schema validation
+- Type-safe database operations
 
-### Prerequisites
+### 7. Technical Features
+- Built with Next.js 14 and TypeScript
+- Server-side rendering for optimal performance
+- API routes for secure data handling
+- Responsive design for all screen sizes
+- Dark mode support
+- Modern UI with Tailwind CSS and shadcn/ui
 
-- Node.js 18 or higher
-- MongoDB Database
-- OpenAI API Key
+## Technology Stack
 
-### Environment Setup
+### Frontend
+- Next.js 14
+- TypeScript
+- Tailwind CSS
+- Framer Motion
+- shadcn/ui Components
+- Zustand (State Management)
 
-Create a `.env.local` file in the root directory with the following variables:
+### Backend
+- Next.js API Routes
+- MongoDB
+- Prisma ORM
+- JWT Authentication
+- OpenAI API Integration
 
-```env
-DATABASE_URL="your_mongodb_url"
-NEXTAUTH_SECRET="your_jwt_secret"
-OPENAI_API_KEY="your_openai_api_key"
-```
+### Development Tools
+- ESLint
+- Prettier
+- TypeScript
+- Zod (Schema Validation)
 
-### Installation
+## Security Features
 
-1. Clone the repository:
-```bash
-git clone https://github.com/developla/softcore.git
-cd softcore
-```
+### Authentication
+- JWT-based authentication
+- HTTP-only cookies
+- Password hashing with bcrypt
+- Protected API routes
+- Admin role management
 
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Generate Prisma client:
-```bash
-npx prisma generate
-```
-
-4. Run the development server:
-```bash
-npm run dev
-```
-
-The application will be available at `http://localhost:3000`
-
-## Project Structure
-
-```
-softcore/
-├── app/                    # Next.js app directory
-│   ├── api/               # API routes
-│   ├── game/              # Game pages
-│   └── settings/          # Settings pages
-├── components/            # React components
-│   ├── game/             # Game-specific components
-│   └── ui/               # UI components
-├── lib/                   # Utility functions
-├── prisma/               # Database schema
-└── store/                # State management
-```
+### Data Protection
+- Input validation with Zod
+- XSS protection
+- CSRF protection
+- Rate limiting
+- Secure headers
 
 ## Game Features
 
 ### Character System
 - Multiple characters with unique personalities
-- Relationship tracking
-- Dynamic dialogue generation using OpenAI
+- Dynamic relationship tracking
+- AI-powered dialogue generation
+- Emotion system with visual representations
 
 ### Progress System
 - Automatic save/load functionality
 - Progress tracking across chapters
 - Choice history
+- Relationship status tracking
 
 ### Settings
+- Text speed adjustment (slow/normal/fast)
 - Volume control
-- Text speed adjustment
-- Autoplay options
+- Autoplay toggle
+- UI customization options
 
-## Authentication
+## Admin Features
 
-The game uses a JWT-based authentication system with:
-- Secure password hashing
-- Refresh token rotation
-- HTTP-only cookies
-- Protected API routes
+### Scene Management
+- Create and edit scenes
+- Configure dialogue options
+- Set up choice branches
+- Manage scene backgrounds
+- Control AI dialogue generation
+
+### Character Management
+- Create and edit characters
+- Define personality traits
+- Configure emotions and expressions
+- Manage character relationships
+- Upload character sprites
+
+### Asset Management
+- Upload and organize backgrounds
+- Manage character images
+- Categorize assets
+- Track asset usage
+- Bulk import/export
 
 ## Database Schema
 
 ### User Model
 ```prisma
 model User {
-  id            String         @id @default(auto()) @map("_id") @db.ObjectId
-  email         String         @unique
-  username      String         @unique
-  password      String
-  refreshTokens RefreshToken[]
-  gameState     GameState?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  email     String     @unique
+  username  String     @unique
+  password  String
+  isAdmin   Boolean    @default(false)
+  gameState GameState?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 }
 ```
 
@@ -146,8 +187,90 @@ model GameState {
 }
 ```
 
-## Contributing
+### Scene Model
+```prisma
+model Scene {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  sceneId     String   @unique
+  character   String
+  emotion     String
+  text        String
+  next        String?
+  choices     Json?
+  context     String?
+  requiresAI  Boolean  @default(false)
+  background  String?
+  type        String   @default("dialogue")
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+```
 
+### Character Model
+```prisma
+model Character {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  characterId   String   @unique
+  name          String
+  personality   String
+  background    String
+  traits        String[]
+  relationships Json?
+  emotions      Json
+  images        Json
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+```
+
+### Asset Model
+```prisma
+model Asset {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  type      String
+  name      String
+  url       String
+  category  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([type, name])
+}
+```
+
+## Getting Started
+
+### Prerequisites
+- Node.js 18 or higher
+- MongoDB Database
+- OpenAI API Key
+
+### Environment Setup
+Create a `.env.local` file with:
+```env
+DATABASE_URL="your_mongodb_url"
+NEXTAUTH_SECRET="your_jwt_secret"
+OPENAI_API_KEY="your_openai_api_key"
+```
+
+### Installation
+```bash
+# Clone the repository
+git clone https://github.com/developla/softcore.git
+cd softcore
+
+# Install dependencies
+npm install
+
+# Generate Prisma client
+npx prisma generate
+
+# Start development server
+npm run dev
+```
+
+## Contributing
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
@@ -155,11 +278,4 @@ model GameState {
 5. Open a Pull Request
 
 ## License
-
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- Character artwork and backgrounds (Add credits for your assets)
-- OpenAI for dialogue generation
-- shadcn/ui for the component library
