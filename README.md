@@ -1,186 +1,165 @@
-# SoftCore - Blockchain-Powered Interactive Visual Novel
+# Softcore - A Programming-Themed Visual Novel
 
-SoftCore is an innovative interactive visual novel game that combines blockchain technology, AI-powered characters, and dynamic storytelling. Built on Core Blockchain, it offers players a unique experience where their choices matter and interactions with characters are enhanced by artificial intelligence.
+Softcore is an interactive visual novel game that combines programming education with engaging storytelling. Built with Next.js, TypeScript, and MongoDB, it offers a unique learning experience through character interactions and story-driven programming challenges.
 
-## 🎮 Features
 
-### Core Gameplay
-- **Interactive Storytelling**: Make choices that impact the narrative and shape your unique journey
-- **Dynamic Characters**: Interact with AI-powered characters that remember your choices
-- **Relationship System**: Build connections with characters through your decisions
-- **Mystery Elements**: Uncover hidden storylines and secrets
+## Features
 
-### Blockchain Integration
-- **NFT Characters & Items**: Own unique characters and items as NFTs
-- **Token-Gated Content**: Access premium choices and storylines using Core tokens
-- **On-Chain Progress**: Save key decisions on the blockchain
-- **NFT Collectibles**: Earn limited-edition NFTs for completing story arcs
+- 🎮 Interactive Visual Novel Gameplay
+- 👥 Character Relationship System
+- 💾 Automatic Save/Load Progress
+- 🔐 Secure Authentication System
+- ⚡ Real-time Dialogue Generation
+- 🎨 Beautiful UI with Custom Gradient Buttons
+- 🌙 Dark Mode Support
+- 📱 Responsive Design
 
-### NFT Mechanics
-- **Unique Digital Assets**: Each NFT scene is a one-of-a-kind digital asset representing ownership
-- **Transferability**: NFT scenes can be traded, collected, and shared between players
-- **Verifiable Ownership**: Blockchain technology ensures authenticity and security of assets
-- **Scene Creation**: Players can create and customize erotic scenes as NFTs
-- **Private Sharing**: NFT scenes can be shared privately or publicly
-- **Character Customization**: Personalize character traits and preferences
+## Tech Stack
 
-### Tokenomics
-#### Token Allocation
-| Category                          | Percentage | Vesting                        |
-|----------------------------------|------------|--------------------------------|
-| Liquidity                        | 40%        | -                              |
-| Seed Sale                        | 25%        | -                              |
-| Community, Strategic & Marketing  | 17.5%      | 25% at TGE, 3 Months Linear   |
-| Private Sale, Advisors & Partners | 7.5%       | -                              |
-| Treasury                         | 5%         | -                              |
-| Team                             | 5%         | 0% at TGE, 3 Months Linear     |
+- **Frontend:**
+  - Next.js 14
+  - TypeScript
+  - Tailwind CSS
+  - Framer Motion
+  - shadcn/ui Components
+  - Zustand (State Management)
 
-#### Token Utility
-- **In-Game Transactions**: Buy and sell digital assets, customizations, and premium content
-- **Rewards & Incentives**: Token rewards for active engagement and content creation
-- **Governance**: Community participation in decision-making processes
-- **Staking**: Users can stake tokens for additional benefits and rewards
+- **Backend:**
+  - MongoDB (Database)
+  - Prisma (ORM)
+  - JWT Authentication
+  - OpenAI API Integration
 
-### AI-Powered Features
-#### Free Mode
-- Limited daily AI interactions
-- Basic character responses
-- Core storyline access
+## Getting Started
 
-#### Premium Mode (Token-Powered)
-- Enhanced AI conversations using GPT-4
-- Deeper character memory and relationships
-- Exclusive dialogue options and story branches
-- Custom AI model selection
+### Prerequisites
 
-### Data Persistence (MongoDB)
-- **Chat History**: Store all player-character interactions
-- **Game Progress**: Save game state and choices
-- **Relationship Tracking**: Monitor and persist character relationships
-- **Player Inventory**: Track owned items and NFTs
-- **Achievement System**: Record player milestones
+- Node.js 18 or higher
+- MongoDB Database
+- OpenAI API Key
 
-## 🛠 Technical Stack
+### Environment Setup
 
-- **Frontend**: Next.js, Tailwind CSS, shadcn/ui
-- **Blockchain**: Core Network (EVM-compatible)
-- **Smart Contracts**: Solidity
-- **Database**: MongoDB Atlas
-- **AI Integration**: OpenAI API
-- **Authentication**: Web3 Wallet (MetaMask, WalletConnect)
+Create a `.env.local` file in the root directory with the following variables:
 
-## 📦 Prerequisites
-
-- Node.js 18+
-- Core Wallet or MetaMask
-- MongoDB Atlas account
-- Core testnet CORE tokens for testing
-- OpenAI API key
-- WalletConnect Project ID (Get it from [WalletConnect Cloud](https://cloud.walletconnect.com/))
-
-## 🚀 Getting Started
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/developla/softcore.git
-   cd softcore
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Set up environment variables:
-   ```bash
-   cp .env.example .env
-   ```
-   Fill in your environment variables:
-   - `MONGODB_URI`: Your MongoDB connection string
-   - `NEXT_PUBLIC_GAME_TOKEN_ADDRESS`: Core token contract address
-   - `NEXT_PUBLIC_GAME_ITEMS_ADDRESS`: NFT contract address
-   - `NEXT_PUBLIC_OPENAI_API_KEY`: OpenAI API key for AI features
-   - `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`: Your WalletConnect Project ID from WalletConnect Cloud
-
-4. Run the development server:
-   ```bash
-   npm run dev
-   ```
-
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
-
-## 🎮 Game Mechanics
-
-### Story Progression
-- Make choices that affect the narrative
-- Build relationships with characters
-- Collect items and NFTs
-- Unlock premium content with tokens
-
-### NFT System
-- Mint character companions
-- Collect special items
-- Trade assets on the marketplace
-- Stake tokens for premium features
-
-### AI Interactions
-- Chat with AI-powered characters
-- Dynamic responses based on relationship levels
-- Memory of previous interactions
-- Premium dialogue options
-- 
-
-## 🔗 Smart Contracts
-
-### GameToken (SCT)
-- ERC20 token for premium features
-- Staking mechanism
-- Premium status tracking
-
-### GameItems
-- ERC721 NFT implementation
-- Character and item minting
-- Metadata storage
-- Trading functionality
-
-## 🛡 Security
-
-- Row Level Security (RLS) for data protection
-- Secure wallet integration
-- Protected API endpoints
-- Rate limiting for AI interactions
-- MongoDB authentication and encryption
-
-## 🧪 Testing
-
-Run the test suite:
-```bash
-npm run test
+```env
+DATABASE_URL="your_mongodb_url"
+NEXTAUTH_SECRET="your_jwt_secret"
+OPENAI_API_KEY="your_openai_api_key"
 ```
 
-## 📝 License
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/developla/softcore.git
+cd softcore
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Generate Prisma client:
+```bash
+npx prisma generate
+```
+
+4. Run the development server:
+```bash
+npm run dev
+```
+
+The application will be available at `http://localhost:3000`
+
+## Project Structure
+
+```
+softcore/
+├── app/                    # Next.js app directory
+│   ├── api/               # API routes
+│   ├── game/              # Game pages
+│   └── settings/          # Settings pages
+├── components/            # React components
+│   ├── game/             # Game-specific components
+│   └── ui/               # UI components
+├── lib/                   # Utility functions
+├── prisma/               # Database schema
+└── store/                # State management
+```
+
+## Game Features
+
+### Character System
+- Multiple characters with unique personalities
+- Relationship tracking
+- Dynamic dialogue generation using OpenAI
+
+### Progress System
+- Automatic save/load functionality
+- Progress tracking across chapters
+- Choice history
+
+### Settings
+- Volume control
+- Text speed adjustment
+- Autoplay options
+
+## Authentication
+
+The game uses a JWT-based authentication system with:
+- Secure password hashing
+- Refresh token rotation
+- HTTP-only cookies
+- Protected API routes
+
+## Database Schema
+
+### User Model
+```prisma
+model User {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  email         String         @unique
+  username      String         @unique
+  password      String
+  refreshTokens RefreshToken[]
+  gameState     GameState?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+```
+
+### Game State Model
+```prisma
+model GameState {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String   @unique @db.ObjectId
+  user          User     @relation(fields: [userId], references: [id])
+  progress      Json
+  relationships Json
+  choices       Json
+  settings      Json
+  lastSaved     DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🤝 Contributing
+## Acknowledgments
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📞 Support
-
-For support, email support@softcore.game or join our Discord community.
-
-## 🙏 Acknowledgments
-
-- Core DAO for blockchain infrastructure
-- OpenAI for AI capabilities
-- MongoDB Atlas for database services
-- The amazing open-source community
-
----
-
-Built with ❤️ for the Core DAO ecosystem
+- Character artwork and backgrounds (Add credits for your assets)
+- OpenAI for dialogue generation
+- shadcn/ui for the component library

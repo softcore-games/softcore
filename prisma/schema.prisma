@@ -4,56 +4,38 @@ generator client {
 
 datasource db {
   provider = "mongodb"
-  url      = env("MONGODB_URI")
+  url      = env("DATABASE_URL")
 }
 
-model ChatHistory {
-  id               String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId           String
-  characterId      String
-  messages         Message[]
-  relationshipValue Int      @default(0)
-  intimacyLevel    Int      @default(0)
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-
-  @@index([userId, characterId])
+model User {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  email         String        @unique
+  username      String        @unique
+  password      String
+  refreshTokens RefreshToken[]
+  gameState     GameState?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
-type Message {
-  role      String
-  content   String
-  timestamp DateTime @default(now())
-  mood      String?
-  intimacy  Int?    @default(0)
+model RefreshToken {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  token     String   @unique
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }
 
-model GameProgress {
-  id             String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId         String    @unique
-  currentScene   String
-  inventory      String[]
-  relationships  Json
-  intimacyLevels Json
-  choices        Choice[]
-  nfts           String[]
-  isPremium      Boolean   @default(false)
-  preferences    Json?
-  lastSaved      DateTime  @default(now())
-}
-
-type Choice {
-  sceneId    String
-  choiceText String
-  timestamp  DateTime @default(now())
-  intimacy   Int?    @default(0)
-}
-
-model UserPreferences {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String   @unique
-  interests   String[]
-  boundaries  String[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model GameState {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String   @unique @db.ObjectId
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  progress      Json
+  relationships Json
+  choices       Json
+  settings      Json
+  lastSaved     DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
