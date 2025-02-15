@@ -8,8 +8,7 @@ export function middleware(request: NextRequest) {
 
   // Check if the path requires authentication
   if (protectedPaths.some(prefix => path.startsWith(prefix))) {
-    // Get token from cookie instead of header
-    const token = request.cookies.get('refreshToken');
+    const token = request.cookies.get('accessToken')?.value;
 
     if (!token) {
       return NextResponse.redirect(new URL('/login', request.url));

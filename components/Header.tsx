@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { LoginDialog } from '@/components/LoginDialog';
 import { RegisterDialog } from '@/components/RegisterDialog';
 import { useToast } from '@/hooks/use-toast';
-import { LogOut, Settings, Play } from 'lucide-react';
+import { LogOut, Settings, Play, User } from 'lucide-react';
 import { GradientButton } from '@/components/ui/gradient-button';
 
 export function Header() {
@@ -18,8 +18,18 @@ export function Header() {
 
   useEffect(() => {
     setMounted(true);
-    const token = localStorage.getItem('accessToken');
-    setIsAuthenticated(!!token);
+    // Check for authentication cookie
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/profile', {
+          credentials: 'include',
+        });
+        setIsAuthenticated(response.ok);
+      } catch (error) {
+        setIsAuthenticated(false);
+      }
+    };
+    checkAuth();
   }, []);
 
   // Prevent hydration mismatch by not rendering until mounted
@@ -27,8 +37,10 @@ export function Header() {
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      localStorage.removeItem('accessToken');
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
       setIsAuthenticated(false);
       toast({
         title: 'Success',
@@ -49,7 +61,10 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+            <h1 
+              onClick={() => router.push('/')}
+              className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent cursor-pointer"
+            >
               Softcore
             </h1>
           </div>
@@ -70,6 +85,13 @@ export function Header() {
                 >
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
+                </GradientButton>
+                <GradientButton
+                  variant="profile"
+                  onClick={() => router.push('/profile')}
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Profile
                 </GradientButton>
                 <GradientButton
                   variant="logout"

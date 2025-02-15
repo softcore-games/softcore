@@ -1,53 +1,40 @@
-'use client';
-
-import { ButtonHTMLAttributes, forwardRef } from 'react';
+import { forwardRef, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
-import { VariantProps, cva } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
+import type { ButtonHTMLAttributes } from 'react';
 
-const gradientButtonVariants = cva(
-  "font-medium transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg rounded-xl",
-  {
-    variants: {
-      variant: {
-        default: "bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white",
-        play: "bg-gradient-to-r from-pink-500/90 to-rose-600/90 hover:from-pink-600 hover:to-rose-700 text-white",
-        settings: "bg-gradient-to-r from-purple-500/90 to-violet-600/90 hover:from-purple-600 hover:to-violet-700 text-white",
-        logout: "bg-gradient-to-r from-red-500/90 to-orange-600/90 hover:from-red-600 hover:to-orange-700 text-white",
-        login: "bg-gradient-to-r from-rose-500/90 to-pink-600/90 hover:from-rose-600 hover:to-pink-700 text-white",
-        register: "bg-gradient-to-r from-violet-500/90 to-purple-600/90 hover:from-violet-600 hover:to-purple-700 text-white",
-      },
-      size: {
-        default: "px-4 py-2 text-sm",
-        sm: "px-3 py-1 text-sm",
-        lg: "px-8 py-6 text-lg",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
-    },
-  }
-);
-
-interface GradientButtonProps
-  extends ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof gradientButtonVariants> {
-  asChild?: boolean;
+export interface GradientButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'default' | 'settings' | 'play' | 'logout' | 'login' | 'register' | 'profile';
+  children?: ReactNode;
+  className?: string;
 }
 
-const GradientButton = forwardRef<HTMLButtonElement, GradientButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+export const GradientButton = forwardRef<HTMLButtonElement, GradientButtonProps>(
+  ({ className, variant = 'default', children, ...props }, ref) => {
+    const variants = {
+      default: 'from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700',
+      settings: 'from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700',
+      play: 'from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700',
+      logout: 'from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700',
+      login: 'from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700',
+      register: 'from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700',
+      profile: 'from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700',
+    };
+
     return (
       <Button
-        className={cn(gradientButtonVariants({ variant, size, className }))}
         ref={ref}
+        className={cn(
+          'bg-gradient-to-r transition-all duration-200',
+          variants[variant],
+          className
+        )}
         {...props}
-      />
+      >
+        {children}
+      </Button>
     );
   }
 );
 
-GradientButton.displayName = "GradientButton";
-
-export { GradientButton, gradientButtonVariants };
+GradientButton.displayName = 'GradientButton';
