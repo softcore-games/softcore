@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -18,16 +18,30 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+interface Asset {
+  id: string;
+  type: 'background' | 'character';
+  name: string;
+  url: string;
+  category?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 interface NewAssetDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
+  editingAsset: Asset | null;
+  onClose: () => void;
 }
 
 export function NewAssetDialog({
   open,
   onOpenChange,
   onSuccess,
+  editingAsset,
+  onClose,
 }: NewAssetDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,13 +52,37 @@ export function NewAssetDialog({
     category: '',
   });
 
+  useEffect(() => {
+    if (editingAsset) {
+      setAsset({
+        type: editingAsset.type,
+        name: editingAsset.name,
+        url: editingAsset.url,
+        category: editingAsset.category || '',
+      });
+    } else {
+      setAsset({
+        type: 'background',
+        name: '',
+        url: '',
+        category: '',
+      });
+    }
+  }, [editingAsset]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/admin/assets', {
-        method: 'POST',
+      const url = editingAsset
+        ? `/api/admin/assets/${editingAsset.id}`
+        : '/api/admin/assets';
+      
+      const method = editingAsset ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -54,15 +92,15 @@ export function NewAssetDialog({
       if (response.ok) {
         toast({
           title: 'Success',
-          description: 'Asset created successfully',
+          description: `Asset ${editingAsset ? 'updated' : 'created'} successfully`,
         });
         onSuccess();
-        onOpenChange(false);
+        onClose();
       } else {
         const data = await response.json();
         toast({
           title: 'Error',
-          description: data.error || 'Failed to create asset',
+          description: data.error || `Failed to ${editingAsset ? 'update' : 'create'} asset`,
           variant: 'destructive',
         });
       }
@@ -81,7 +119,9 @@ export function NewAssetDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-gray-800 text-white border-gray-700">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">Add New Asset</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">
+            {editingAsset ? 'Edit Asset' : 'Add New Asset'}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
@@ -140,7 +180,7 @@ export function NewAssetDialog({
             <Button
               type="button"
               variant="ghost"
-              onClick={() => onOpenChange(false)}
+              onClick={onClose}
               className="hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
             >
               Cancel
@@ -153,10 +193,10 @@ export function NewAssetDialog({
               {isSubmitting ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                  Creating...
+                  {editingAsset ? 'Updating...' : 'Creating...'}
                 </div>
               ) : (
-                'Add Asset'
+                editingAsset ? 'Update Asset' : 'Add Asset'
               )}
             </Button>
           </div>

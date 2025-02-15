@@ -69,16 +69,20 @@ export async function generateResponse(
 
 // Cache for storing generated responses
 const responseCache = new Map<string, string>();
+const MAX_CACHE_SIZE = 1000;
 
 export function getCachedResponse(key: string) {
   return responseCache.get(key);
 }
 
 export function cacheResponse(key: string, response: string) {
-  responseCache.set(key, response);
-  // Limit cache size to prevent memory issues
-  if (responseCache.size > 1000) {
-    const firstKey = responseCache.keys().next().value;
-    responseCache.delete(firstKey);
+  // If cache is at max size, remove the oldest entry
+  if (responseCache.size >= MAX_CACHE_SIZE) {
+    const keys = Array.from(responseCache.keys());
+    if (keys.length > 0) {
+      responseCache.delete(keys[0]);
+    }
   }
+  
+  responseCache.set(key, response);
 }

@@ -25,10 +25,14 @@ export async function POST(req: Request) {
     // Generate new response
     const response = await generateResponse(character, context, playerChoice);
     
-    // Cache the response
-    cacheResponse(cacheKey, response);
+    // Only cache if we got a valid response
+    if (response) {
+      cacheResponse(cacheKey, response);
+    }
 
-    return NextResponse.json({ response });
+    return NextResponse.json({ 
+      response: response || 'I\'m not sure how to respond to that right now.' 
+    });
   } catch (error) {
     console.error('Dialogue generation error:', error);
     return NextResponse.json(
