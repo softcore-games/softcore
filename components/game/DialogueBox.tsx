@@ -1,4 +1,6 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '@/store/gameStore';
 
@@ -10,10 +12,15 @@ interface DialogueBoxProps {
 
 export function DialogueBox({ text, speaker, onComplete }: DialogueBoxProps) {
   const { settings } = useGameStore();
-  const [displayedText, setDisplayedText] = React.useState('');
-  const [isComplete, setIsComplete] = React.useState(false);
+  const [displayedText, setDisplayedText] = useState('');
+  const [isComplete, setIsComplete] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
+    setDisplayedText('');
+    setIsComplete(false);
+  }, [text]);
+
+  useEffect(() => {
     let timeoutId: NodeJS.Timeout;
     const textSpeed = {
       slow: 100,
@@ -33,11 +40,21 @@ export function DialogueBox({ text, speaker, onComplete }: DialogueBoxProps) {
     return () => clearTimeout(timeoutId);
   }, [displayedText, text, settings.textSpeed, isComplete, onComplete]);
 
+  const handleClick = () => {
+    if (displayedText.length < text.length) {
+      // Show all text immediately when clicked
+      setDisplayedText(text);
+      setIsComplete(true);
+      onComplete?.();
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="fixed bottom-0 left-0 right-0 bg-black/80 text-white p-6 min-h-[200px]"
+      className="fixed bottom-0 left-0 right-0 bg-black/80 text-white p-6 min-h-[200px] cursor-pointer"
+      onClick={handleClick}
     >
       {speaker && (
         <h3 className="text-xl font-bold mb-2 text-blue-400">{speaker}</h3>
@@ -52,6 +69,16 @@ export function DialogueBox({ text, speaker, onComplete }: DialogueBoxProps) {
           {displayedText}
         </motion.p>
       </AnimatePresence>
+      
+      {isComplete && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="absolute bottom-4 right-4 text-white/60"
+        >
+          Click to continue...
+        </motion.div>
+      )}
     </motion.div>
   );
 }
