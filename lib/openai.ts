@@ -1,44 +1,71 @@
 import OpenAI from 'openai';
+import { prisma } from '@/lib/prisma';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-interface Character {
-  name: string;
-  personality: string;
-  background: string;
-}
+// Cache for character profiles
+let characterProfilesCache: Record<string, any> = {};
+let lastCacheUpdate = 0;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-const characterProfiles: Record<string, Character> = {
-  mei: {
-    name: 'Mei',
-    personality: 'Cheerful, intelligent, and supportive. She has a passion for computer science and enjoys helping others learn.',
-    background: 'A second-year computer science student who excels in her studies while maintaining a friendly and approachable demeanor.',
-  },
-  // Add more characters as needed
-};
+async function getCharacterProfiles() {
+  const now = Date.now();
+  
+  if (Object.keys(characterProfilesCache).length > 0 && now - lastCacheUpdate < CACHE_TTL) {
+    return characterProfilesCache;
+  }
+
+  try {
+    const characters = await prisma.character.findMany();
+    
+    characterProfilesCache = characters.reduce((acc, char) => ({
+      ...acc,
+      [char.characterId]: {
+        name: char.name,
+        personality: char.personality,
+        background: char.background,
+        traits: char.traits,
+        emotions: char.emotions,
+      },
+    }), {});
+
+    lastCacheUpdate = now;
+    return characterProfilesCache;
+  } catch (error) {
+    console.error('Failed to fetch character profiles:', error);
+    return {};
+  }
+}
 
 export async function generateResponse(
   character: string,
   context: string,
   playerChoice?: string
 ) {
+  const characterProfiles = await getCharacterProfiles();
   const profile = characterProfiles[character.toLowerCase()];
-  if (!profile) throw new Error('Character not found');
+  
+  if (!profile) {
+    console.error(`Character "${character}" not found`);
+    return null;
+  }
 
   const prompt = `
     Character: ${profile.name}
     Personality: ${profile.personality}
     Background: ${profile.background}
+    Traits: ${profile.traits.join(', ')}
     Context: ${context}
     ${playerChoice ? `Player's choice: ${playerChoice}` : ''}
     
     Generate a natural, in-character response that:
     1. Reflects the character's personality and background
     2. Responds appropriately to the context and player's choice
-    3. Maintains a friendly and engaging tone
-    4. Keeps responses concise (max 2-3 sentences)
+    3. Includes appropriate gestures and expressions in *asterisks*
+    4. Maintains the character's unique voice and mannerisms
+    5. Keeps responses concise (2-3 sentences)
     
     Response:
   `;
@@ -49,21 +76,21 @@ export async function generateResponse(
       messages: [
         {
           role: 'system',
-          content: 'You are an AI generating natural dialogue for a visual novel game. Keep responses concise and in character.',
+          content: 'You are an AI generating dialogue for characters in a visual novel game. Keep responses concise and in character.',
         },
         {
           role: 'user',
           content: prompt,
         },
       ],
-      max_tokens: 100,
+      max_tokens: 150,
       temperature: 0.7,
     });
 
-    return response.choices[0].message.content?.trim();
+    return response.choices[0].message.content?.trim() || null;
   } catch (error) {
     console.error('OpenAI API error:', error);
-    return 'I\'m not sure how to respond to that right now.';
+    return null;
   }
 }
 
