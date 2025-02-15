@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Download, Upload, Plus, Pencil, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
+import { NewSceneDialog } from './NewSceneDialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,14 +46,18 @@ export function ScenesList({ scenes, onExport, onImport }: ScenesListProps) {
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [editingScene, setEditingScene] = useState<Scene | null>(null);
   const [deletingScene, setDeletingScene] = useState<Scene | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
     if (!deletingScene) return;
 
     try {
+      setIsDeleting(true);
       const response = await fetch(`/api/admin/scenes/${deletingScene.id}`, {
         method: 'DELETE',
       });
+
+      const data = await response.json();
 
       if (response.ok) {
         toast({
@@ -61,7 +66,6 @@ export function ScenesList({ scenes, onExport, onImport }: ScenesListProps) {
         });
         router.refresh();
       } else {
-        const data = await response.json();
         toast({
           title: 'Error',
           description: data.error || 'Failed to delete scene',
@@ -71,10 +75,11 @@ export function ScenesList({ scenes, onExport, onImport }: ScenesListProps) {
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'An error occurred',
+        description: 'An error occurred while deleting the scene',
         variant: 'destructive',
       });
     } finally {
+      setIsDeleting(false);
       setDeletingScene(null);
     }
   };
@@ -223,6 +228,20 @@ export function ScenesList({ scenes, onExport, onImport }: ScenesListProps) {
         ))}
       </div>
 
+      <NewSceneDialog
+        open={showNewDialog || !!editingScene}
+        onOpenChange={(open) => {
+          setShowNewDialog(open);
+          if (!open) setEditingScene(null);
+        }}
+        onSuccess={() => {
+          setShowNewDialog(false);
+          setEditingScene(null);
+          router.refresh();
+        }}
+        editingScene={editingScene}
+      />
+
       <AlertDialog open={!!deletingScene} onOpenChange={() => setDeletingScene(null)}>
         <AlertDialogContent className="bg-gray-800 border-gray-700">
           <AlertDialogHeader>
@@ -232,14 +251,25 @@ export function ScenesList({ scenes, onExport, onImport }: ScenesListProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-gray-700 hover:bg-gray-600">
+            <AlertDialogCancel 
+              className="bg-gray-700 hover:bg-gray-600"
+              disabled={isDeleting}
+            >
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-red-600 hover:bg-red-700"
+              disabled={isDeleting}
             >
-              Delete
+              {isDeleting ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                  Deleting...
+                </div>
+              ) : (
+                'Delete'
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

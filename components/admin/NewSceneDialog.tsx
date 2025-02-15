@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -21,13 +21,36 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+interface Scene {
+  id: string;
+  sceneId: string;
+  character: string;
+  emotion: string;
+  text: string;
+  next?: string;
+  choices?: { text: string; next: string }[];
+  context?: string;
+  requiresAI: boolean;
+  background?: string;
+  type: string;
+  metadata?: Record<string, any>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 interface NewSceneDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
+  editingScene: Scene | null;
 }
 
-export function NewSceneDialog({ open, onOpenChange, onSuccess }: NewSceneDialogProps) {
+export function NewSceneDialog({
+  open,
+  onOpenChange,
+  onSuccess,
+  editingScene,
+}: NewSceneDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [scene, setScene] = useState({
@@ -44,13 +67,51 @@ export function NewSceneDialog({ open, onOpenChange, onSuccess }: NewSceneDialog
     metadata: {},
   });
 
+  useEffect(() => {
+    if (editingScene) {
+      setScene({
+        sceneId: editingScene.sceneId,
+        character: editingScene.character,
+        emotion: editingScene.emotion,
+        text: editingScene.text,
+        next: editingScene.next || '',
+        choices: editingScene.choices || [],
+        context: editingScene.context || '',
+        requiresAI: editingScene.requiresAI,
+        background: editingScene.background || 'classroom',
+        type: editingScene.type,
+        metadata: editingScene.metadata || {},
+      });
+    } else {
+      setScene({
+        sceneId: '',
+        character: 'mei',
+        emotion: 'happy',
+        text: '',
+        next: '',
+        choices: [],
+        context: '',
+        requiresAI: false,
+        background: 'classroom',
+        type: 'dialogue',
+        metadata: {},
+      });
+    }
+  }, [editingScene]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/admin/scenes', {
-        method: 'POST',
+      const url = editingScene
+        ? `/api/admin/scenes/${editingScene.id}`
+        : '/api/admin/scenes';
+      
+      const method = editingScene ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -60,7 +121,7 @@ export function NewSceneDialog({ open, onOpenChange, onSuccess }: NewSceneDialog
       if (response.ok) {
         toast({
           title: 'Success',
-          description: 'Scene created successfully',
+          description: `Scene ${editingScene ? 'updated' : 'created'} successfully`,
         });
         onSuccess();
         onOpenChange(false);
@@ -68,7 +129,7 @@ export function NewSceneDialog({ open, onOpenChange, onSuccess }: NewSceneDialog
         const data = await response.json();
         toast({
           title: 'Error',
-          description: data.error || 'Failed to create scene',
+          description: data.error || `Failed to ${editingScene ? 'update' : 'create'} scene`,
           variant: 'destructive',
         });
       }
@@ -110,7 +171,9 @@ export function NewSceneDialog({ open, onOpenChange, onSuccess }: NewSceneDialog
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-gray-800 text-white border-gray-700 max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">Create New Scene</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">
+            {editingScene ? 'Edit Scene' : 'Create New Scene'}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-6">
@@ -300,10 +363,10 @@ export function NewSceneDialog({ open, onOpenChange, onSuccess }: NewSceneDialog
               {isSubmitting ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                  Creating...
+                  {editingScene ? 'Updating...' : 'Creating...'}
                 </div>
               ) : (
-                'Create Scene'
+                editingScene ? 'Update Scene' : 'Create Scene'
               )}
             </Button>
           </div>

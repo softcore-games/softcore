@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -13,16 +13,32 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Trash } from 'lucide-react';
 
+interface Character {
+  id: string;
+  characterId: string;
+  name: string;
+  personality: string;
+  background: string;
+  traits: string[];
+  relationships?: Record<string, any>;
+  emotions: Record<string, string>;
+  images: Record<string, any>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 interface NewCharacterDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
+  editingCharacter: Character | null;
 }
 
 export function NewCharacterDialog({
   open,
   onOpenChange,
   onSuccess,
+  editingCharacter,
 }: NewCharacterDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -39,13 +55,45 @@ export function NewCharacterDialog({
   const [newTrait, setNewTrait] = useState('');
   const [newEmotion, setNewEmotion] = useState({ name: '', description: '' });
 
+  useEffect(() => {
+    if (editingCharacter) {
+      setCharacter({
+        characterId: editingCharacter.characterId,
+        name: editingCharacter.name,
+        personality: editingCharacter.personality,
+        background: editingCharacter.background,
+        traits: editingCharacter.traits,
+        relationships: editingCharacter.relationships || {},
+        emotions: editingCharacter.emotions,
+        images: editingCharacter.images,
+      });
+    } else {
+      setCharacter({
+        characterId: '',
+        name: '',
+        personality: '',
+        background: '',
+        traits: [],
+        relationships: {},
+        emotions: {},
+        images: {},
+      });
+    }
+  }, [editingCharacter]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/admin/characters', {
-        method: 'POST',
+      const url = editingCharacter
+        ? `/api/admin/characters/${editingCharacter.id}`
+        : '/api/admin/characters';
+      
+      const method = editingCharacter ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -55,7 +103,7 @@ export function NewCharacterDialog({
       if (response.ok) {
         toast({
           title: 'Success',
-          description: 'Character created successfully',
+          description: `Character ${editingCharacter ? 'updated' : 'created'} successfully`,
         });
         onSuccess();
         onOpenChange(false);
@@ -63,7 +111,7 @@ export function NewCharacterDialog({
         const data = await response.json();
         toast({
           title: 'Error',
-          description: data.error || 'Failed to create character',
+          description: data.error || `Failed to ${editingCharacter ? 'update' : 'create'} character`,
           variant: 'destructive',
         });
       }
@@ -120,7 +168,9 @@ export function NewCharacterDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-gray-800 text-white border-gray-700 max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">Create New Character</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">
+            {editingCharacter ? 'Edit Character' : 'Create New Character'}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-6">
@@ -283,10 +333,10 @@ export function NewCharacterDialog({
               {isSubmitting ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                  Creating...
+                  {editingCharacter ? 'Updating...' : 'Creating...'}
                 </div>
               ) : (
-                'Create Character'
+                editingCharacter ? 'Update Character' : 'Create Character'
               )}
             </Button>
           </div>

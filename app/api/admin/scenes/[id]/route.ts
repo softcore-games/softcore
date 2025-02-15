@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { verify } from 'jsonwebtoken';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { ObjectId } from 'mongodb';
 
 const sceneSchema = z.object({
   sceneId: z.string(),
@@ -100,6 +101,26 @@ export async function DELETE(
   }
 
   try {
+    // Validate that the ID is a valid MongoDB ObjectId
+    if (!ObjectId.isValid(params.id)) {
+      return NextResponse.json(
+        { error: 'Invalid scene ID' },
+        { status: 400 }
+      );
+    }
+
+    // Check if the scene exists before attempting to delete
+    const scene = await prisma.scene.findUnique({
+      where: { id: params.id },
+    });
+
+    if (!scene) {
+      return NextResponse.json(
+        { error: 'Scene not found' },
+        { status: 404 }
+      );
+    }
+
     await prisma.scene.delete({
       where: { id: params.id },
     });

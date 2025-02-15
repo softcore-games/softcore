@@ -9,16 +9,16 @@ const sceneSchema = z.object({
   character: z.string(),
   emotion: z.string(),
   text: z.string(),
-  next: z.string().optional(),
+  next: z.string().optional().nullable(),
   choices: z.array(z.object({
     text: z.string(),
     next: z.string(),
-  })).optional(),
-  context: z.string().optional(),
-  requiresAI: z.boolean(),
-  background: z.string().optional(),
-  type: z.string(),
-  metadata: z.record(z.any()).optional(),
+  })).optional().nullable(),
+  context: z.string().optional().nullable(),
+  requiresAI: z.boolean().default(false),
+  background: z.string().optional().nullable(),
+  type: z.string().default('dialogue'),
+  metadata: z.record(z.any()).optional().nullable(),
 });
 
 const importSchema = z.array(sceneSchema);
@@ -59,8 +59,16 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    // Extract the scenes array from the wrapper object
-    const scenesData = body.scenes || body;
+    // Extract the scenes array from the wrapper object if it exists
+    const scenesData = Array.isArray(body) ? body : body.scenes;
+    
+    if (!scenesData) {
+      return NextResponse.json(
+        { error: 'No scenes data provided' },
+        { status: 400 }
+      );
+    }
+
     const scenes = importSchema.parse(scenesData);
 
     await prisma.$transaction(async (tx) => {
@@ -69,7 +77,13 @@ export async function POST(req: Request) {
 
       // Import new scenes
       for (const scene of scenes) {
-        await tx.scene.create({ data: scene });
+        await tx.scene.create({
+          data: {
+            ...scene,
+            choices: scene.choices || undefined,
+            metadata: scene.metadata || undefined,
+          },
+        });
       }
     });
 

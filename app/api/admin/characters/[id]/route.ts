@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { verify } from 'jsonwebtoken';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { ObjectId } from 'mongodb';
 
 const characterSchema = z.object({
   characterId: z.string(),
@@ -94,6 +95,26 @@ export async function DELETE(
   }
 
   try {
+    // Validate that the ID is a valid MongoDB ObjectId
+    if (!ObjectId.isValid(params.id)) {
+      return NextResponse.json(
+        { error: 'Invalid character ID' },
+        { status: 400 }
+      );
+    }
+
+    // Check if the character exists before attempting to delete
+    const character = await prisma.character.findUnique({
+      where: { id: params.id },
+    });
+
+    if (!character) {
+      return NextResponse.json(
+        { error: 'Character not found' },
+        { status: 404 }
+      );
+    }
+
     await prisma.character.delete({
       where: { id: params.id },
     });

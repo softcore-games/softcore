@@ -10,7 +10,7 @@ const characterSchema = z.object({
   personality: z.string(),
   background: z.string(),
   traits: z.array(z.string()),
-  relationships: z.record(z.any()).optional(),
+  relationships: z.record(z.any()).optional().nullable(),
   emotions: z.record(z.string()),
   images: z.record(z.string()),
 });
@@ -53,8 +53,16 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    // Extract the characters array from the wrapper object
-    const charactersData = body.characters || body;
+    // Extract the characters array from the wrapper object if it exists
+    const charactersData = Array.isArray(body) ? body : body.characters;
+    
+    if (!charactersData) {
+      return NextResponse.json(
+        { error: 'No characters data provided' },
+        { status: 400 }
+      );
+    }
+
     const characters = importSchema.parse(charactersData);
 
     await prisma.$transaction(async (tx) => {
@@ -63,7 +71,12 @@ export async function POST(req: Request) {
 
       // Import new characters
       for (const character of characters) {
-        await tx.character.create({ data: character });
+        await tx.character.create({
+          data: {
+            ...character,
+            relationships: character.relationships || undefined,
+          },
+        });
       }
     });
 
