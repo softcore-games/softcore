@@ -8,6 +8,7 @@ import { ChoiceMenu } from '@/components/game/ChoiceMenu';
 import { useGameStore } from '@/store/gameStore';
 import { gameScript } from '@/lib/game/script';
 import { generateDialogue, getCachedDialogue, cacheDialogue } from '@/lib/game/dialogue';
+import Image from 'next/image';
 
 export default function GamePage() {
   const router = useRouter();
@@ -73,9 +74,19 @@ export default function GamePage() {
     }
   };
 
+  const backgroundImage = currentScene.background || 'classroom';
+
   return (
-    <main className="relative w-full h-screen bg-black overflow-hidden">
-      <div className="absolute inset-0 bg-[url('/backgrounds/classroom.jpg')] bg-cover bg-center" />
+    <main className="relative w-full h-screen overflow-hidden">
+      <div className="absolute inset-0">
+        <Image
+          src={`/backgrounds/${backgroundImage}.jpg`}
+          alt={`${backgroundImage} background`}
+          fill
+          className="object-cover"
+          priority
+        />
+      </div>
       
       <CharacterSprite
         name={currentScene.character}
