@@ -3,19 +3,26 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { LoginDialog } from '@/components/LoginDialog';
+import { AgeVerificationDialog } from '@/components/AgeVerificationDialog';
 import { Play, Heart, Sparkles, Star, MessageCircle } from 'lucide-react';
 import { GradientButton } from '@/components/ui/gradient-button';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import Cookies from 'js-cookie';
 
 export default function Home() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [showAgeVerification, setShowAgeVerification] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
     setIsAuthenticated(!!token);
+
+    // Check age verification cookie
+    const isAgeVerified = Cookies.get('age_verified') === 'true';
+    setShowAgeVerification(!isAgeVerified);
   }, []);
 
   const handleStartClick = () => {
@@ -24,6 +31,10 @@ export default function Home() {
     } else {
       setShowLoginDialog(true);
     }
+  };
+
+  const handleAgeVerified = () => {
+    setShowAgeVerification(false);
   };
 
   const features = [
@@ -208,6 +219,11 @@ export default function Home() {
           setShowLoginDialog(false);
           router.push('/game');
         }}
+      />
+
+      <AgeVerificationDialog
+        open={showAgeVerification}
+        onVerify={handleAgeVerified}
       />
     </main>
   );

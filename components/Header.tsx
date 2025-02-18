@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoginDialog } from '@/components/LoginDialog';
 import { RegisterDialog } from '@/components/RegisterDialog';
+import { WalletConnect } from '@/components/WalletConnect';
 import { useToast } from '@/hooks/use-toast';
 import { LogOut, Settings, Play, User } from 'lucide-react';
 import { GradientButton } from '@/components/ui/gradient-button';
@@ -83,6 +84,8 @@ export function Header() {
           <nav className="flex items-center space-x-4">
             {isAuthenticated ? (
               <>
+                <WalletConnect />
+                
                 <GradientButton
                   variant="play"
                   onClick={() => router.push('/game')}
