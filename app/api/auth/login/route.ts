@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
-import { compare } from 'bcryptjs';
-import { sign } from 'jsonwebtoken';
-import { prisma } from '@/lib/prisma';
-import { z } from 'zod';
+import { NextResponse } from "next/server";
+import { compare } from "bcryptjs";
+import { sign } from "jsonwebtoken";
+import { prisma } from "@/lib/prisma";
+import { z } from "zod";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -22,12 +22,14 @@ export async function POST(req: Request) {
         username: true,
         password: true,
         isAdmin: true,
+        stamina: true,
+        lastStaminaReset: true,
       },
     });
 
     if (!user) {
       return NextResponse.json(
-        { error: 'Invalid credentials' },
+        { error: "Invalid credentials" },
         { status: 401 }
       );
     }
@@ -36,19 +38,19 @@ export async function POST(req: Request) {
 
     if (!isValidPassword) {
       return NextResponse.json(
-        { error: 'Invalid credentials' },
+        { error: "Invalid credentials" },
         { status: 401 }
       );
     }
 
     // Generate token with isAdmin claim
     const accessToken = sign(
-      { 
+      {
         userId: user.id,
-        isAdmin: user.isAdmin 
+        isAdmin: user.isAdmin,
       },
       process.env.NEXTAUTH_SECRET!,
-      { expiresIn: '1d' }
+      { expiresIn: "1d" }
     );
 
     const response = NextResponse.json(
@@ -58,25 +60,27 @@ export async function POST(req: Request) {
           email: user.email,
           username: user.username,
           isAdmin: user.isAdmin,
+          stamina: user.stamina,
+          lastStaminaReset: user.lastStaminaReset,
         },
       },
       { status: 200 }
     );
 
     // Set access token in HTTP-only cookie
-    response.cookies.set('accessToken', accessToken, {
+    response.cookies.set("accessToken", accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
       maxAge: 24 * 60 * 60, // 1 day
-      path: '/',
+      path: "/",
     });
 
     return response;
   } catch (error) {
-    console.error('Login error:', error);
+    console.error("Login error:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

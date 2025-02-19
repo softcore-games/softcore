@@ -1,63 +1,81 @@
-'use client';
+"use client";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { DialogueBox } from "@/components/game/DialogueBox";
+import { CharacterSprite } from "@/components/game/CharacterSprite";
+import { ChoiceMenu } from "@/components/game/ChoiceMenu";
+import { StaminaBar } from "@/components/StaminaBar";
+import { NFTMinter } from "@/components/NFTMinter";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { DialogueBox } from '@/components/game/DialogueBox';
-import { CharacterSprite } from '@/components/game/CharacterSprite';
-import { ChoiceMenu } from '@/components/game/ChoiceMenu';
-import { StaminaBar } from '@/components/StaminaBar';
-import { NFTMinter } from '@/components/NFTMinter';
-import { SceneImageGenerator } from '@/components/SceneImageGenerator';
-import { useGameStore } from '@/store/gameStore';
-import { getGameScript, type Scene } from '@/lib/game/script';
-import { generateDialogue, getCachedDialogue, cacheDialogue } from '@/lib/game/dialogue';
-import Image from 'next/image';
+import { SceneImageGenerator } from "@/components/SceneImageGenerator";
+import { useGameStore } from "@/store/gameStore";
+import { getGameScript, type Scene, generateScene } from "@/lib/game/script";
+import {
+  generateDialogue,
+  getCachedDialogue,
+  cacheDialogue,
+} from "@/lib/game/dialogue";
+import Image from "next/image";
 
 export default function GamePage() {
+  return <GameContent />;
+}
+
+function GameContent() {
   const router = useRouter();
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [currentScene, setCurrentScene] = useState<Scene | null>(null);
-  const [displayText, setDisplayText] = useState('');
+  const [displayText, setDisplayText] = useState("");
   const [isDialogueComplete, setIsDialogueComplete] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [stamina, setStamina] = useState({ current: 0, max: 0, subscription: 'FREE' });
+  const [stamina, setStamina] = useState({
+    current: 0,
+    max: 0,
+    subscription: "FREE",
+  });
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const { addChoice, choices } = useGameStore();
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-
     const fetchData = async () => {
       try {
         // Fetch stamina
-        const staminaResponse = await fetch('/api/user/stamina', {
-          credentials: 'include',
+        const staminaResponse = await fetch("/api/user/stamina", {
+          credentials: "include",
         });
-        if (staminaResponse.ok) {
-          const staminaData = await staminaResponse.json();
-          setStamina({
-            current: staminaData.stamina,
-            max: staminaData.maxStamina,
-            subscription: staminaData.subscription,
-          });
+
+        if (!staminaResponse.ok) {
+          if (staminaResponse.status === 401) {
+            router.push("/login");
+            return;
+          }
+          throw new Error("Failed to fetch stamina");
         }
 
-        // Fetch scenes
-        const fetchedScenes = await getGameScript();
-        if (fetchedScenes.length > 0) {
-          setScenes(fetchedScenes);
-          // Get a random scene that requires AI
-          const aiScenes = fetchedScenes.filter(scene => scene.requiresAI);
-          const randomScene = aiScenes[Math.floor(Math.random() * aiScenes.length)] || fetchedScenes[0];
-          setCurrentScene(randomScene);
-          setDisplayText(randomScene.text);
-        }
+        const staminaData = await staminaResponse.json();
+        setStamina({
+          current: staminaData.stamina,
+          max: staminaData.maxStamina,
+          subscription: staminaData.subscription,
+        });
+
+        // Start with completely random scene
+        const response = await fetch("/api/game/scene", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({}),
+        });
+
+        if (!response.ok) throw new Error("Failed to generate scene");
+        const randomScene = await response.json();
+
+        setScenes([randomScene]);
+        setCurrentScene(randomScene);
+        setDisplayText(randomScene.text);
       } catch (error) {
-        console.error('Failed to fetch data:', error);
+        console.error("Failed to fetch data:", error);
       } finally {
         setIsLoading(false);
       }
@@ -72,7 +90,7 @@ export default function GamePage() {
     const loadDialogue = async () => {
       if (currentScene.requiresAI) {
         setIsLoading(true);
-        
+
         // Check cache first
         const cachedResponse = getCachedDialogue(currentScene.id, choices);
         if (cachedResponse) {
@@ -102,40 +120,65 @@ export default function GamePage() {
     setIsDialogueComplete(true);
   };
 
-  const handleChoice = (choice: { text: string; next: string }) => {
+  const handleChoice = async (choice: { text: string; next: string }) => {
     addChoice(choice.text);
-    const nextScene = scenes.find((scene) => scene.sceneId === choice.next);
-    if (nextScene) {
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/game/scene", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          previousScene: currentScene,
+          playerChoice: choice.text,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to generate scene");
+      const nextScene = await response.json();
+
       setCurrentScene(nextScene);
       setIsDialogueComplete(false);
-      setGeneratedImage(null); // Reset generated image for new scene
+      setGeneratedImage(null);
+    } catch (error) {
+      console.error("Failed to generate next scene:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleContinue = () => {
-    if (currentScene?.next) {
-      const nextScene = scenes.find((scene) => scene.sceneId === currentScene.next);
-      if (nextScene) {
-        setCurrentScene(nextScene);
-        setIsDialogueComplete(false);
-        setGeneratedImage(null); // Reset generated image for new scene
-      }
-    } else {
-      // Get another random AI scene
-      const aiScenes = scenes.filter(scene => scene.requiresAI);
-      const randomScene = aiScenes[Math.floor(Math.random() * aiScenes.length)];
-      if (randomScene) {
-        setCurrentScene(randomScene);
-        setIsDialogueComplete(false);
-        setGeneratedImage(null);
-      }
+  const handleContinue = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/game/scene", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          previousScene: currentScene,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to generate scene");
+      const nextScene = await response.json();
+
+      setCurrentScene(nextScene);
+      setIsDialogueComplete(false);
+      setGeneratedImage(null);
+    } catch (error) {
+      console.error("Failed to generate next scene:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const generatePrompt = (scene: Scene) => {
-    return `A beautiful, high-quality anime-style scene featuring ${scene.character} 
-    showing ${scene.emotion} emotion. Setting: ${scene.background || 'classroom'}. 
-    Safe for work, no explicit content. Artistic and detailed.`;
+    return `A dynamic anime-style scene featuring ${scene.character} 
+    in ${scene.background} environment showing ${scene.emotion} emotion.
+    Unexpected story moment, surreal elements allowed. 
+    High-quality, detailed, and imaginative artwork.`;
   };
 
   if (isLoading) {
@@ -164,22 +207,22 @@ export default function GamePage() {
 
       <div className="absolute inset-0">
         <Image
-          src={`/backgrounds/${currentScene.background || 'classroom'}.jpg`}
-          alt={`${currentScene.background || 'classroom'} background`}
+          src={`/backgrounds/${currentScene.background || "classroom"}.jpg`}
+          alt={`${currentScene.background || "classroom"} background`}
           fill
           className="object-cover"
           priority
         />
       </div>
-      
+
       <CharacterSprite
         name={currentScene.character}
         emotion={currentScene.emotion}
         position="center"
         speaking={!isDialogueComplete}
       />
-      
-      <div 
+
+      <div
         className="absolute inset-0 cursor-pointer"
         onClick={() => {
           if (isDialogueComplete && !currentScene.choices) {
@@ -189,7 +232,7 @@ export default function GamePage() {
       />
 
       <DialogueBox
-        speaker={currentScene.character === 'mei' ? 'Mei' : 'Lily'}
+        speaker={currentScene.character === "mei" ? "Mei" : "Lily"}
         text={displayText}
         onComplete={handleDialogueComplete}
       />
@@ -201,13 +244,17 @@ export default function GamePage() {
             prompt={generatePrompt(currentScene)}
             onImageGenerated={setGeneratedImage}
           />
-          
+
           {generatedImage && (
             <NFTMinter
               imageUrl={generatedImage}
               metadata={{
                 name: `Scene: ${currentScene.sceneId}`,
-                description: `A special moment featuring ${currentScene.character} showing ${currentScene.emotion}. Background: ${currentScene.background || 'classroom'}. Text: ${currentScene.text}`,
+                description: `A special moment featuring ${
+                  currentScene.character
+                } showing ${currentScene.emotion}. Background: ${
+                  currentScene.background || "classroom"
+                }. Text: ${currentScene.text}`,
               }}
             />
           )}

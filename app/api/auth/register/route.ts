@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
-import { hash } from 'bcryptjs';
-import { prisma } from '@/lib/prisma';
-import { z } from 'zod';
+import { NextResponse } from "next/server";
+import { hash } from "bcryptjs";
+import { prisma } from "@/lib/prisma";
+import { z } from "zod";
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
 
     if (existingUser) {
       return NextResponse.json(
-        { error: 'User already exists' },
+        { error: "User already exists" },
         { status: 400 }
       );
     }
@@ -37,6 +37,8 @@ export async function POST(req: Request) {
         email,
         username,
         password: hashedPassword,
+        stamina: 100,
+        lastStaminaReset: new Date(),
         gameState: {
           create: {
             progress: {},
@@ -44,7 +46,7 @@ export async function POST(req: Request) {
             choices: {},
             settings: {
               volume: 100,
-              textSpeed: 'normal',
+              textSpeed: "normal",
               autoplay: false,
             },
           },
@@ -58,14 +60,15 @@ export async function POST(req: Request) {
           id: user.id,
           email: user.email,
           username: user.username,
+          stamina: user.stamina,
         },
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error("Registration error:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
