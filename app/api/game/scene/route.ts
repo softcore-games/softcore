@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { verify } from "jsonwebtoken";
 import OpenAI from "openai";
 import { Scene, SceneResponse } from "@/lib/types/game";
+import { STAMINA_COSTS } from "@/lib/constants";
 
 async function getUser(token: string) {
   try {
@@ -50,6 +51,37 @@ async function generateSceneImages(scene: Scene) {
   };
 }
 
+async function checkAndUpdateStamina(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { subscription: true },
+  });
+
+  if (!user) throw new Error("User not found");
+
+  // Free users need stamina
+  if (user.subscription?.type !== "UNLIMITED") {
+    if (user.stamina < STAMINA_COSTS.SCENE_GENERATION) {
+      throw new Error("Insufficient stamina");
+    }
+
+    // Deduct stamina and log usage
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: userId },
+        data: { stamina: user.stamina - STAMINA_COSTS.SCENE_GENERATION },
+      }),
+      prisma.staminaUsage.create({
+        data: {
+          userId,
+          amount: STAMINA_COSTS.SCENE_GENERATION,
+          type: "SCENE_GENERATION",
+        },
+      }),
+    ]);
+  }
+}
+
 export async function POST(request: Request) {
   try {
     // Auth check
@@ -60,6 +92,11 @@ export async function POST(request: Request) {
     }
 
     const { previousScene, playerChoice } = await request.json();
+
+    // Check stamina before generating new scene
+    if (!previousScene) {
+      await checkAndUpdateStamina(userId);
+    }
 
     // Check for existing unviewed scene first
     const existingUserScene = await prisma.userScene.findFirst({
