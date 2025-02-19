@@ -5,14 +5,14 @@ export interface Scene {
   emotion: string;
   text: string;
   next: string | null;
-  choices: { text: string; next: string }[] | null;
+  choices: any;
   context: string | null;
   requiresAI: boolean;
   background: string | null;
   characterImage: string | null;
   backgroundImage: string | null;
   type: string;
-  metadata: Record<string, any> | null;
+  metadata: any;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { verify } from "jsonwebtoken";
 import OpenAI from "openai";
-import { SceneResponse } from "@/lib/types/game";
+import { Scene, SceneResponse } from "@/lib/types/game";
 
 async function getUser(token: string) {
   try {
@@ -15,6 +15,39 @@ async function getUser(token: string) {
   } catch {
     return null;
   }
+}
+
+async function generateSceneImages(scene: Scene) {
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const [backgroundImage, characterImage] = await Promise.all([
+    !scene.backgroundImage
+      ? openai.images.generate({
+          model: "dall-e-3",
+          prompt: `Detailed ${
+            scene.background || "classroom"
+          } setting. High quality anime background art, visual novel style, cinematic wide view, no characters, highly detailed environment, professional lighting, 16:9 aspect ratio.`,
+          n: 1,
+          size: "1792x1024",
+          quality: "hd" as const,
+          style: "vivid" as const,
+        })
+      : null,
+    !scene.characterImage
+      ? openai.images.generate({
+          model: "dall-e-3",
+          prompt: `Full body portrait of an anime character showing ${scene.emotion} emotion. Visual novel style, high quality, transparent background, centered composition, detailed facial features and clothing, professional lighting.`,
+          n: 1,
+          size: "1024x1024",
+          quality: "standard" as const,
+          style: "natural" as const,
+        })
+      : null,
+  ]);
+
+  return {
+    characterImage: characterImage?.data[0]?.url || scene.characterImage,
+    backgroundImage: backgroundImage?.data[0]?.url || scene.backgroundImage,
+  };
 }
 
 export async function POST(request: Request) {
@@ -28,76 +61,42 @@ export async function POST(request: Request) {
 
     const { previousScene, playerChoice } = await request.json();
 
-    // Check for existing scene
-    if (!previousScene) {
-      const existingUserScene = await prisma.userScene.findFirst({
-        where: {
-          userId,
-          viewed: false,
-        },
-        include: {
-          scene: true,
-        },
-      });
+    // Check for existing unviewed scene first
+    const existingUserScene = await prisma.userScene.findFirst({
+      where: {
+        userId,
+        viewed: false,
+      },
+      include: {
+        scene: true,
+      },
+    });
 
-      if (existingUserScene?.scene) {
-        const scene = existingUserScene.scene;
+    if (existingUserScene?.scene) {
+      const scene = existingUserScene.scene;
 
-        // Check if scene is missing images
-        if (!scene.characterImage || !scene.backgroundImage) {
-          const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-          const [backgroundImage, characterImage] = await Promise.all([
-            !scene.backgroundImage
-              ? openai.images.generate({
-                  model: "dall-e-3",
-                  prompt: `Detailed ${
-                    scene.background || "classroom"
-                  } setting. High quality anime background art, visual novel style, cinematic wide view, no characters, highly detailed environment, professional lighting, 16:9 aspect ratio.`,
-                  n: 1,
-                  size: "1792x1024",
-                  quality: "hd" as const,
-                  style: "vivid" as const,
-                })
-              : null,
-            !scene.characterImage
-              ? openai.images.generate({
-                  model: "dall-e-3",
-                  prompt: `Full body portrait of an anime character showing ${scene.emotion} emotion. Visual novel style, high quality, transparent background, centered composition, detailed facial features and clothing, professional lighting.`,
-                  n: 1,
-                  size: "1024x1024",
-                  quality: "standard" as const,
-                  style: "natural" as const,
-                })
-              : null,
-          ]);
-
-          // Update scene with missing images
-          const updatedScene = await prisma.scene.update({
-            where: { sceneId: scene.sceneId },
-            data: {
-              characterImage:
-                characterImage?.data[0]?.url || scene.characterImage,
-              backgroundImage:
-                backgroundImage?.data[0]?.url || scene.backgroundImage,
-            },
-          });
-          return NextResponse.json({ scene: updatedScene });
-        }
-        return NextResponse.json({ scene });
+      // Generate missing images if needed
+      if (!scene.characterImage || !scene.backgroundImage) {
+        const images = await generateSceneImages(scene);
+        const updatedScene = await prisma.scene.update({
+          where: { sceneId: scene.sceneId },
+          data: images,
+        });
+        return NextResponse.json({ scene: updatedScene });
       }
+      return NextResponse.json({ scene });
     }
 
-    // Generate new scene with images
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    // Generate new scene
     const scene = await generateScene(previousScene, playerChoice);
 
-    // Check if scene already exists to prevent duplicates
+    // Check for existing scene by sceneId
     const existingScene = await prisma.scene.findUnique({
       where: { sceneId: scene.sceneId },
     });
 
     if (existingScene) {
-      // If scene exists, just create the UserScene relation
+      // Create UserScene relation and return existing scene
       await prisma.userScene.create({
         data: {
           userId,
@@ -105,32 +104,21 @@ export async function POST(request: Request) {
           viewed: false,
         },
       });
+
+      // Generate missing images if needed
+      if (!existingScene.characterImage || !existingScene.backgroundImage) {
+        const images = await generateSceneImages(existingScene);
+        const updatedScene = await prisma.scene.update({
+          where: { sceneId: scene.sceneId },
+          data: images,
+        });
+        return NextResponse.json({ scene: updatedScene });
+      }
       return NextResponse.json({ scene: existingScene });
     }
 
-    // Generate both images in parallel
-    const [backgroundImage, characterImage] = await Promise.all([
-      openai.images.generate({
-        model: "dall-e-3",
-        prompt: `Detailed ${
-          scene.background || "classroom"
-        } setting. High quality anime background art, visual novel style, cinematic wide view, no characters, highly detailed environment, professional lighting, 16:9 aspect ratio.`,
-        n: 1,
-        size: "1792x1024",
-        quality: "hd" as const,
-        style: "vivid" as const,
-      }),
-      openai.images.generate({
-        model: "dall-e-3",
-        prompt: `Full body portrait of an anime character showing ${scene.emotion} emotion. Visual novel style, high quality, transparent background, centered composition, detailed facial features and clothing, professional lighting.`,
-        n: 1,
-        size: "1024x1024",
-        quality: "standard" as const,
-        style: "natural" as const,
-      }),
-    ]);
-
-    // Create scene and user scene in a transaction
+    // Create new scene with images
+    const images = await generateSceneImages(scene);
     const [newScene] = await prisma.$transaction([
       prisma.scene.create({
         data: {
@@ -143,8 +131,7 @@ export async function POST(request: Request) {
           context: scene.context,
           requiresAI: scene.requiresAI,
           background: scene.background,
-          characterImage: characterImage.data[0]?.url || null,
-          backgroundImage: backgroundImage.data[0]?.url || null,
+          ...images,
           type: scene.type,
           metadata: scene.metadata,
         },

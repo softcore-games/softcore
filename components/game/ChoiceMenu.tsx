@@ -1,6 +1,6 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { useGameStore } from '@/store/gameStore';
+import React from "react";
+import { motion } from "framer-motion";
+import { useGameStore } from "@/store/gameStore";
 
 interface Choice {
   text: string;
@@ -19,7 +19,7 @@ export function ChoiceMenu({ choices }: ChoiceMenuProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 
-                 bg-black/90 p-6 rounded-lg min-w-[300px]"
+                 bg-black/90 p-6 rounded-lg min-w-[300px] z-30"
     >
       <div className="space-y-4">
         {choices.map((choice, index) => (
