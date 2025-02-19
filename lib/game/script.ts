@@ -1,6 +1,7 @@
 import { z } from "zod";
 import OpenAI from "openai";
 import { PrismaClient } from "@prisma/client";
+import { ObjectId } from "mongodb";
 
 const prisma = new PrismaClient();
 
@@ -22,6 +23,8 @@ export const SceneType = z.object({
   context: z.string().nullable(),
   requiresAI: z.boolean(),
   background: z.string().nullable(),
+  characterImage: z.string().nullable(),
+  backgroundImage: z.string().nullable(),
   type: z.string(),
   metadata: z.record(z.any()).nullable(),
   createdAt: z.date(),
@@ -42,43 +45,55 @@ export async function generateScene(
 
     const previousContext = previousScene?.text || "Starting new conversation";
 
-    // Get available characters from database
-    const characters = await prisma.character.findMany();
+    // Get available characters and assets from database
+    const [characters, backgrounds] = await Promise.all([
+      prisma.character.findMany(),
+      prisma.asset.findMany({
+        where: { type: "background" },
+      }),
+    ]);
 
-    // Handle case when no characters exist
+    // Handle case when no characters or backgrounds exist
     if (!characters || characters.length === 0) {
       throw new Error("No characters found in database");
     }
 
-    const randomCharacter =
-      characters[Math.floor(Math.random() * characters.length)];
-
     const prompt = `
-      Generate a random visual novel scene with:
-      - Random character (from available: ${characters
-        .map((c) => c.name)
-        .join(", ")})
-      - Random appropriate background setting
-      - Random emotion matching the character's personality
-      - Context: ${previousContext}
-      ${playerChoice ? `Player chose: ${playerChoice}` : ""}
+      Generate a dynamic visual novel scene that advances the story. Consider:
+      - Previous context: ${previousContext}
+      ${playerChoice ? `- Player's last choice: ${playerChoice}` : ""}
 
-      Generate:
-      1. Natural dialogue (1-2 sentences)
-      2. 2-3 choices for the player (if applicable)
-      3. Appropriate emotion and background based on character
-      4. Completely random story progression
-      
-      Return as JSON with: character, emotion, background, dialogue, choices
+      Available characters: ${characters
+        .map((c) => `${c.name} (${c.personality})`)
+        .join(", ")}
+
+      Available backgrounds: ${backgrounds.map((b) => b.name).join(", ")}
+
+      Generate a scene that includes:
+      1. The most appropriate character for this moment
+      2. Their emotional state and expression
+      3. A fitting background location
+      4. Natural dialogue (1-2 sentences)
+      5. 2-3 meaningful choices for the player
+      6. Story progression that feels natural but unexpected
+
+      Return as JSON with:
+      {
+        "character": "character_name",
+        "emotion": "character_emotion",
+        "background": "scene_location",
+        "dialogue": "character_dialogue",
+        "choices": ["choice1", "choice2", "choice3"]
+      }
     `;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo-json-mode",
+      model: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
           content:
-            "You are generating scenes for a programming education visual novel. Return only valid JSON.",
+            "You are generating dynamic scenes for an interactive visual novel. Create engaging, contextual responses that maintain story coherence.",
         },
         {
           role: "user",
@@ -90,32 +105,58 @@ export async function generateScene(
 
     const sceneData = JSON.parse(response.choices[0].message.content || "{}");
 
-    return {
-      id: Math.random().toString(36).substring(7),
-      sceneId: Math.random().toString(36).substring(7),
-      character: sceneData.character || randomCharacter.characterId,
+    // Find the matching character from our database
+    const selectedCharacter =
+      characters.find(
+        (c) => c.name.toLowerCase() === sceneData.character?.toLowerCase()
+      ) || characters[Math.floor(Math.random() * characters.length)];
+
+    // Find the matching background or use a default
+    const selectedBackground =
+      backgrounds.find(
+        (b) => b.name.toLowerCase() === sceneData.background?.toLowerCase()
+      )?.name || "classroom";
+
+    // Generate scene first
+    const scene = {
+      id: new ObjectId().toString(),
+      sceneId: new ObjectId().toString(),
+      character: selectedCharacter.characterId,
       emotion: sceneData.emotion || "neutral",
       text: sceneData.dialogue || "Let's see what happens next!",
       next: null,
       choices:
         sceneData.choices?.map((choice: string) => ({
           text: choice,
-          next: Math.random().toString(36).substring(7),
+          next: new ObjectId().toString(),
         })) || null,
-      context: sceneData.context || null,
+      context: previousContext,
       requiresAI: true,
-      background: sceneData.background || "mystery_zone",
+      background: selectedBackground,
+      characterImage: null,
+      backgroundImage: null,
       type: "dialogue",
-      metadata: null,
+      metadata: {
+        aiGenerated: true,
+        timestamp: new Date().toISOString(),
+        previousChoice: playerChoice || null,
+      },
       createdAt: new Date(),
       updatedAt: new Date(),
     };
+
+    // Save the scene to database
+    const savedScene = await prisma.scene.create({
+      data: scene,
+    });
+
+    return scene;
   } catch (error) {
     console.error("Failed to generate scene:", error);
-    // Return a more detailed fallback scene
+    // Return a fallback scene
     return {
-      id: Math.random().toString(36).substring(7),
-      sceneId: Math.random().toString(36).substring(7),
+      id: new ObjectId().toString(),
+      sceneId: new ObjectId().toString(),
       character: "mei",
       emotion: "neutral",
       text: "Something unexpected happened. Let's try a different path...",
@@ -123,16 +164,18 @@ export async function generateScene(
       choices: [
         {
           text: "Continue the adventure",
-          next: Math.random().toString(36).substring(7),
+          next: new ObjectId().toString(),
         },
         {
           text: "Start a new story",
-          next: Math.random().toString(36).substring(7),
+          next: new ObjectId().toString(),
         },
       ],
       context: null,
       requiresAI: false,
       background: "classroom",
+      characterImage: null,
+      backgroundImage: null,
       type: "dialogue",
       metadata: null,
       createdAt: new Date(),
