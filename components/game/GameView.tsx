@@ -1,11 +1,12 @@
 "use client";
-import React, { useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useGameStore } from "@/store/gameStore";
 import { DialogueBox } from "./DialogueBox";
 import { CharacterSprite } from "./CharacterSprite";
 import { ChoiceMenu } from "./ChoiceMenu";
 import { Background } from "./Background";
 import { LoadingView } from "./LoadingView";
+import { StaminaBar } from "@/components/StaminaBar";
 
 export function GameView() {
   const {
@@ -19,7 +20,11 @@ export function GameView() {
     addChoice,
     scenes,
   } = useGameStore();
-
+  const [stamina, setStamina] = useState({
+    current: 0,
+    max: 0,
+    subscription: "FREE",
+  });
   // Initialize game
   const initializeGame = useCallback(async () => {
     console.log("Initializing game...", { currentScene, scenes });
@@ -32,6 +37,30 @@ export function GameView() {
   useEffect(() => {
     initializeGame();
   }, [initializeGame]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch stamina
+        const staminaResponse = await fetch("/api/user/stamina", {
+          credentials: "include",
+        });
+        if (staminaResponse.ok) {
+          const staminaData = await staminaResponse.json();
+          setStamina({
+            current: staminaData.stamina,
+            max: staminaData.maxStamina,
+            subscription: staminaData.subscription,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+      } finally {
+      }
+    };
+
+    fetchData();
+  }, [currentScene]);
 
   const handleChoice = async (choice: { text: string; next: string }) => {
     console.log("Handling choice:", choice);
@@ -58,6 +87,11 @@ export function GameView() {
 
   return (
     <main className="relative w-full h-screen overflow-hidden">
+      <StaminaBar
+        currentStamina={stamina.current}
+        maxStamina={stamina.max}
+        subscription={stamina.subscription}
+      />
       <Background
         imageUrl={currentScene.backgroundImage}
         fallback={currentScene.background}
