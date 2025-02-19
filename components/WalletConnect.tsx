@@ -35,7 +35,7 @@ const NETWORKS = {
     blockExplorerUrls: ["https://scan.coredao.org"],
   },
   testnet: {
-    chainId: "0x45B", // 1115
+    chainId: "0x45B",
     chainName: "Core DAO Testnet",
     nativeCurrency: {
       name: "tCORE",
@@ -51,24 +51,40 @@ export function WalletConnect() {
   const { toast } = useToast();
   const [address, setAddress] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
-  const [isTestnet, setIsTestnet] = useState(true); // Default to testnet
+  const [isTestnet, setIsTestnet] = useState(true);
   const [isSwitching, setIsSwitching] = useState(false);
 
   useEffect(() => {
-    // Auto-switch to testnet on initial load
-    if (window.ethereum) {
-      switchNetwork(true);
-    }
+    const checkWalletConnection = async () => {
+      if (!window.ethereum) return;
+
+      try {
+        const provider = new BrowserProvider(window.ethereum);
+        const accounts = await provider.send("eth_accounts", []);
+
+        if (accounts.length > 0) {
+          const signer = await provider.getSigner();
+          const address = await signer.getAddress();
+          setAddress(address);
+
+          const network = await provider.getNetwork();
+          const targetChainId = parseInt(NETWORKS.testnet.chainId, 16);
+
+          setIsTestnet(network.chainId === BigInt(targetChainId));
+        }
+      } catch (error) {
+        console.error("Error checking wallet connection:", error);
+      }
+    };
+
+    checkWalletConnection();
   }, []);
 
-  const switchNetwork = async (isInitial = false) => {
+  const switchNetwork = async () => {
     if (!window.ethereum) return;
 
-    if (!isInitial) {
-      setIsSwitching(true);
-    }
-
     try {
+      setIsSwitching(true);
       const network = isTestnet ? NETWORKS.mainnet : NETWORKS.testnet;
       await window.ethereum.request({
         method: "wallet_switchEthereumChain",
@@ -84,44 +100,19 @@ export function WalletConnect() {
           });
         } catch (addError) {
           console.error("Failed to add network:", addError);
-          if (!isInitial) {
-            toast({
-              title: "Network Error",
-              description: "Failed to switch networks. Please try again.",
-              variant: "destructive",
-            });
-          }
+
           return;
         }
       } else {
         console.error("Failed to switch network:", switchError);
-        if (!isInitial) {
-          toast({
-            title: "Network Error",
-            description: "Failed to switch networks. Please try again.",
-            variant: "destructive",
-          });
-        }
+
         return;
       }
     } finally {
-      if (!isInitial) {
-        setIsSwitching(false);
-      }
+      setIsSwitching(false);
     }
 
     setIsTestnet(!isTestnet);
-    if (!isInitial) {
-      toast({
-        title: "Network Switched",
-        description: `Switched to ${!isTestnet ? "Testnet" : "Mainnet"}`,
-      });
-
-      // Reconnect wallet after network switch
-      if (address) {
-        await connectWallet();
-      }
-    }
   };
 
   const connectWallet = async () => {
@@ -140,7 +131,6 @@ export function WalletConnect() {
       await provider.send("eth_requestAccounts", []);
       const signer = await provider.getSigner();
       const address = await signer.getAddress();
-
       // Check if we're on the correct network
       const network = await provider.getNetwork();
       const targetChainId = parseInt(
@@ -148,17 +138,7 @@ export function WalletConnect() {
         16
       );
 
-      if (network.chainId !== BigInt(targetChainId)) {
-        try {
-          await window.ethereum.request({
-            method: "wallet_addEthereumChain",
-            params: [isTestnet ? NETWORKS.testnet : NETWORKS.mainnet],
-          });
-        } catch (error) {
-          console.error("Failed to add network:", error);
-        }
-      }
-
+      setIsTestnet(network.chainId === BigInt(targetChainId));
       setAddress(address);
       toast({
         title: "Wallet Connected",
@@ -178,15 +158,13 @@ export function WalletConnect() {
     }
   };
 
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
+  const formatAddress = (address: string) =>
+    `${address.slice(0, 6)}...${address.slice(-4)}`;
 
-  const getExplorerUrl = () => {
-    return isTestnet
+  const getExplorerUrl = () =>
+    isTestnet
       ? `https://scan.test.btcs.network/address/${address}`
       : `https://scan.coredao.org/address/${address}`;
-  };
 
   const disconnectWallet = () => {
     setAddress(null);
@@ -199,7 +177,7 @@ export function WalletConnect() {
   return (
     <div className="flex items-center gap-2">
       <Button
-        onClick={() => switchNetwork()}
+        onClick={switchNetwork}
         disabled={isSwitching}
         variant="outline"
         className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white font-medium"
