@@ -1,30 +1,42 @@
-import React from "react";
-import { Scene } from "@/lib/types/game";
+"use client";
+
+import React, { useEffect } from "react";
+import { useGameStore } from "@/store/gameStore";
 import { DialogueBox } from "./DialogueBox";
 import { CharacterSprite } from "./CharacterSprite";
 import { ChoiceMenu } from "./ChoiceMenu";
 import { Background } from "./Background";
 import { LoadingView } from "./LoadingView";
 
-interface GameViewProps {
-  currentScene: Scene | null;
-  isLoading: boolean;
-  displayText: string;
-  isDialogueComplete: boolean;
-  onChoice: (choice: { text: string; next: string }) => void;
-  onContinue: () => void;
-  onDialogueComplete: () => void;
-}
+export function GameView() {
+  const {
+    currentScene,
+    isLoading,
+    displayText,
+    isDialogueComplete,
+    isProcessingChoice,
+    fetchScene,
+    setDialogueComplete,
+    addChoice,
+  } = useGameStore();
 
-export function GameView({
-  currentScene,
-  isLoading,
-  displayText,
-  isDialogueComplete,
-  onChoice,
-  onContinue,
-  onDialogueComplete,
-}: GameViewProps) {
+  useEffect(() => {
+    if (!currentScene && !isProcessingChoice) {
+      fetchScene();
+    }
+  }, [currentScene, isProcessingChoice, fetchScene]);
+
+  const handleChoice = async (choice: { text: string; next: string }) => {
+    addChoice(choice.text);
+    await fetchScene(currentScene, choice);
+  };
+
+  const handleContinue = () => {
+    if (currentScene?.next) {
+      fetchScene(currentScene);
+    }
+  };
+
   if (isLoading || !currentScene) {
     return <LoadingView isError={!currentScene && !isLoading} />;
   }
@@ -46,7 +58,7 @@ export function GameView({
       <DialogueBox
         speaker={currentScene.character}
         text={displayText}
-        onComplete={onDialogueComplete}
+        onComplete={() => setDialogueComplete(true)}
       />
 
       {isDialogueComplete && currentScene.choices && (
@@ -54,15 +66,18 @@ export function GameView({
           choices={currentScene.choices.map(
             (choice: { text: string; next: string }) => ({
               text: choice.text,
-              action: () => onChoice(choice),
+              action: () => handleChoice(choice),
             })
           )}
-          isProcessingChoice={isLoading}
+          isProcessingChoice={isProcessingChoice}
         />
       )}
 
       {isDialogueComplete && !currentScene.choices && (
-        <div className="absolute inset-0 cursor-pointer" onClick={onContinue} />
+        <div
+          className="absolute inset-0 cursor-pointer"
+          onClick={handleContinue}
+        />
       )}
     </main>
   );
