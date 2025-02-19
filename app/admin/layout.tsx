@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useToast } from '@/hooks/use-toast';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AdminLayout({
   children,
@@ -17,10 +17,10 @@ export default function AdminLayout({
   useEffect(() => {
     const checkAdminStatus = async () => {
       try {
-        const response = await fetch('/api/profile', {
-          credentials: 'include',
+        const response = await fetch("/api/profile", {
+          credentials: "include",
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           if (data.user?.isAdmin) {
@@ -29,16 +29,16 @@ export default function AdminLayout({
             return;
           }
         }
-        
+
         toast({
-          title: 'Access Denied',
-          description: 'You do not have admin privileges',
-          variant: 'destructive',
+          title: "Access Denied",
+          description: "You do not have admin privileges",
+          variant: "destructive",
         });
-        router.push('/');
+        router.push("/");
       } catch (error) {
-        console.error('Admin check error:', error);
-        router.push('/');
+        console.error("Admin check error:", error);
+        router.push("/");
       }
     };
 

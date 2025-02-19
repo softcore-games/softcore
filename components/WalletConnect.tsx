@@ -202,7 +202,7 @@ export function WalletConnect() {
         onClick={() => switchNetwork()}
         disabled={isSwitching}
         variant="outline"
-        className="bg-gray-800 border-gray-700 hover:bg-gray-700"
+        className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white font-medium"
       >
         <SwitchCamera className="w-4 h-4 mr-2" />
         <span className="text-sm font-medium">
@@ -215,9 +215,9 @@ export function WalletConnect() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className="bg-gray-800 border-gray-700 hover:bg-gray-700 flex items-center gap-2"
+              className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white font-medium"
             >
-              <div className="w-2 h-2 rounded-full bg-green-500" />
+              <div className="w-2 h-2 rounded-full bg-green-500 mr-2" />
               <span className="text-sm font-medium">
                 {formatAddress(address)}
               </span>
@@ -247,7 +247,7 @@ export function WalletConnect() {
           disabled={isConnecting}
           className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white font-medium"
         >
-          <Wallet className="w-4 h-4 mr-2" />
+          <Wallet className="w-4 h-3 mr-2" />
           {isConnecting ? "Connecting..." : "Connect Wallet"}
         </Button>
       )}

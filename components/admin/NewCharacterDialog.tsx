@@ -1,31 +1,18 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
-import { Plus, Trash } from 'lucide-react';
-
-interface Character {
-  id: string;
-  characterId: string;
-  name: string;
-  personality: string;
-  background: string;
-  traits: string[];
-  relationships?: Record<string, any>;
-  emotions: Record<string, string>;
-  images: Record<string, any>;
-  createdAt: Date;
-  updatedAt: Date;
-}
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { Plus, Trash } from "lucide-react";
+import { Character } from "@/lib/types/game";
 
 interface NewCharacterDialogProps {
   open: boolean;
@@ -43,17 +30,17 @@ export function NewCharacterDialog({
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [character, setCharacter] = useState({
-    characterId: '',
-    name: '',
-    personality: '',
-    background: '',
+    characterId: "",
+    name: "",
+    personality: "",
+    background: "",
     traits: [] as string[],
     relationships: {},
     emotions: {} as Record<string, string>,
     images: {},
   });
-  const [newTrait, setNewTrait] = useState('');
-  const [newEmotion, setNewEmotion] = useState({ name: '', description: '' });
+  const [newTrait, setNewTrait] = useState("");
+  const [newEmotion, setNewEmotion] = useState({ name: "", description: "" });
 
   useEffect(() => {
     if (editingCharacter) {
@@ -69,10 +56,10 @@ export function NewCharacterDialog({
       });
     } else {
       setCharacter({
-        characterId: '',
-        name: '',
-        personality: '',
-        background: '',
+        characterId: "",
+        name: "",
+        personality: "",
+        background: "",
         traits: [],
         relationships: {},
         emotions: {},
@@ -88,38 +75,42 @@ export function NewCharacterDialog({
     try {
       const url = editingCharacter
         ? `/api/admin/characters/${editingCharacter.id}`
-        : '/api/admin/characters';
-      
-      const method = editingCharacter ? 'PUT' : 'POST';
+        : "/api/admin/characters";
+
+      const method = editingCharacter ? "PUT" : "POST";
 
       const response = await fetch(url, {
         method,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(character),
       });
 
       if (response.ok) {
         toast({
-          title: 'Success',
-          description: `Character ${editingCharacter ? 'updated' : 'created'} successfully`,
+          title: "Success",
+          description: `Character ${
+            editingCharacter ? "updated" : "created"
+          } successfully`,
         });
         onSuccess();
         onOpenChange(false);
       } else {
         const data = await response.json();
         toast({
-          title: 'Error',
-          description: data.error || `Failed to ${editingCharacter ? 'update' : 'create'} character`,
-          variant: 'destructive',
+          title: "Error",
+          description:
+            data.error ||
+            `Failed to ${editingCharacter ? "update" : "create"} character`,
+          variant: "destructive",
         });
       }
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'An error occurred',
-        variant: 'destructive',
+        title: "Error",
+        description: "An error occurred",
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -132,7 +123,7 @@ export function NewCharacterDialog({
         ...character,
         traits: [...character.traits, newTrait.trim()],
       });
-      setNewTrait('');
+      setNewTrait("");
     }
   };
 
@@ -152,7 +143,7 @@ export function NewCharacterDialog({
           [newEmotion.name]: newEmotion.description,
         },
       });
-      setNewEmotion({ name: '', description: '' });
+      setNewEmotion({ name: "", description: "" });
     }
   };
 
@@ -169,7 +160,7 @@ export function NewCharacterDialog({
       <DialogContent className="bg-gray-800 text-white border-gray-700 max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">
-            {editingCharacter ? 'Edit Character' : 'Create New Character'}
+            {editingCharacter ? "Edit Character" : "Create New Character"}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -279,7 +270,10 @@ export function NewCharacterDialog({
                   <Input
                     value={newEmotion.description}
                     onChange={(e) =>
-                      setNewEmotion({ ...newEmotion, description: e.target.value })
+                      setNewEmotion({
+                        ...newEmotion,
+                        description: e.target.value,
+                      })
                     }
                     className="bg-gray-700 border-gray-600"
                     placeholder="Description"
@@ -294,24 +288,28 @@ export function NewCharacterDialog({
                 </div>
               </div>
               <div className="space-y-2">
-                {Object.entries(character.emotions).map(([name, description]) => (
-                  <div
-                    key={name}
-                    className="flex items-center justify-between p-3 bg-gray-700 rounded-lg"
-                  >
-                    <div>
-                      <span className="font-medium text-blue-400">{name}</span>
-                      <p className="text-sm text-gray-300">{description}</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeEmotion(name)}
-                      className="text-gray-400 hover:text-red-400"
+                {Object.entries(character.emotions).map(
+                  ([name, description]) => (
+                    <div
+                      key={name}
+                      className="flex items-center justify-between p-3 bg-gray-700 rounded-lg"
                     >
-                      <Trash className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
+                      <div>
+                        <span className="font-medium text-blue-400">
+                          {name}
+                        </span>
+                        <p className="text-sm text-gray-300">{description}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeEmotion(name)}
+                        className="text-gray-400 hover:text-red-400"
+                      >
+                        <Trash className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )
+                )}
               </div>
             </div>
           </div>
@@ -333,10 +331,12 @@ export function NewCharacterDialog({
               {isSubmitting ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                  {editingCharacter ? 'Updating...' : 'Creating...'}
+                  {editingCharacter ? "Updating..." : "Creating..."}
                 </div>
+              ) : editingCharacter ? (
+                "Update Character"
               ) : (
-                editingCharacter ? 'Update Character' : 'Create Character'
+                "Create Character"
               )}
             </Button>
           </div>

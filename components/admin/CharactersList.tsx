@@ -16,20 +16,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Character } from '@/lib/types/game';
 
-interface Character {
-  id: string;
-  characterId: string;
-  name: string;
-  personality: string;
-  background: string;
-  traits: string[];
-  relationships?: Record<string, any>;
-  emotions: Record<string, string>;
-  images: Record<string, any>;
-  createdAt: Date;
-  updatedAt: Date;
-}
 
 interface CharactersListProps {
   characters: Character[];

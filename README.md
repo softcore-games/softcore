@@ -2,7 +2,7 @@
 
 ## 🏆 Hackathon Submission Details
 
-This project was created for the Core DAO Hackathon 2024. It represents an innovative combination of AI technology and blockchain capabilities to create a unique intimate storytelling platform.
+This project was created for the Core DAO Hackathon 2025. It represents an innovative combination of AI technology and blockchain capabilities to create a unique intimate storytelling platform.
 
 ### Innovation Highlights
 

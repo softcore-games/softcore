@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { LoginDialog } from '@/components/LoginDialog';
-import { RegisterDialog } from '@/components/RegisterDialog';
-import { WalletConnect } from '@/components/WalletConnect';
-import { useToast } from '@/hooks/use-toast';
-import { LogOut, Settings, Play, User } from 'lucide-react';
-import { GradientButton } from '@/components/ui/gradient-button';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { LoginDialog } from "@/components/LoginDialog";
+import { RegisterDialog } from "@/components/RegisterDialog";
+import { WalletConnect } from "@/components/WalletConnect";
+import { useToast } from "@/hooks/use-toast";
+import { LogOut, Settings, Play, User } from "lucide-react";
+import { GradientButton } from "@/components/ui/gradient-button";
 
 export function Header() {
   const router = useRouter();
@@ -23,8 +23,8 @@ export function Header() {
     // Check for authentication and admin status
     const checkAuth = async () => {
       try {
-        const response = await fetch('/api/profile', {
-          credentials: 'include',
+        const response = await fetch("/api/profile", {
+          credentials: "include",
         });
         if (response.ok) {
           const data = await response.json();
@@ -47,23 +47,23 @@ export function Header() {
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
       });
       setIsAuthenticated(false);
       setIsAdmin(false);
-      localStorage.removeItem('accessToken');
+      localStorage.removeItem("accessToken");
       toast({
-        title: 'Success',
-        description: 'Logged out successfully',
+        title: "Success",
+        description: "Logged out successfully",
       });
-      router.push('/');
+      router.push("/");
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to logout',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to logout",
+        variant: "destructive",
       });
     }
   };
@@ -73,8 +73,8 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <h1 
-              onClick={() => router.push('/')}
+            <h1
+              onClick={() => router.push("/")}
               className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent cursor-pointer"
             >
               Softcore
@@ -85,10 +85,9 @@ export function Header() {
             {isAuthenticated ? (
               <>
                 <WalletConnect />
-                
                 <GradientButton
                   variant="play"
-                  onClick={() => router.push('/game')}
+                  onClick={() => router.push("/game")}
                 >
                   <Play className="w-4 h-4 mr-2" />
                   Play
@@ -97,7 +96,7 @@ export function Header() {
                 {isAdmin && (
                   <GradientButton
                     variant="settings"
-                    onClick={() => router.push('/admin')}
+                    onClick={() => router.push("/admin")}
                   >
                     Admin
                   </GradientButton>
@@ -105,22 +104,20 @@ export function Header() {
 
                 <GradientButton
                   variant="settings"
-                  onClick={() => router.push('/settings')}
+                  onClick={() => router.push("/settings")}
                 >
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
                 </GradientButton>
                 <GradientButton
                   variant="profile"
-                  onClick={() => router.push('/profile')}
+                  onClick={() => router.push("/profile")}
                 >
                   <User className="w-4 h-4 mr-2" />
                   Profile
                 </GradientButton>
-                <GradientButton
-                  variant="logout"
-                  onClick={handleLogout}
-                >
+
+                <GradientButton variant="logout" onClick={handleLogout}>
                   <LogOut className="w-4 h-4 mr-2" />
                   Logout
                 </GradientButton>
