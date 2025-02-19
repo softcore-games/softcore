@@ -1,35 +1,42 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Scene, GameState } from "@/lib/types/game";
+import { Scene } from "@/lib/types/game";
 import { useGameStore } from "@/store/gameStore";
 
 export function useGameState() {
-  const [state, setState] = useState<GameState>({
-    scenes: [],
-    currentScene: null,
+  const [state, setState] = useState({
+    scenes: [] as Scene[],
+    currentScene: null as Scene | null,
     isLoading: true,
     displayText: "",
     isDialogueComplete: false,
+    isProcessingChoice: false,
   });
   const isLoadingRef = useRef(false);
   const router = useRouter();
-  const { addChoice, choices } = useGameStore();
+  const { addChoice } = useGameStore();
 
   const fetchScene = async (
     previousScene?: Scene | null,
-    playerChoice?: string
+    playerChoice?: { text: string; next: string }
   ) => {
     if (isLoadingRef.current) return;
 
     try {
       isLoadingRef.current = true;
-      setState((prev) => ({ ...prev, isLoading: true }));
+      setState((prev) => ({
+        ...prev,
+        isLoading: true,
+        isProcessingChoice: true,
+      }));
 
       const response = await fetch("/api/game/scene", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ previousScene, playerChoice }),
-        cache: "no-store",
+        body: JSON.stringify({
+          previousScene,
+          playerChoice: playerChoice?.next,
+        }),
       });
 
       if (!response.ok) {
@@ -48,13 +55,35 @@ export function useGameState() {
         currentScene: scene,
         displayText: scene.text,
         isDialogueComplete: false,
+        isLoading: false,
+        isProcessingChoice: false,
       }));
     } catch (error) {
       console.error("Failed to fetch scene:", error);
+      setState((prev) => ({
+        ...prev,
+        isLoading: false,
+        isProcessingChoice: false,
+      }));
     } finally {
-      setState((prev) => ({ ...prev, isLoading: false }));
       isLoadingRef.current = false;
     }
+  };
+
+  const handleChoice = async (choice: { text: string; next: string }) => {
+    if (state.isProcessingChoice) return;
+    addChoice(choice.text);
+    await fetchScene(state.currentScene, choice);
+  };
+
+  const handleContinue = () => {
+    if (state.currentScene?.next) {
+      fetchScene(state.currentScene);
+    }
+  };
+
+  const handleDialogueComplete = () => {
+    setState((prev) => ({ ...prev, isDialogueComplete: true }));
   };
 
   useEffect(() => {
@@ -65,12 +94,8 @@ export function useGameState() {
 
   return {
     ...state,
-    onChoice: async (choice: { text: string; next: string }) => {
-      addChoice(choice.text);
-      await fetchScene(state.currentScene, choice.text);
-    },
-    onContinue: () => fetchScene(state.currentScene),
-    onDialogueComplete: () =>
-      setState((prev) => ({ ...prev, isDialogueComplete: true })),
+    onChoice: handleChoice,
+    onContinue: handleContinue,
+    onDialogueComplete: handleDialogueComplete,
   };
 }

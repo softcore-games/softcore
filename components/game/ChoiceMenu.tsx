@@ -9,9 +9,10 @@ interface Choice {
 
 interface ChoiceMenuProps {
   choices: Choice[];
+  isProcessingChoice?: boolean;
 }
 
-export function ChoiceMenu({ choices }: ChoiceMenuProps) {
+export function ChoiceMenu({ choices, isProcessingChoice }: ChoiceMenuProps) {
   const addChoice = useGameStore((state) => state.addChoice);
 
   return (
@@ -22,18 +23,19 @@ export function ChoiceMenu({ choices }: ChoiceMenuProps) {
                  bg-black/90 p-6 rounded-lg min-w-[300px] z-30"
     >
       <div className="space-y-4">
-        {choices.map((choice, index) => (
+        {choices.map((choice: Choice, index) => (
           <motion.button
             key={index}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.1 }}
             className="w-full px-6 py-3 text-white bg-gray-800 hover:bg-gray-700
-                     rounded-lg transition-colors text-left"
+                     rounded-lg transition-colors text-left disabled:opacity-50"
             onClick={() => {
               addChoice(choice.text);
               choice.action();
             }}
+            disabled={isProcessingChoice}
           >
             {choice.text}
           </motion.button>

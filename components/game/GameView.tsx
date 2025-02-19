@@ -1,3 +1,4 @@
+import React from "react";
 import { Scene } from "@/lib/types/game";
 import { DialogueBox } from "./DialogueBox";
 import { CharacterSprite } from "./CharacterSprite";
@@ -48,22 +49,20 @@ export function GameView({
         onComplete={onDialogueComplete}
       />
 
-      {isDialogueComplete && (
-        <>
-          {currentScene.choices ? (
-            <ChoiceMenu
-              choices={currentScene.choices.map((choice) => ({
-                text: choice.text,
-                action: () => onChoice(choice),
-              }))}
-            />
-          ) : (
-            <div
-              className="absolute inset-0 cursor-pointer"
-              onClick={onContinue}
-            />
+      {isDialogueComplete && currentScene.choices && (
+        <ChoiceMenu
+          choices={currentScene.choices.map(
+            (choice: { text: string; next: string }) => ({
+              text: choice.text,
+              action: () => onChoice(choice),
+            })
           )}
-        </>
+          isProcessingChoice={isLoading}
+        />
+      )}
+
+      {isDialogueComplete && !currentScene.choices && (
+        <div className="absolute inset-0 cursor-pointer" onClick={onContinue} />
       )}
     </main>
   );

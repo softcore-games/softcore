@@ -23,7 +23,12 @@ export function CharacterSprite({
     right: "right-0",
   };
 
-  if (!imageUrl) return null;
+  if (!imageUrl) {
+    console.warn(
+      `No image URL provided for character ${name} with emotion ${emotion}`
+    );
+    return null;
+  }
 
   return (
     <motion.div
@@ -48,6 +53,12 @@ export function CharacterSprite({
         height={600}
         className="pointer-events-none"
         priority
+        onError={(e) => {
+          console.error(
+            `Failed to load image for ${name} with emotion ${emotion}`
+          );
+          e.currentTarget.style.display = "none";
+        }}
       />
     </motion.div>
   );
