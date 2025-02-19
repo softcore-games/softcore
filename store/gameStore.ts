@@ -46,14 +46,6 @@ interface GameState {
   ) => Promise<void>;
 }
 
-interface GameStore extends GameState {
-  updateScene: (scene: string) => void;
-  updateRelationship: (characterId: string, amount: number) => void;
-  addChoice: (choice: string) => void;
-  updateSettings: (settings: Partial<GameState["settings"]>) => void;
-  updateProgress: (progress: Partial<GameState["progress"]>) => void;
-}
-
 const FALLBACK_SCENE: Scene = {
   id: "fallback",
   sceneId: "fallback",
@@ -74,7 +66,7 @@ const FALLBACK_SCENE: Scene = {
   context: null,
   requiresAI: false,
   background: "classroom",
-  characterImage: "/characters/mei/neutral.png",
+  characterImage: "/characters/mei/curious.png",
   backgroundImage: "/backgrounds/classroom.jpg",
   type: "dialogue",
   metadata: { fallback: true },

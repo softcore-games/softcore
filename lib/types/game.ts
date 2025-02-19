@@ -32,3 +32,14 @@ export interface SceneResponse {
     background: string | null;
   };
 }
+
+export const STAMINA_COSTS = {
+  SCENE_GENERATION: 10,
+  NFT_MINT: 20,
+} as const;
+
+export const STAMINA_LIMITS = {
+  FREE: 100,
+  PREMIUM: 200,
+  UNLIMITED: Infinity,
+};

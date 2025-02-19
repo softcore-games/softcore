@@ -1,18 +1,8 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { verify } from 'jsonwebtoken';
-import { prisma } from '@/lib/prisma';
-
-const STAMINA_COSTS = {
-  SCENE_GENERATION: 10,
-  NFT_MINT: 25,
-};
-
-const STAMINA_LIMITS = {
-  FREE: 100,
-  PREMIUM: 200,
-  UNLIMITED: Infinity,
-};
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { verify } from "jsonwebtoken";
+import { prisma } from "@/lib/prisma";
+import { STAMINA_COSTS, STAMINA_LIMITS } from "@/lib/types/game";
 
 async function getUser(token: string) {
   try {
@@ -27,15 +17,15 @@ async function getUser(token: string) {
 
 export async function GET() {
   const cookieStore = cookies();
-  const token = cookieStore.get('accessToken')?.value;
+  const token = cookieStore.get("accessToken")?.value;
 
   if (!token) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const userId = await getUser(token);
   if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
@@ -47,7 +37,7 @@ export async function GET() {
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // Check if stamina needs to be reset (daily reset)
@@ -56,9 +46,10 @@ export async function GET() {
     const resetNeeded = lastReset.getDate() !== now.getDate();
 
     if (resetNeeded) {
-      const subscriptionType = user.subscription?.type || 'FREE';
-      const maxStamina = STAMINA_LIMITS[subscriptionType as keyof typeof STAMINA_LIMITS];
-      
+      const subscriptionType = user.subscription?.type || "FREE";
+      const maxStamina =
+        STAMINA_LIMITS[subscriptionType as keyof typeof STAMINA_LIMITS];
+
       await prisma.user.update({
         where: { id: userId },
         data: {
@@ -74,8 +65,9 @@ export async function GET() {
       });
     }
 
-    const subscriptionType = user.subscription?.type || 'FREE';
-    const maxStamina = STAMINA_LIMITS[subscriptionType as keyof typeof STAMINA_LIMITS];
+    const subscriptionType = user.subscription?.type || "FREE";
+    const maxStamina =
+      STAMINA_LIMITS[subscriptionType as keyof typeof STAMINA_LIMITS];
 
     return NextResponse.json({
       stamina: user.stamina,
@@ -83,9 +75,9 @@ export async function GET() {
       subscription: subscriptionType,
     });
   } catch (error) {
-    console.error('Stamina fetch error:', error);
+    console.error("Stamina fetch error:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch stamina' },
+      { error: "Failed to fetch stamina" },
       { status: 500 }
     );
   }
@@ -93,15 +85,15 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const cookieStore = cookies();
-  const token = cookieStore.get('accessToken')?.value;
+  const token = cookieStore.get("accessToken")?.value;
 
   if (!token) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const userId = await getUser(token);
   if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
@@ -110,7 +102,7 @@ export async function POST(req: Request) {
 
     if (!cost) {
       return NextResponse.json(
-        { error: 'Invalid action type' },
+        { error: "Invalid action type" },
         { status: 400 }
       );
     }
@@ -123,11 +115,11 @@ export async function POST(req: Request) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // Check if user has unlimited stamina
-    if (user.subscription?.type === 'UNLIMITED') {
+    if (user.subscription?.type === "UNLIMITED") {
       await prisma.staminaUsage.create({
         data: {
           userId,
@@ -139,14 +131,14 @@ export async function POST(req: Request) {
       return NextResponse.json({
         stamina: Infinity,
         maxStamina: Infinity,
-        subscription: 'UNLIMITED',
+        subscription: "UNLIMITED",
       });
     }
 
     // Check if user has enough stamina
     if (user.stamina < cost) {
       return NextResponse.json(
-        { error: 'Insufficient stamina' },
+        { error: "Insufficient stamina" },
         { status: 400 }
       );
     }
@@ -168,8 +160,9 @@ export async function POST(req: Request) {
       },
     });
 
-    const subscriptionType = updatedUser.subscription?.type || 'FREE';
-    const maxStamina = STAMINA_LIMITS[subscriptionType as keyof typeof STAMINA_LIMITS];
+    const subscriptionType = updatedUser.subscription?.type || "FREE";
+    const maxStamina =
+      STAMINA_LIMITS[subscriptionType as keyof typeof STAMINA_LIMITS];
 
     return NextResponse.json({
       stamina: updatedUser.stamina,
@@ -177,9 +170,9 @@ export async function POST(req: Request) {
       subscription: subscriptionType,
     });
   } catch (error) {
-    console.error('Stamina usage error:', error);
+    console.error("Stamina usage error:", error);
     return NextResponse.json(
-      { error: 'Failed to use stamina' },
+      { error: "Failed to use stamina" },
       { status: 500 }
     );
   }

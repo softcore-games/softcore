@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 import { verify } from "jsonwebtoken";
 import OpenAI from "openai";
 import { Scene, SceneResponse } from "@/lib/types/game";
-import { STAMINA_COSTS } from "@/lib/constants";
+import { STAMINA_COSTS } from "@/lib/types/game";
 
 async function getUser(token: string) {
   try {

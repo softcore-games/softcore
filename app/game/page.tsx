@@ -1,7 +1,13 @@
 "use client";
-import React from "react";
+
+import React, { Suspense } from "react";
 import { GameView } from "@/components/game/GameView";
+import { LoadingView } from "@/components/game/LoadingView";
 
 export default function GamePage() {
-  return <GameView />;
+  return (
+    <Suspense fallback={<LoadingView />}>
+      <GameView />
+    </Suspense>
+  );
 }

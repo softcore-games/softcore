@@ -1,6 +1,5 @@
 "use client";
-
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import { useGameStore } from "@/store/gameStore";
 import { DialogueBox } from "./DialogueBox";
 import { CharacterSprite } from "./CharacterSprite";
@@ -18,28 +17,44 @@ export function GameView() {
     fetchScene,
     setDialogueComplete,
     addChoice,
+    scenes,
   } = useGameStore();
 
-  useEffect(() => {
-    if (!currentScene && !isProcessingChoice) {
-      fetchScene();
+  // Initialize game
+  const initializeGame = useCallback(async () => {
+    console.log("Initializing game...", { currentScene, scenes });
+    if (!currentScene && !isProcessingChoice && scenes.length === 0) {
+      console.log("Fetching first scene...");
+      await fetchScene();
     }
-  }, [currentScene, isProcessingChoice, fetchScene]);
+  }, [currentScene, isProcessingChoice, scenes, fetchScene]);
+
+  useEffect(() => {
+    initializeGame();
+  }, [initializeGame]);
 
   const handleChoice = async (choice: { text: string; next: string }) => {
+    console.log("Handling choice:", choice);
     addChoice(choice.text);
     await fetchScene(currentScene, choice);
   };
 
   const handleContinue = () => {
+    console.log("Continuing to next scene...");
     if (currentScene?.next) {
       fetchScene(currentScene);
     }
   };
 
-  if (isLoading || !currentScene) {
-    return <LoadingView isError={!currentScene && !isLoading} />;
+  if (isLoading) {
+    return <LoadingView />;
   }
+
+  if (!currentScene) {
+    return <LoadingView isError={true} />;
+  }
+
+  console.log("Rendering scene:", currentScene);
 
   return (
     <main className="relative w-full h-screen overflow-hidden">
