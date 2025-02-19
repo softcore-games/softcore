@@ -1,44 +1,41 @@
-import { ethers } from 'ethers';
-import * as dotenv from 'dotenv';
-import nftAbi from '../contracts/CoreNFT.json';
+import { ethers } from "ethers";
+import * as dotenv from "dotenv";
+import * as nftArtifact from "../contracts/CoreNFT.json";
 
 dotenv.config();
 
 async function main() {
   // Connect to Core DAO network
-  const provider = new ethers.providers.JsonRpcProvider(process.env.CORE_RPC_URL);
-  
+  const provider = new ethers.JsonRpcProvider(process.env.CORE_RPC_URL);
+
+  if (!process.env.PRIVATE_KEY) {
+    throw new Error("Missing PRIVATE_KEY environment variable");
+  }
+
   // Load deployer wallet
-  const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
-  console.log('Deploying contracts with the account:', wallet.address);
+  const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+  console.log("Deploying contracts with the account:", wallet.address);
+
+  // Check balance
+  const balance = await provider.getBalance(wallet.address);
+  console.log("Account balance:", ethers.formatEther(balance));
 
   // Deploy NFT contract
-  const NFTFactory = new ethers.ContractFactory(
-    nftAbi.abi,
-    nftAbi.bytecode,
+  const factory = new ethers.ContractFactory(
+    nftArtifact.abi,
+    nftArtifact?.bytecode,
     wallet
   );
 
-  console.log('Deploying CoreNFT...');
-  const nft = await NFTFactory.deploy();
-  await nft.deployed();
+  console.log("Deploying CoreNFT...");
+  const nft = await factory.deploy();
+  await nft.waitForDeployment();
 
-  console.log('CoreNFT deployed to:', nft.address);
-  
-  // Verify the contract (if Core DAO has a block explorer API)
-  if (process.env.CORE_EXPLORER_API_KEY) {
-    console.log('Verifying contract...');
-    try {
-      await verifyContract(nft.address);
-      console.log('Contract verified successfully');
-    } catch (error) {
-      console.error('Error verifying contract:', error);
-    }
-  }
-}
+  const contractAddress = await nft.getAddress();
+  console.log("CoreNFT deployed to:", contractAddress);
 
-async function verifyContract(contractAddress: string) {
-  // Add verification logic here when Core DAO block explorer API is available
+  console.log("Verify with:");
+  console.log(`npx hardhat verify --network testnet ${contractAddress}`);
 }
 
 main()

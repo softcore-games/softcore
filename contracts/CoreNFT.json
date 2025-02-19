@@ -326,5 +326,6 @@
       "stateMutability": "nonpayable",
       "type": "function"
     }
-  ]
+  ],
+  "bytecode": "0x"
 }

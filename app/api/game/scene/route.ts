@@ -38,10 +38,13 @@ async function checkAndUpdateStamina(userId: string) {
 }
 
 export async function POST(request: Request) {
+  let staminaDeducted = false;
+  let userId: string | null = null;
+
   try {
     // Auth check
     const token = cookies().get("accessToken")?.value;
-    const userId = token ? await getUser(token) : null;
+    userId = token ? await getUser(token) : null;
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -51,6 +54,7 @@ export async function POST(request: Request) {
     // Check stamina before generating new scene
     if (!previousScene) {
       await checkAndUpdateStamina(userId);
+      staminaDeducted = true;
     }
 
     // Check for existing unviewed scene first
@@ -140,6 +144,34 @@ export async function POST(request: Request) {
     return NextResponse.json({ scene: newScene });
   } catch (error) {
     console.error("Failed to generate scene:", error);
+
+    // Refund stamina if it was deducted and there was an error
+    if (staminaDeducted && userId) {
+      try {
+        await prisma.user.update({
+          where: { id: userId },
+          data: {
+            stamina: {
+              increment: STAMINA_COSTS.SCENE_GENERATION,
+            },
+          },
+        });
+
+        // Delete the stamina usage record
+        await prisma.staminaUsage.deleteMany({
+          where: {
+            userId,
+            type: "SCENE_GENERATION",
+            createdAt: {
+              gte: new Date(Date.now() - 1000), // Last second
+            },
+          },
+        });
+      } catch (refundError) {
+        console.error("Failed to refund stamina:", refundError);
+      }
+    }
+
     return NextResponse.json(
       { error: "Failed to generate scene" },
       { status: 500 }

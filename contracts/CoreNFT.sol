@@ -12,6 +12,15 @@ contract CoreNFT is ERC721, ERC721URIStorage, Ownable {
 
     constructor() ERC721("SoftcoreNFT", "SOFT") {}
 
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ERC721, ERC721URIStorage)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
+    }
+
     function mint(string memory tokenURI) public returns (uint256) {
         _tokenIds.increment();
         uint256 newTokenId = _tokenIds.current();
