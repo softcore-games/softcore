@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import { DialogueBox } from '@/components/game/DialogueBox';
 import { CharacterSprite } from '@/components/game/CharacterSprite';
 import { ChoiceMenu } from '@/components/game/ChoiceMenu';
+import { StaminaBar } from '@/components/StaminaBar';
+import { NFTMinter } from '@/components/NFTMinter';
+import { SceneImageGenerator } from '@/components/SceneImageGenerator';
 import { useGameStore } from '@/store/gameStore';
 import { getGameScript, type Scene } from '@/lib/game/script';
 import { generateDialogue, getCachedDialogue, cacheDialogue } from '@/lib/game/dialogue';
@@ -17,6 +20,8 @@ export default function GamePage() {
   const [displayText, setDisplayText] = useState('');
   const [isDialogueComplete, setIsDialogueComplete] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [stamina, setStamina] = useState({ current: 0, max: 0, subscription: 'FREE' });
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const { addChoice, choices } = useGameStore();
 
   useEffect(() => {
@@ -26,24 +31,39 @@ export default function GamePage() {
       return;
     }
 
-    const fetchScenes = async () => {
+    const fetchData = async () => {
       try {
+        // Fetch stamina
+        const staminaResponse = await fetch('/api/user/stamina', {
+          credentials: 'include',
+        });
+        if (staminaResponse.ok) {
+          const staminaData = await staminaResponse.json();
+          setStamina({
+            current: staminaData.stamina,
+            max: staminaData.maxStamina,
+            subscription: staminaData.subscription,
+          });
+        }
+
+        // Fetch scenes
         const fetchedScenes = await getGameScript();
         if (fetchedScenes.length > 0) {
           setScenes(fetchedScenes);
-          // Find the intro scene or use the first scene
-          const introScene = fetchedScenes.find(scene => scene.sceneId === 'intro') || fetchedScenes[0];
-          setCurrentScene(introScene);
-          setDisplayText(introScene.text);
+          // Get a random scene that requires AI
+          const aiScenes = fetchedScenes.filter(scene => scene.requiresAI);
+          const randomScene = aiScenes[Math.floor(Math.random() * aiScenes.length)] || fetchedScenes[0];
+          setCurrentScene(randomScene);
+          setDisplayText(randomScene.text);
         }
       } catch (error) {
-        console.error('Failed to fetch scenes:', error);
+        console.error('Failed to fetch data:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchScenes();
+    fetchData();
   }, [router]);
 
   useEffect(() => {
@@ -88,6 +108,7 @@ export default function GamePage() {
     if (nextScene) {
       setCurrentScene(nextScene);
       setIsDialogueComplete(false);
+      setGeneratedImage(null); // Reset generated image for new scene
     }
   };
 
@@ -97,8 +118,24 @@ export default function GamePage() {
       if (nextScene) {
         setCurrentScene(nextScene);
         setIsDialogueComplete(false);
+        setGeneratedImage(null); // Reset generated image for new scene
+      }
+    } else {
+      // Get another random AI scene
+      const aiScenes = scenes.filter(scene => scene.requiresAI);
+      const randomScene = aiScenes[Math.floor(Math.random() * aiScenes.length)];
+      if (randomScene) {
+        setCurrentScene(randomScene);
+        setIsDialogueComplete(false);
+        setGeneratedImage(null);
       }
     }
+  };
+
+  const generatePrompt = (scene: Scene) => {
+    return `A beautiful, high-quality anime-style scene featuring ${scene.character} 
+    showing ${scene.emotion} emotion. Setting: ${scene.background || 'classroom'}. 
+    Safe for work, no explicit content. Artistic and detailed.`;
   };
 
   if (isLoading) {
@@ -119,6 +156,12 @@ export default function GamePage() {
 
   return (
     <main className="relative w-full h-screen overflow-hidden">
+      <StaminaBar
+        currentStamina={stamina.current}
+        maxStamina={stamina.max}
+        subscription={stamina.subscription}
+      />
+
       <div className="absolute inset-0">
         <Image
           src={`/backgrounds/${currentScene.background || 'classroom'}.jpg`}
@@ -150,6 +193,26 @@ export default function GamePage() {
         text={displayText}
         onComplete={handleDialogueComplete}
       />
+
+      {isDialogueComplete && (
+        <div className="fixed right-4 top-20 space-y-4 w-64">
+          <SceneImageGenerator
+            sceneId={currentScene.sceneId}
+            prompt={generatePrompt(currentScene)}
+            onImageGenerated={setGeneratedImage}
+          />
+          
+          {generatedImage && (
+            <NFTMinter
+              imageUrl={generatedImage}
+              metadata={{
+                name: `Scene: ${currentScene.sceneId}`,
+                description: `A special moment featuring ${currentScene.character} showing ${currentScene.emotion}. Background: ${currentScene.background || 'classroom'}. Text: ${currentScene.text}`,
+              }}
+            />
+          )}
+        </div>
+      )}
 
       {isDialogueComplete && currentScene.choices && (
         <ChoiceMenu

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Slider } from '@/components/ui/slider';
 import {
@@ -13,12 +13,35 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { useGameStore } from '@/store/gameStore';
 import { useToast } from '@/hooks/use-toast';
-import { Save, RotateCcw, Volume2, Clock, Play } from 'lucide-react';
+import { Save, RotateCcw, Volume2, Clock, Play, Zap } from 'lucide-react';
 import { GradientButton } from '@/components/ui/gradient-button';
 
 export default function SettingsPage() {
   const { settings, updateSettings } = useGameStore();
   const { toast } = useToast();
+  const [stamina, setStamina] = useState({ current: 0, max: 0, subscription: 'FREE' });
+
+  useEffect(() => {
+    const fetchStamina = async () => {
+      try {
+        const response = await fetch('/api/user/stamina', {
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setStamina({
+            current: data.stamina,
+            max: data.maxStamina,
+            subscription: data.subscription,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch stamina:', error);
+      }
+    };
+
+    fetchStamina();
+  }, []);
 
   const handleSave = () => {
     // Settings are automatically persisted by Zustand
@@ -62,6 +85,34 @@ export default function SettingsPage() {
             className="space-y-4"
           >
             <div className="flex items-center gap-2 text-xl font-semibold text-blue-400">
+              <Zap className="w-5 h-5" />
+              <h2>Stamina</h2>
+            </div>
+            <div className="bg-gray-700/50 p-4 rounded-lg space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Current Stamina</span>
+                <span className="text-sm font-medium">{stamina.current}/{stamina.max}</span>
+              </div>
+              <div className="h-2 bg-gray-600 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300"
+                  style={{ width: `${(stamina.current / stamina.max) * 100}%` }}
+                />
+              </div>
+              <div className="flex justify-between items-center text-xs text-gray-400">
+                <span>Subscription: {stamina.subscription}</span>
+                <span>Resets daily</span>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="space-y-4"
+          >
+            <div className="flex items-center gap-2 text-xl font-semibold text-blue-400">
               <Volume2 className="w-5 h-5" />
               <h2>Audio</h2>
             </div>
@@ -85,7 +136,7 @@ export default function SettingsPage() {
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.3 }}
             className="space-y-4"
           >
             <div className="flex items-center gap-2 text-xl font-semibold text-blue-400">
@@ -108,7 +159,7 @@ export default function SettingsPage() {
                   <SelectTrigger className="w-32 bg-gray-800 border-gray-600 focus:ring-blue-400 focus:ring-offset-gray-900">
                     <SelectValue placeholder="Select speed" />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-600">
+                  <SelectContent className="bg-gray-800 border-gray-700">
                     <SelectItem value="slow" className="text-white hover:bg-gray-700 focus:bg-gray-700">Slow</SelectItem>
                     <SelectItem value="normal" className="text-white hover:bg-gray-700 focus:bg-gray-700">Normal</SelectItem>
                     <SelectItem value="fast" className="text-white hover:bg-gray-700 focus:bg-gray-700">Fast</SelectItem>

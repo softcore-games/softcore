@@ -1,10 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Wallet, ExternalLink, SwitchCamera } from 'lucide-react';
-import { BrowserProvider, JsonRpcSigner } from 'ethers';
+import { Wallet, ExternalLink, SwitchCamera, ChevronDown } from 'lucide-react';
+import { BrowserProvider } from 'ethers';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const NETWORKS = {
   mainnet: {
@@ -35,13 +41,23 @@ export function WalletConnect() {
   const { toast } = useToast();
   const [address, setAddress] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
-  const [isTestnet, setIsTestnet] = useState(false);
+  const [isTestnet, setIsTestnet] = useState(true); // Default to testnet
   const [isSwitching, setIsSwitching] = useState(false);
 
-  const switchNetwork = async () => {
+  useEffect(() => {
+    // Auto-switch to testnet on initial load
+    if (window.ethereum) {
+      switchNetwork(true);
+    }
+  }, []);
+
+  const switchNetwork = async (isInitial = false) => {
     if (!window.ethereum) return;
     
-    setIsSwitching(true);
+    if (!isInitial) {
+      setIsSwitching(true);
+    }
+
     try {
       const network = isTestnet ? NETWORKS.mainnet : NETWORKS.testnet;
       await window.ethereum.request({
@@ -49,7 +65,6 @@ export function WalletConnect() {
         params: [{ chainId: network.chainId }],
       });
     } catch (switchError: any) {
-      // This error code indicates that the chain has not been added to MetaMask
       if (switchError.code === 4902) {
         try {
           const network = isTestnet ? NETWORKS.mainnet : NETWORKS.testnet;
@@ -59,35 +74,43 @@ export function WalletConnect() {
           });
         } catch (addError) {
           console.error('Failed to add network:', addError);
+          if (!isInitial) {
+            toast({
+              title: 'Network Error',
+              description: 'Failed to switch networks. Please try again.',
+              variant: 'destructive',
+            });
+          }
+          return;
+        }
+      } else {
+        console.error('Failed to switch network:', switchError);
+        if (!isInitial) {
           toast({
             title: 'Network Error',
             description: 'Failed to switch networks. Please try again.',
             variant: 'destructive',
           });
-          return;
         }
-      } else {
-        console.error('Failed to switch network:', switchError);
-        toast({
-          title: 'Network Error',
-          description: 'Failed to switch networks. Please try again.',
-          variant: 'destructive',
-        });
         return;
       }
     } finally {
-      setIsSwitching(false);
+      if (!isInitial) {
+        setIsSwitching(false);
+      }
     }
 
     setIsTestnet(!isTestnet);
-    toast({
-      title: 'Network Switched',
-      description: `Switched to ${!isTestnet ? 'Testnet' : 'Mainnet'}`,
-    });
+    if (!isInitial) {
+      toast({
+        title: 'Network Switched',
+        description: `Switched to ${!isTestnet ? 'Testnet' : 'Mainnet'}`,
+      });
 
-    // Reconnect wallet after network switch
-    if (address) {
-      await connectWallet();
+      // Reconnect wallet after network switch
+      if (address) {
+        await connectWallet();
+      }
     }
   };
 
@@ -150,37 +173,64 @@ export function WalletConnect() {
       : `https://scan.coredao.org/address/${address}`;
   };
 
+  const disconnectWallet = () => {
+    setAddress(null);
+    toast({
+      title: 'Wallet Disconnected',
+      description: 'Your wallet has been disconnected',
+    });
+  };
+
   return (
     <div className="flex items-center gap-2">
       <Button
-        onClick={switchNetwork}
+        onClick={() => switchNetwork()}
         disabled={isSwitching}
         variant="outline"
         className="bg-gray-800 border-gray-700 hover:bg-gray-700"
       >
         <SwitchCamera className="w-4 h-4 mr-2" />
-        {isSwitching ? 'Switching...' : isTestnet ? 'Testnet' : 'Mainnet'}
+        <span className="text-sm font-medium">
+          {isSwitching ? 'Switching...' : isTestnet ? 'Testnet' : 'Mainnet'}
+        </span>
       </Button>
 
       {address ? (
-        <div className="flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-lg border border-gray-700">
-          <span className="text-sm text-gray-300">
-            {formatAddress(address)}
-          </span>
-          <a
-            href={getExplorerUrl()}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-400 hover:text-blue-300"
-          >
-            <ExternalLink className="w-4 h-4" />
-          </a>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              className="bg-gray-800 border-gray-700 hover:bg-gray-700 flex items-center gap-2"
+            >
+              <div className="w-2 h-2 rounded-full bg-green-500" />
+              <span className="text-sm font-medium">
+                {formatAddress(address)}
+              </span>
+              <ChevronDown className="w-4 h-4 ml-1" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56 bg-gray-800 border-gray-700">
+            <DropdownMenuItem
+              className="flex items-center gap-2 text-gray-300 hover:text-white hover:bg-gray-700"
+              onClick={() => window.open(getExplorerUrl(), '_blank')}
+            >
+              <ExternalLink className="w-4 h-4" />
+              View on Explorer
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="flex items-center gap-2 text-red-400 hover:text-red-300 hover:bg-gray-700"
+              onClick={disconnectWallet}
+            >
+              <Wallet className="w-4 h-4" />
+              Disconnect
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       ) : (
         <Button
           onClick={connectWallet}
           disabled={isConnecting}
-          className="bg-gradient-to-r from-yellow-500 to-yellow-600"
+          className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white font-medium"
         >
           <Wallet className="w-4 h-4 mr-2" />
           {isConnecting ? 'Connecting...' : 'Connect Wallet'}
