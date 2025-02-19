@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { LoginDialog } from '@/components/LoginDialog';
-import { AgeVerificationDialog } from '@/components/AgeVerificationDialog';
-import { Play, Heart, Sparkles, Star, MessageCircle } from 'lucide-react';
-import { GradientButton } from '@/components/ui/gradient-button';
-import { motion } from 'framer-motion';
-import Image from 'next/image';
-import Cookies from 'js-cookie';
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { LoginDialog } from "@/components/LoginDialog";
+import { AgeVerificationDialog } from "@/components/AgeVerificationDialog";
+import { Play, Heart, Sparkles, Star, MessageCircle } from "lucide-react";
+import { GradientButton } from "@/components/ui/gradient-button";
+import { motion } from "framer-motion";
+import Image from "next/image";
+import Cookies from "js-cookie";
 
 export default function Home() {
   const router = useRouter();
@@ -17,17 +17,17 @@ export default function Home() {
   const [showAgeVerification, setShowAgeVerification] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem("accessToken");
     setIsAuthenticated(!!token);
 
     // Check age verification cookie
-    const isAgeVerified = Cookies.get('age_verified') === 'true';
+    const isAgeVerified = Cookies.get("age_verified") === "true";
     setShowAgeVerification(!isAgeVerified);
   }, []);
 
   const handleStartClick = () => {
     if (isAuthenticated) {
-      router.push('/game');
+      router.push("/game");
     } else {
       setShowLoginDialog(true);
     }
@@ -41,23 +41,27 @@ export default function Home() {
     {
       icon: <Heart className="w-6 h-6 text-pink-400" />,
       title: "Intimate Connections",
-      description: "Experience deep, meaningful relationships that evolve based on your choices and desires"
+      description:
+        "Experience deep, meaningful relationships that evolve based on your choices and desires",
     },
     {
       icon: <Sparkles className="w-6 h-6 text-purple-400" />,
       title: "AI-Powered Stories",
-      description: "Every moment is uniquely crafted for you, creating a truly personal experience"
+      description:
+        "Every moment is uniquely crafted for you, creating a truly personal experience",
     },
     {
       icon: <Star className="w-6 h-6 text-yellow-400" />,
       title: "Fantasy Fulfillment",
-      description: "Explore your deepest desires in a safe, private, and immersive environment"
+      description:
+        "Explore your deepest desires in a safe, private, and immersive environment",
     },
     {
       icon: <MessageCircle className="w-6 h-6 text-blue-400" />,
       title: "Natural Dialogue",
-      description: "Engage in authentic conversations that feel real and meaningful"
-    }
+      description:
+        "Engage in authentic conversations that feel real and meaningful",
+    },
   ];
 
   return (
@@ -68,7 +72,7 @@ export default function Home() {
         <div className="absolute inset-0">
           <div className="h-full w-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-900 via-gray-900 to-transparent" />
         </div>
-        
+
         <div className="relative max-w-6xl mx-auto px-4 py-24">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -82,17 +86,14 @@ export default function Home() {
               <br />
               Awaits
             </h1>
-            
+
             <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              Experience intimate connections and unforgettable moments in a world 
-              crafted just for you. Let AI create your perfect fantasy.
+              Experience intimate connections and unforgettable moments in a
+              world crafted just for you. Let AI create your perfect fantasy.
             </p>
 
             <div className="flex justify-center gap-4">
-              <GradientButton
-                size="lg"
-                onClick={handleStartClick}
-              >
+              <GradientButton size="lg" onClick={handleStartClick}>
                 <Play className="w-6 h-6 mr-2" />
                 Begin Your Journey
               </GradientButton>
@@ -170,7 +171,7 @@ export default function Home() {
             >
               <div className="relative aspect-[3/4] rounded-lg overflow-hidden">
                 <Image
-                  src="/characters/mei/happy.png"
+                  src="https://cdn.night-api.com/api/images/nsfw/hentai/vG2Xhuq1b3cDQ91McHNFwwQ90qodup.png"
                   alt="Mei"
                   fill
                   className="object-cover"
@@ -180,7 +181,7 @@ export default function Home() {
               <div className="absolute bottom-0 left-0 right-0 p-6">
                 <h3 className="text-2xl font-bold mb-2">Mei</h3>
                 <p className="text-gray-300">
-                  Sweet and caring, she'll make every moment special
+                  Sweet and caring, she`ll make every moment special
                 </p>
               </div>
             </motion.div>
@@ -193,15 +194,15 @@ export default function Home() {
             >
               <div className="relative aspect-[3/4] rounded-lg overflow-hidden">
                 <Image
-                  src="/characters/lily/happy.png"
-                  alt="Lily"
+                  src="https://cdn.night-api.com/api/images/nsfw/hentai/EHsrDIJzoqRc3kwDEh6LPHHhOgA95Z.png"
+                  alt="Lily & Daisy"
                   fill
                   className="object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent" />
               </div>
               <div className="absolute bottom-0 left-0 right-0 p-6">
-                <h3 className="text-2xl font-bold mb-2">Lily</h3>
+                <h3 className="text-2xl font-bold mb-2">Lily & Daisy</h3>
                 <p className="text-gray-300">
                   Playful and passionate, she knows how to make you smile
                 </p>
@@ -217,7 +218,7 @@ export default function Home() {
         onSuccess={() => {
           setIsAuthenticated(true);
           setShowLoginDialog(false);
-          router.push('/game');
+          router.push("/game");
         }}
       />
 
