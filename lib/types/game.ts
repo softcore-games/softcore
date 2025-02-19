@@ -43,3 +43,35 @@ export const STAMINA_LIMITS = {
   PREMIUM: 200,
   UNLIMITED: Infinity,
 };
+
+// Types
+export interface CharacterProfile {
+  name: string;
+  personality: string;
+  background: string;
+  traits: string[];
+  emotions: Record<string, any>;
+}
+
+export interface SceneImages {
+  characterImage: string | null;
+  backgroundImage: string | null;
+}
+
+export interface CacheConfig {
+  TTL: number;
+  MAX_SIZE: number;
+}
+
+// Constants
+export const CACHE_CONFIG: CacheConfig = {
+  TTL: 5 * 60 * 1000, // 5 minutes
+  MAX_SIZE: 1000,
+};
+
+export const FALLBACK_RESPONSES = {
+  dialogue:
+    "*continues the conversation thoughtfully* That's an interesting perspective.",
+  event: "*observes the situation carefully* This could change everything.",
+  choice: "The path you choose will shape your journey.",
+} as const;

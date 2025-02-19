@@ -1,63 +1,10 @@
 import { NextResponse } from "next/server";
 import { generateScene } from "@/lib/game/script";
+import { generateSceneImages } from "@/lib/game/dialogue";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
-import { verify } from "jsonwebtoken";
-import OpenAI from "openai";
-import { Scene, SceneResponse } from "@/lib/types/game";
 import { STAMINA_COSTS } from "@/lib/types/game";
-
-async function getUser(token: string) {
-  try {
-    const decoded = verify(token, process.env.NEXTAUTH_SECRET!) as {
-      userId: string;
-    };
-    return decoded.userId;
-  } catch {
-    return null;
-  }
-}
-
-async function generateSceneImages(scene: Scene) {
-  try {
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    const [backgroundImage, characterImage] = await Promise.all([
-      !scene.backgroundImage
-        ? openai.images.generate({
-            model: "dall-e-3",
-            prompt: `Detailed ${
-              scene.background || "classroom"
-            } setting. High quality anime background art, visual novel style, cinematic wide view, no characters, highly detailed environment, professional lighting, 16:9 aspect ratio.`,
-            n: 1,
-            size: "1792x1024",
-            quality: "hd" as const,
-            style: "vivid" as const,
-          })
-        : null,
-      !scene.characterImage
-        ? openai.images.generate({
-            model: "dall-e-3",
-            prompt: `Full body portrait of an anime character hot sexy showing girl ${scene.emotion} emotion. Visual novel style, high quality, transparent background, centered composition, detailed facial features and clothing, professional lighting.`,
-            n: 1,
-            size: "1024x1024",
-            quality: "standard" as const,
-            style: "natural" as const,
-          })
-        : null,
-    ]);
-
-    return {
-      characterImage: characterImage?.data[0]?.url || null,
-      backgroundImage: backgroundImage?.data[0]?.url || null,
-    };
-  } catch (error) {
-    console.error("Failed to generate images:", error);
-    return {
-      characterImage: null,
-      backgroundImage: null,
-    };
-  }
-}
+import { getUser } from "@/lib/user";
 
 async function checkAndUpdateStamina(userId: string) {
   const user = await prisma.user.findUnique({

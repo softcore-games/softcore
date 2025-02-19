@@ -1,19 +1,8 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { verify } from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
 import { STAMINA_COSTS, STAMINA_LIMITS } from "@/lib/types/game";
-
-async function getUser(token: string) {
-  try {
-    const decoded = verify(token, process.env.NEXTAUTH_SECRET!) as {
-      userId: string;
-    };
-    return decoded.userId;
-  } catch {
-    return null;
-  }
-}
+import { getUser } from "@/lib/user";
 
 export async function GET() {
   const cookieStore = cookies();

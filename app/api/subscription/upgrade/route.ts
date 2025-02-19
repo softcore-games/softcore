@@ -1,38 +1,27 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { verify } from 'jsonwebtoken';
-import { prisma } from '@/lib/prisma';
-
-async function getUser(token: string) {
-  try {
-    const decoded = verify(token, process.env.NEXTAUTH_SECRET!) as {
-      userId: string;
-    };
-    return decoded.userId;
-  } catch {
-    return null;
-  }
-}
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { prisma } from "@/lib/prisma";
+import { getUser } from "@/lib/user";
 
 export async function POST(req: Request) {
   const cookieStore = cookies();
-  const token = cookieStore.get('accessToken')?.value;
+  const token = cookieStore.get("accessToken")?.value;
 
   if (!token) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const userId = await getUser(token);
   if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
     const { plan } = await req.json();
 
-    if (!['free', 'premium', 'unlimited'].includes(plan)) {
+    if (!["free", "premium", "unlimited"].includes(plan)) {
       return NextResponse.json(
-        { error: 'Invalid subscription plan' },
+        { error: "Invalid subscription plan" },
         { status: 400 }
       );
     }
@@ -56,7 +45,8 @@ export async function POST(req: Request) {
     });
 
     // Reset stamina based on new plan
-    const maxStamina = plan === 'unlimited' ? 999999 : plan === 'premium' ? 200 : 100;
+    const maxStamina =
+      plan === "unlimited" ? 999999 : plan === "premium" ? 200 : 100;
     await prisma.user.update({
       where: { id: userId },
       data: {
@@ -67,9 +57,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json(subscription);
   } catch (error) {
-    console.error('Subscription upgrade error:', error);
+    console.error("Subscription upgrade error:", error);
     return NextResponse.json(
-      { error: 'Failed to upgrade subscription' },
+      { error: "Failed to upgrade subscription" },
       { status: 500 }
     );
   }

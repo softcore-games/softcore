@@ -1,26 +1,73 @@
 import OpenAI from "openai";
-import { Scene } from "./script";
+import {
+  Scene,
+  CharacterProfile,
+  CacheConfig,
+  CACHE_CONFIG,
+  FALLBACK_RESPONSES,
+  SceneImages,
+} from "@/lib/types/game";
 import { prisma } from "@/lib/prisma";
 
-// Cache for character profiles
-let characterProfilesCache: Record<string, any> = {};
-let lastCacheUpdate = 0;
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+// OpenAI instance
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
-async function getCharacterProfiles() {
-  const now = Date.now();
+// Cache implementations
+class Cache<T> {
+  private cache: Map<string, T>;
+  private lastUpdate: number;
+  private config: CacheConfig;
 
-  if (
-    Object.keys(characterProfilesCache).length > 0 &&
-    now - lastCacheUpdate < CACHE_TTL
-  ) {
-    return characterProfilesCache;
+  constructor(config: CacheConfig) {
+    this.cache = new Map();
+    this.lastUpdate = 0;
+    this.config = config;
+  }
+
+  get(key: string): T | undefined {
+    return this.cache.get(key);
+  }
+
+  set(key: string, value: T): void {
+    if (this.cache.size >= this.config.MAX_SIZE) {
+      const oldestKey = Array.from(this.cache.keys())[0];
+      this.cache.delete(oldestKey);
+    }
+    this.cache.set(key, value);
+    this.lastUpdate = Date.now();
+  }
+
+  isValid(): boolean {
+    return (
+      this.cache.size > 0 && Date.now() - this.lastUpdate < this.config.TTL
+    );
+  }
+
+  clear(): void {
+    this.cache.clear();
+    this.lastUpdate = 0;
+  }
+}
+
+// Cache instances
+const characterCache = new Cache<Record<string, CharacterProfile>>(
+  CACHE_CONFIG
+);
+const dialogueCache = new Cache<string>(CACHE_CONFIG);
+
+// Character profile management
+async function getCharacterProfiles(): Promise<
+  Record<string, CharacterProfile>
+> {
+  if (characterCache.isValid()) {
+    return characterCache.get("profiles") || {};
   }
 
   try {
     const characters = await prisma.character.findMany();
-
-    characterProfilesCache = characters.reduce(
+    const profiles = characters.reduce(
       (acc, char) => ({
         ...acc,
         [char.characterId]: {
@@ -34,110 +81,124 @@ async function getCharacterProfiles() {
       {}
     );
 
-    lastCacheUpdate = now;
-    return characterProfilesCache;
+    characterCache.set("profiles", profiles);
+    return profiles;
   } catch (error) {
     console.error("Failed to fetch character profiles:", error);
     return {};
   }
 }
 
-// Fallback responses
-const fallbackResponses: Record<string, string> = {
-  dialogue:
-    "*continues the conversation thoughtfully* That's an interesting perspective.",
-  event: "*observes the situation carefully* This could change everything.",
-  choice: "The path you choose will shape your journey.",
-};
+// Dialogue generation
+export async function generateResponse(
+  character: string,
+  context: string,
+  playerChoice?: string
+): Promise<string> {
+  const cacheKey = `${character}-${context}-${playerChoice || ""}`;
+  const cachedResponse = dialogueCache.get(cacheKey);
+  if (cachedResponse) return cachedResponse;
 
-export async function generateDialogue(
-  scene: Scene,
-  previousChoices: string[] = []
-) {
+  const profiles = await getCharacterProfiles();
+  const profile = profiles[character.toLowerCase()];
+
+  if (!profile) {
+    console.error(`Character "${character}" not found`);
+    return FALLBACK_RESPONSES.dialogue;
+  }
+
   try {
-    if (!scene.requiresAI) return scene.text;
-
-    // Initialize OpenAI only when needed
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-
-    const characterProfiles = await getCharacterProfiles();
-    const character = characterProfiles[scene.character];
-
-    if (!character) {
-      console.error(`Character "${scene.character}" not found`);
-      return fallbackResponses[scene.type] || scene.text;
-    }
-
-    const prompt = `
-      Generate completely random story dialogue that:
-      1. Takes unexpected twists and turns
-      2. Incorporates ${
-        scene.character
-      }'s personality but allows creative freedom
-      3. Connects loosely to previous choices: ${previousChoices.join(", ")}
-      4. Introduces surprising story elements
-      5. Maintains engaging narrative flow
-      
-      Response should include:
-      - Character expressions/gestures in *asterisks*
-      - Dialogue that advances the random story
-      - Open-ended possibilities
-      
-      Response:
-    `;
-
     const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
           content:
-            "You are generating dialogue for characters in a visual novel game. Keep responses concise and in character.",
+            "You are an AI generating dialogue for characters in a visual novel game. Keep responses concise and in character.",
         },
         {
           role: "user",
-          content: prompt,
+          content: generatePrompt(profile, context, playerChoice),
         },
       ],
       max_tokens: 150,
       temperature: 0.7,
     });
 
-    return response.choices[0].message.content?.trim() || scene.text;
+    const generatedResponse =
+      response.choices[0].message.content?.trim() ||
+      FALLBACK_RESPONSES.dialogue;
+    dialogueCache.set(cacheKey, generatedResponse);
+    return generatedResponse;
   } catch (error) {
     console.error("OpenAI API error:", error);
-    return fallbackResponses[scene.type] || scene.text;
+    return FALLBACK_RESPONSES.dialogue;
   }
 }
 
-// Cache implementation
-const responseCache = new Map<string, string>();
-const MAX_CACHE_SIZE = 1000;
+// Image generation
+export async function generateSceneImages(scene: Scene): Promise<SceneImages> {
+  try {
+    const [backgroundImage, characterImage] = await Promise.all([
+      generateBackgroundImage(scene.background),
+      generateCharacterImage(scene.emotion),
+    ]);
 
-export function getCachedDialogue(
-  sceneId: string,
-  choices: string[]
-): string | undefined {
-  const key = `${sceneId}-${choices.join("-")}`;
-  return responseCache.get(key);
+    return {
+      characterImage: characterImage?.data[0]?.url || null,
+      backgroundImage: backgroundImage?.data[0]?.url || null,
+    };
+  } catch (error) {
+    console.error("Failed to generate images:", error);
+    return { characterImage: null, backgroundImage: null };
+  }
 }
 
-export function cacheDialogue(
-  sceneId: string,
-  choices: string[],
-  response: string
-): void {
-  const key = `${sceneId}-${choices.join("-")}`;
+// Helper functions
+function generatePrompt(
+  profile: CharacterProfile,
+  context: string,
+  playerChoice?: string
+): string {
+  return `
+    Character: ${profile.name}
+    Personality: ${profile.personality}
+    Background: ${profile.background}
+    Traits: ${profile.traits.join(", ")}
+    Context: ${context}
+    ${playerChoice ? `Player's choice: ${playerChoice}` : ""}
+    
+    Generate a natural, in-character response that:
+    1. Reflects the character's personality and background
+    2. Responds appropriately to the context and player's choice
+    3. Includes appropriate gestures and expressions in *asterisks*
+    4. Maintains the character's unique voice and mannerisms
+    5. Keeps responses concise (2-3 sentences)
+  `;
+}
 
-  // If cache is at max size, remove the oldest entry
-  if (responseCache.size >= MAX_CACHE_SIZE) {
-    const keys = Array.from(responseCache.keys());
-    if (keys.length > 0) {
-      responseCache.delete(keys[0]);
-    }
-  }
+async function generateBackgroundImage(background: string | null) {
+  return !background
+    ? openai.images.generate({
+        model: "dall-e-3",
+        prompt: `Detailed ${
+          background || "classroom"
+        } setting. High quality anime background art, visual novel style, cinematic wide view, no characters, highly detailed environment, professional lighting, 16:9 aspect ratio.`,
+        n: 1,
+        size: "1792x1024",
+        quality: "hd",
+        style: "vivid",
+      })
+    : null;
+}
 
-  responseCache.set(key, response);
+async function generateCharacterImage(emotion: string) {
+  return openai.images.generate({
+    model: "dall-e-3",
+    prompt: `Full body portrait of an anime character girl showing ${emotion} emotion. Visual novel style, high quality, transparent background, centered composition, detailed facial features and clothing, professional lighting.`,
+    n: 1,
+    size: "1024x1024",
+    quality: "standard",
+    style: "natural",
+  });
 }
