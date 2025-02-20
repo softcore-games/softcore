@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useEffect } from "react";
 import { useGameStore } from "@/store/gameStore";
 import { DialogueBox } from "./DialogueBox";
 import { CharacterSprite } from "./CharacterSprite";
@@ -7,7 +7,7 @@ import { ChoiceMenu } from "./ChoiceMenu";
 import { Background } from "./Background";
 import { LoadingView } from "./LoadingView";
 import { StaminaBar } from "@/components/StaminaBar";
-
+import { NFTMinting } from "@/components/game/NFTMinting";
 export function GameView() {
   const {
     currentScene,
@@ -58,6 +58,7 @@ export function GameView() {
   return (
     <main className="relative w-full h-screen overflow-hidden">
       <StaminaBar />
+      <NFTMinting />
       <Background
         imageUrl={currentScene.backgroundImage}
         fallback={currentScene.background}

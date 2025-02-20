@@ -176,3 +176,110 @@ For any queries regarding this hackathon submission or the project in general, p
 - Email: hello@softcore.games
 - Discord: https://discord.gg/softcoregames
 - Twitter: x.com/softcoregames
+
+# Softcore NFT System Setup
+
+This guide explains how to set up and deploy the Softcore NFT system.
+
+## Prerequisites
+
+- Node.js installed
+- npm or yarn installed
+- A wallet with some test CORE tokens (for testnet deployment)
+
+## Setup Steps
+
+1. **Install Dependencies**
+
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
+
+2. **Configure Environment Variables**
+   Create or modify `.env.local` with:
+
+   ```env
+   CORE_RPC_URL="https://rpc.coredao.org"
+   CORE_TESTNET_RPC_URL="https://rpc.test.btcs.network"
+   CORE_EXPLORER_API_KEY="your_explorer_api_key"
+   PRIVATE_KEY="your_actual_private_key_here"
+   NFT_CONTRACT_ADDRESS="will_be_generated_after_deployment"
+   ```
+
+3. **Compile Smart Contract**
+
+   ```bash
+   npx hardhat compile
+   ```
+
+4. **Deploy to Testnet**
+
+   ```bash
+   npx hardhat run scripts/deploy.js --network testnet
+   ```
+
+   This will create a `deployment.json` file with your contract address.
+
+5. **Update Environment Variables**
+   Copy the deployed contract address from `deployment.json` to your `.env.local`:
+   ```env
+   NFT_CONTRACT_ADDRESS="your_deployed_contract_address"
+   ```
+
+## Contract Details
+
+The NFT contract (`SoftcoreNFT.sol`) includes:
+
+- ERC721 standard implementation
+- URI storage for metadata
+- Minting functionality (owner only)
+- Burning capability
+
+## API Endpoints
+
+### Mint NFT
+
+- **Endpoint**: `/api/nft/mint`
+- **Method**: POST
+- **Body**:
+  ```json
+  {
+    "userAddress": "0x...",
+    "tokenUri": "ipfs://..."
+  }
+  ```
+
+## Testing
+
+1. **Local Testing**
+
+   ```bash
+   npx hardhat test
+   ```
+
+2. **Testnet Deployment**
+   - Ensure you have test CORE tokens
+   - Deploy to testnet using the command in step 4
+   - Verify the contract on Core testnet explorer
+
+## Troubleshooting
+
+- **Transaction Fails**: Check if you have enough CORE for gas
+- **Contract Not Found**: Verify NFT_CONTRACT_ADDRESS is set correctly
+- **Minting Fails**: Ensure you're calling from the owner address
+
+## Network Information
+
+- **Core Mainnet RPC**: https://rpc.coredao.org
+- **Core Testnet RPC**: https://rpc.test.btcs.network
+- **Chain IDs**:
+  - Mainnet: 1116
+  - Testnet: 1115
+
+## Security Notes
+
+- Never commit your private key or sensitive API keys
+- Use environment variables for sensitive data
+- Test thoroughly on testnet before mainnet deployment
