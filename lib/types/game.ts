@@ -37,6 +37,7 @@ export interface GameState {
   isLoading: boolean;
   displayText: string;
   isDialogueComplete: boolean;
+  stamina: StaminaInfo;
 }
 
 export interface SceneResponse {
@@ -89,3 +90,12 @@ export const FALLBACK_RESPONSES = {
   event: "*observes the situation carefully* This could change everything.",
   choice: "The path you choose will shape your journey.",
 } as const;
+
+export interface StaminaInfo {
+  current: number;
+  max: number | "UNLIMITED";
+  subscription: SubscriptionType;
+  lastReset?: string;
+}
+
+export type SubscriptionType = "FREE" | "PREMIUM" | "UNLIMITED";

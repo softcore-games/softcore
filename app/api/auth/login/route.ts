@@ -22,8 +22,14 @@ export async function POST(req: Request) {
         username: true,
         password: true,
         isAdmin: true,
-        stamina: true,
         lastStaminaReset: true,
+        staminaTransactions: {
+          where: {
+            createdAt: {
+              gte: new Date(new Date().setHours(0, 0, 0, 0)), // Start of current day
+            },
+          },
+        },
       },
     });
 
@@ -43,6 +49,12 @@ export async function POST(req: Request) {
       );
     }
 
+    // Calculate current stamina
+    const currentStamina = user.staminaTransactions.reduce(
+      (total, transaction) => total + transaction.amount,
+      0
+    );
+
     // Generate token with isAdmin claim
     const accessToken = sign(
       {
@@ -60,7 +72,7 @@ export async function POST(req: Request) {
           email: user.email,
           username: user.username,
           isAdmin: user.isAdmin,
-          stamina: user.stamina,
+          currentStamina,
           lastStaminaReset: user.lastStaminaReset,
         },
       },

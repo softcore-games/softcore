@@ -1,65 +1,46 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Slider } from '@/components/ui/slider';
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { Slider } from "@/components/ui/slider";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { useGameStore } from '@/store/gameStore';
-import { useToast } from '@/hooks/use-toast';
-import { Save, RotateCcw, Volume2, Clock, Play, Zap } from 'lucide-react';
-import { GradientButton } from '@/components/ui/gradient-button';
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { useGameStore } from "@/store/gameStore";
+import { useToast } from "@/hooks/use-toast";
+import { Save, RotateCcw, Volume2, Clock, Play, Zap } from "lucide-react";
+import { GradientButton } from "@/components/ui/gradient-button";
 
 export default function SettingsPage() {
-  const { settings, updateSettings } = useGameStore();
+  const { settings, updateSettings, stamina, fetchStamina } = useGameStore();
   const { toast } = useToast();
-  const [stamina, setStamina] = useState({ current: 0, max: 0, subscription: 'FREE' });
 
   useEffect(() => {
-    const fetchStamina = async () => {
-      try {
-        const response = await fetch('/api/user/stamina', {
-          credentials: 'include',
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setStamina({
-            current: data.stamina,
-            max: data.maxStamina,
-            subscription: data.subscription,
-          });
-        }
-      } catch (error) {
-        console.error('Failed to fetch stamina:', error);
-      }
-    };
-
     fetchStamina();
-  }, []);
+  }, [fetchStamina]);
 
   const handleSave = () => {
     // Settings are automatically persisted by Zustand
     toast({
-      title: 'Settings Saved',
-      description: 'Your preferences have been updated successfully.',
+      title: "Settings Saved",
+      description: "Your preferences have been updated successfully.",
     });
   };
 
   const handleReset = () => {
     updateSettings({
       volume: 100,
-      textSpeed: 'normal',
+      textSpeed: "normal",
       autoplay: false,
     });
     toast({
-      title: 'Settings Reset',
-      description: 'All settings have been restored to defaults.',
+      title: "Settings Reset",
+      description: "All settings have been restored to defaults.",
     });
   };
 
@@ -91,12 +72,23 @@ export default function SettingsPage() {
             <div className="bg-gray-700/50 p-4 rounded-lg space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium">Current Stamina</span>
-                <span className="text-sm font-medium">{stamina.current}/{stamina.max}</span>
+                <span className="text-sm font-medium">
+                  {stamina.subscription === "UNLIMITED"
+                    ? "∞"
+                    : `${stamina.current}/${stamina.max}`}
+                </span>
               </div>
               <div className="h-2 bg-gray-600 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300"
-                  style={{ width: `${(stamina.current / stamina.max) * 100}%` }}
+                  className={`h-full transition-all duration-300 ${
+                    stamina.subscription === "UNLIMITED"
+                      ? "bg-gradient-to-r from-purple-500 to-purple-600 w-full"
+                      : `bg-gradient-to-r from-blue-500 to-purple-500 ${
+                          typeof stamina.max === "number"
+                            ? `w-[${(stamina.current / stamina.max) * 100}%]`
+                            : "w-full"
+                        }`
+                  }`}
                 />
               </div>
               <div className="flex justify-between items-center text-xs text-gray-400">
@@ -152,7 +144,7 @@ export default function SettingsPage() {
                   value={settings.textSpeed}
                   onValueChange={(value) =>
                     updateSettings({
-                      textSpeed: value as 'slow' | 'normal' | 'fast',
+                      textSpeed: value as "slow" | "normal" | "fast",
                     })
                   }
                 >
@@ -160,9 +152,24 @@ export default function SettingsPage() {
                     <SelectValue placeholder="Select speed" />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-800 border-gray-700">
-                    <SelectItem value="slow" className="text-white hover:bg-gray-700 focus:bg-gray-700">Slow</SelectItem>
-                    <SelectItem value="normal" className="text-white hover:bg-gray-700 focus:bg-gray-700">Normal</SelectItem>
-                    <SelectItem value="fast" className="text-white hover:bg-gray-700 focus:bg-gray-700">Fast</SelectItem>
+                    <SelectItem
+                      value="slow"
+                      className="text-white hover:bg-gray-700 focus:bg-gray-700"
+                    >
+                      Slow
+                    </SelectItem>
+                    <SelectItem
+                      value="normal"
+                      className="text-white hover:bg-gray-700 focus:bg-gray-700"
+                    >
+                      Normal
+                    </SelectItem>
+                    <SelectItem
+                      value="fast"
+                      className="text-white hover:bg-gray-700 focus:bg-gray-700"
+                    >
+                      Fast
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -198,11 +205,7 @@ export default function SettingsPage() {
             <RotateCcw className="w-4 h-4" />
             Reset to Defaults
           </GradientButton>
-          <GradientButton
-            variant="play"
-            onClick={handleSave}
-            className="gap-2"
-          >
+          <GradientButton variant="play" onClick={handleSave} className="gap-2">
             <Save className="w-4 h-4" />
             Save Changes
           </GradientButton>

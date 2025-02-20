@@ -1,11 +1,18 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { Scene } from "@/lib/types/game";
+import { Scene, SubscriptionType } from "@/lib/types/game";
 
 interface Character {
   id: string;
   name: string;
   relationship: number;
+}
+
+interface StaminaInfo {
+  current: number;
+  max: number | "UNLIMITED";
+  subscription: SubscriptionType;
+  lastReset?: string;
 }
 
 interface GameState {
@@ -27,6 +34,7 @@ interface GameState {
     scene: number;
     completed: string[];
   };
+  stamina: StaminaInfo;
 
   // Actions
   setScene: (scene: Scene) => void;
@@ -38,12 +46,14 @@ interface GameState {
   updateRelationship: (characterId: string, amount: number) => void;
   updateSettings: (settings: Partial<GameState["settings"]>) => void;
   updateProgress: (progress: Partial<GameState["progress"]>) => void;
+  setStamina: (staminaInfo: Partial<StaminaInfo>) => void;
 
   // Thunks
   fetchScene: (
     previousScene?: Scene | null,
     playerChoice?: { text: string; next: string }
   ) => Promise<void>;
+  fetchStamina: () => Promise<void>;
 }
 
 const FALLBACK_SCENE: Scene = {
@@ -95,6 +105,11 @@ export const useGameStore = create<GameState>()(
         scene: 1,
         completed: [],
       },
+      stamina: {
+        current: 0,
+        max: 0,
+        subscription: "FREE",
+      },
 
       setScene: (scene) =>
         set((state) => ({
@@ -111,6 +126,30 @@ export const useGameStore = create<GameState>()(
       setDialogueComplete: (complete) => set({ isDialogueComplete: complete }),
       addChoice: (choice) =>
         set((state) => ({ choices: [...state.choices, choice] })),
+
+      setStamina: (staminaInfo) =>
+        set((state) => ({
+          stamina: { ...state.stamina, ...staminaInfo },
+        })),
+
+      fetchStamina: async () => {
+        try {
+          const response = await fetch("/api/user/stamina", {
+            credentials: "include",
+          });
+          if (response.ok) {
+            const data = await response.json();
+            get().setStamina({
+              current: data.current,
+              max: data.subscription === "UNLIMITED" ? "UNLIMITED" : data.max,
+              subscription: data.subscription,
+              lastReset: data.lastReset,
+            });
+          }
+        } catch (error) {
+          console.error("Failed to fetch stamina:", error);
+        }
+      },
 
       fetchScene: async (previousScene, playerChoice) => {
         const state = get();
@@ -152,6 +191,7 @@ export const useGameStore = create<GameState>()(
 
           if (data.scene) {
             get().setScene(data.scene);
+            await get().fetchStamina();
           } else {
             throw new Error("No scene data received");
           }

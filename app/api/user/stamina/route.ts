@@ -4,10 +4,85 @@ import { prisma } from "@/lib/prisma";
 import { STAMINA_COSTS, STAMINA_LIMITS } from "@/lib/types/game";
 import { getUser } from "@/lib/user";
 
-export async function GET() {
-  const cookieStore = cookies();
-  const token = cookieStore.get("accessToken")?.value;
+async function calculateCurrentStamina(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      subscription: true,
+      staminaTransactions: {
+        where: {
+          createdAt: {
+            gte: new Date(new Date().setHours(0, 0, 0, 0)), // Start of current day
+          },
+        },
+      },
+    },
+  });
 
+  if (!user) throw new Error("User not found");
+
+  // If user has unlimited subscription, return infinity
+  if (user.subscription?.type === "UNLIMITED") {
+    return {
+      current: Infinity,
+      max: Infinity,
+      subscription: "UNLIMITED",
+    };
+  }
+
+  // Calculate current stamina from transactions
+  const currentStamina = user.staminaTransactions.reduce(
+    (total, transaction) => total + transaction.amount,
+    0
+  );
+
+  const subscriptionType = user.subscription?.type || "FREE";
+  const maxStamina =
+    STAMINA_LIMITS[subscriptionType as keyof typeof STAMINA_LIMITS];
+
+  return {
+    current: Math.min(currentStamina, maxStamina),
+    max: maxStamina,
+    subscription: subscriptionType,
+  };
+}
+
+async function resetDailyStamina(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { subscription: true },
+  });
+
+  if (!user) throw new Error("User not found");
+
+  const subscriptionType = user.subscription?.type || "FREE";
+  const maxStamina =
+    STAMINA_LIMITS[subscriptionType as keyof typeof STAMINA_LIMITS];
+
+  // Create a reset transaction
+  await prisma.staminaTransaction.create({
+    data: {
+      userId,
+      amount: maxStamina,
+      reason: "DAILY_RESET",
+      metadata: {
+        subscriptionType,
+        resetTime: new Date().toISOString(),
+      },
+    },
+  });
+
+  // Update last reset time
+  await prisma.user.update({
+    where: { id: userId },
+    data: { lastStaminaReset: new Date() },
+  });
+
+  return maxStamina;
+}
+
+export async function GET() {
+  const token = cookies().get("accessToken")?.value;
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -20,49 +95,23 @@ export async function GET() {
   try {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: {
-        subscription: true,
-      },
     });
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Check if stamina needs to be reset (daily reset)
+    // Check if stamina needs to be reset (daily)
     const lastReset = new Date(user.lastStaminaReset);
     const now = new Date();
     const resetNeeded = lastReset.getDate() !== now.getDate();
 
     if (resetNeeded) {
-      const subscriptionType = user.subscription?.type || "FREE";
-      const maxStamina =
-        STAMINA_LIMITS[subscriptionType as keyof typeof STAMINA_LIMITS];
-
-      await prisma.user.update({
-        where: { id: userId },
-        data: {
-          stamina: maxStamina,
-          lastStaminaReset: now,
-        },
-      });
-
-      return NextResponse.json({
-        stamina: maxStamina,
-        maxStamina,
-        subscription: subscriptionType,
-      });
+      await resetDailyStamina(userId);
     }
 
-    const subscriptionType = user.subscription?.type || "FREE";
-    const maxStamina =
-      STAMINA_LIMITS[subscriptionType as keyof typeof STAMINA_LIMITS];
-
-    return NextResponse.json({
-      stamina: user.stamina,
-      maxStamina,
-      subscription: subscriptionType,
-    });
+    const staminaInfo = await calculateCurrentStamina(userId);
+    return NextResponse.json(staminaInfo);
   } catch (error) {
     console.error("Stamina fetch error:", error);
     return NextResponse.json(
@@ -73,9 +122,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const cookieStore = cookies();
-  const token = cookieStore.get("accessToken")?.value;
-
+  const token = cookies().get("accessToken")?.value;
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -96,68 +143,33 @@ export async function POST(req: Request) {
       );
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        subscription: true,
-      },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    // Check if user has unlimited stamina
-    if (user.subscription?.type === "UNLIMITED") {
-      await prisma.staminaUsage.create({
-        data: {
-          userId,
-          amount: cost,
-          type,
-        },
-      });
-
-      return NextResponse.json({
-        stamina: Infinity,
-        maxStamina: Infinity,
-        subscription: "UNLIMITED",
-      });
-    }
+    // Get current stamina
+    const { current: currentStamina } = await calculateCurrentStamina(userId);
 
     // Check if user has enough stamina
-    if (user.stamina < cost) {
+    if (currentStamina < cost) {
       return NextResponse.json(
         { error: "Insufficient stamina" },
         { status: 400 }
       );
     }
 
-    // Deduct stamina and record usage
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
+    // Create stamina usage transaction
+    await prisma.staminaTransaction.create({
       data: {
-        stamina: user.stamina - cost,
-        staminaUsage: {
-          create: {
-            amount: cost,
-            type,
-          },
+        userId,
+        amount: -cost,
+        reason: type,
+        metadata: {
+          actionType: type,
+          timestamp: new Date().toISOString(),
         },
       },
-      include: {
-        subscription: true,
-      },
     });
 
-    const subscriptionType = updatedUser.subscription?.type || "FREE";
-    const maxStamina =
-      STAMINA_LIMITS[subscriptionType as keyof typeof STAMINA_LIMITS];
-
-    return NextResponse.json({
-      stamina: updatedUser.stamina,
-      maxStamina,
-      subscription: subscriptionType,
-    });
+    // Return updated stamina info
+    const updatedStaminaInfo = await calculateCurrentStamina(userId);
+    return NextResponse.json(updatedStaminaInfo);
   } catch (error) {
     console.error("Stamina usage error:", error);
     return NextResponse.json(

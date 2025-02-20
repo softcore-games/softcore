@@ -31,14 +31,23 @@ export async function POST(req: Request) {
     // Hash password
     const hashedPassword = await hash(password, 12);
 
-    // Create user
+    // Create user with initial stamina transaction
     const user = await prisma.user.create({
       data: {
         email,
         username,
         password: hashedPassword,
-        stamina: 100,
         lastStaminaReset: new Date(),
+        staminaTransactions: {
+          create: {
+            amount: 100, // Initial stamina
+            reason: "INITIAL",
+            metadata: {
+              type: "REGISTRATION",
+              timestamp: new Date().toISOString(),
+            },
+          },
+        },
         gameState: {
           create: {
             progress: {},
@@ -52,7 +61,15 @@ export async function POST(req: Request) {
           },
         },
       },
+      include: {
+        staminaTransactions: true,
+      },
     });
+
+    const currentStamina = user.staminaTransactions.reduce(
+      (total, transaction) => total + transaction.amount,
+      0
+    );
 
     return NextResponse.json(
       {
@@ -60,7 +77,7 @@ export async function POST(req: Request) {
           id: user.id,
           email: user.email,
           username: user.username,
-          stamina: user.stamina,
+          currentStamina,
         },
       },
       { status: 201 }

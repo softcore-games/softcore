@@ -30,32 +30,45 @@ export async function POST(req: Request) {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 30);
 
-    // Update or create subscription
-    const subscription = await prisma.subscription.upsert({
-      where: { userId },
-      update: {
-        type: plan.toUpperCase(),
-        expiresAt,
-      },
-      create: {
-        userId,
-        type: plan.toUpperCase(),
-        expiresAt,
-      },
-    });
-
-    // Reset stamina based on new plan
     const maxStamina =
       plan === "unlimited" ? 999999 : plan === "premium" ? 200 : 100;
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        stamina: maxStamina,
-        lastStaminaReset: new Date(),
-      },
-    });
 
-    return NextResponse.json(subscription);
+    await prisma.$transaction([
+      // Update subscription
+      prisma.subscription.upsert({
+        where: { userId },
+        update: {
+          type: plan.toUpperCase(),
+          expiresAt,
+        },
+        create: {
+          userId,
+          type: plan.toUpperCase(),
+          expiresAt,
+        },
+      }),
+      // Reset stamina with new transaction
+      prisma.staminaTransaction.create({
+        data: {
+          userId,
+          amount: maxStamina,
+          reason: "SUBSCRIPTION_UPGRADE",
+          metadata: {
+            plan: plan.toUpperCase(),
+            timestamp: new Date().toISOString(),
+          },
+        },
+      }),
+      // Update last reset time
+      prisma.user.update({
+        where: { id: userId },
+        data: {
+          lastStaminaReset: new Date(),
+        },
+      }),
+    ]);
+
+    return NextResponse.json({ success: true, plan });
   } catch (error) {
     console.error("Subscription upgrade error:", error);
     return NextResponse.json(

@@ -9,32 +9,58 @@ import { getUser } from "@/lib/user";
 async function checkAndUpdateStamina(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    include: { subscription: true },
+    include: {
+      subscription: true,
+      staminaTransactions: {
+        where: {
+          createdAt: {
+            gte: new Date(new Date().setHours(0, 0, 0, 0)), // Start of current day
+          },
+        },
+      },
+    },
   });
 
   if (!user) throw new Error("User not found");
 
   // Free users need stamina
   if (user.subscription?.type !== "UNLIMITED") {
-    if (user.stamina < STAMINA_COSTS.SCENE_GENERATION) {
+    const currentStamina = user.staminaTransactions.reduce(
+      (total, transaction) => total + transaction.amount,
+      0
+    );
+
+    if (currentStamina < STAMINA_COSTS.SCENE_GENERATION) {
       throw new Error("Insufficient stamina");
     }
 
-    // Deduct stamina and log usage
-    await prisma.$transaction([
-      prisma.user.update({
-        where: { id: userId },
-        data: { stamina: user.stamina - STAMINA_COSTS.SCENE_GENERATION },
-      }),
-      prisma.staminaUsage.create({
-        data: {
-          userId,
-          amount: STAMINA_COSTS.SCENE_GENERATION,
-          type: "SCENE_GENERATION",
+    // Create stamina usage transaction
+    await prisma.staminaTransaction.create({
+      data: {
+        userId,
+        amount: -STAMINA_COSTS.SCENE_GENERATION,
+        reason: "SCENE_GENERATION",
+        metadata: {
+          actionType: "SCENE_GENERATION",
+          timestamp: new Date().toISOString(),
         },
-      }),
-    ]);
+      },
+    });
   }
+}
+
+async function refundStamina(userId: string) {
+  await prisma.staminaTransaction.create({
+    data: {
+      userId,
+      amount: STAMINA_COSTS.SCENE_GENERATION, // Positive amount for refund
+      reason: "SCENE_GENERATION_REFUND",
+      metadata: {
+        timestamp: new Date().toISOString(),
+        reason: "Scene generation failed",
+      },
+    },
+  });
 }
 
 export async function POST(request: Request) {
@@ -84,7 +110,16 @@ export async function POST(request: Request) {
     }
 
     // Generate new scene
-    const scene = await generateScene(previousScene, playerChoice);
+    let scene;
+    try {
+      scene = await generateScene(previousScene, playerChoice);
+    } catch (sceneError) {
+      // Refund stamina if it was deducted and scene generation failed
+      if (staminaDeducted && userId) {
+        await refundStamina(userId);
+      }
+      throw sceneError;
+    }
 
     // Check for existing scene by sceneId
     const existingScene = await prisma.scene.findUnique({
@@ -144,34 +179,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ scene: newScene });
   } catch (error) {
     console.error("Failed to generate scene:", error);
-
-    // Refund stamina if it was deducted and there was an error
-    if (staminaDeducted && userId) {
-      try {
-        await prisma.user.update({
-          where: { id: userId },
-          data: {
-            stamina: {
-              increment: STAMINA_COSTS.SCENE_GENERATION,
-            },
-          },
-        });
-
-        // Delete the stamina usage record
-        await prisma.staminaUsage.deleteMany({
-          where: {
-            userId,
-            type: "SCENE_GENERATION",
-            createdAt: {
-              gte: new Date(Date.now() - 1000), // Last second
-            },
-          },
-        });
-      } catch (refundError) {
-        console.error("Failed to refund stamina:", refundError);
-      }
-    }
-
     return NextResponse.json(
       { error: "Failed to generate scene" },
       { status: 500 }

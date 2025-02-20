@@ -19,48 +19,18 @@ export function GameView() {
     setDialogueComplete,
     addChoice,
     scenes,
+    fetchStamina,
   } = useGameStore();
-  const [stamina, setStamina] = useState({
-    current: 0,
-    max: 0,
-    subscription: "FREE",
-  });
-  // Initialize game
-  const initializeGame = useCallback(async () => {
-    console.log("Initializing game...", { currentScene, scenes });
-    if (!currentScene && !isProcessingChoice && scenes.length === 0) {
-      console.log("Fetching first scene...");
-      await fetchScene();
-    }
-  }, [currentScene, isProcessingChoice, scenes, fetchScene]);
 
   useEffect(() => {
-    initializeGame();
-  }, [initializeGame]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch stamina
-        const staminaResponse = await fetch("/api/user/stamina", {
-          credentials: "include",
-        });
-        if (staminaResponse.ok) {
-          const staminaData = await staminaResponse.json();
-          setStamina({
-            current: staminaData.stamina,
-            max: staminaData.maxStamina,
-            subscription: staminaData.subscription,
-          });
-        }
-      } catch (error) {
-        console.error("Failed to fetch data:", error);
-      } finally {
+    const initGame = async () => {
+      await fetchStamina();
+      if (!currentScene && !isProcessingChoice && scenes.length === 0) {
+        await fetchScene();
       }
     };
-
-    fetchData();
-  }, [currentScene]);
+    initGame();
+  }, []);
 
   const handleChoice = async (choice: { text: string; next: string }) => {
     console.log("Handling choice:", choice);
@@ -87,11 +57,7 @@ export function GameView() {
 
   return (
     <main className="relative w-full h-screen overflow-hidden">
-      <StaminaBar
-        currentStamina={stamina.current}
-        maxStamina={stamina.max}
-        subscription={stamina.subscription}
-      />
+      <StaminaBar />
       <Background
         imageUrl={currentScene.backgroundImage}
         fallback={currentScene.background}
