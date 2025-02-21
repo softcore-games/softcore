@@ -1,71 +1,52 @@
-import { NextResponse } from 'next/server';
-import { hash } from 'bcryptjs';
-import { prisma } from '@/lib/prisma';
-import { z } from 'zod';
+import { NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
+import * as jose from "jose";
+import bcrypt from "bcryptjs";
 
-const registerSchema = z.object({
-  email: z.string().email(),
-  username: z.string().min(3).max(20),
-  password: z.string().min(8),
-});
+const prisma = new PrismaClient();
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
-    const body = await req.json();
-    const { email, username, password } = registerSchema.parse(body);
+    const { username, email, password } = await request.json();
 
     // Check if user already exists
     const existingUser = await prisma.user.findFirst({
       where: {
-        OR: [{ email }, { username }],
+        OR: [{ username }, { email }],
       },
     });
 
     if (existingUser) {
       return NextResponse.json(
-        { error: 'User already exists' },
+        { message: "Username or email already exists" },
         { status: 400 }
       );
     }
 
     // Hash password
-    const hashedPassword = await hash(password, 12);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
+    // Create new user
     const user = await prisma.user.create({
       data: {
-        email,
         username,
+        email,
         password: hashedPassword,
-        gameState: {
-          create: {
-            progress: {},
-            relationships: {},
-            choices: {},
-            settings: {
-              volume: 100,
-              textSpeed: 'normal',
-              autoplay: false,
-            },
-          },
-        },
       },
     });
 
-    return NextResponse.json(
-      {
-        user: {
-          id: user.id,
-          email: user.email,
-          username: user.username,
-        },
-      },
-      { status: 201 }
-    );
+    // Generate JWT token
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+    const token = await new jose.SignJWT({ userId: user.id })
+      .setProtectedHeader({ alg: "HS256" })
+      .setExpirationTime("24h")
+      .sign(secret);
+
+    return NextResponse.json({ token });
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error("Registration error:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { message: "Internal server error" },
       { status: 500 }
     );
   }

@@ -1,26 +1,21 @@
-import './globals.css';
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import { Header } from '@/components/Header';
+import type { Metadata } from "next";
+import Layout from "@/components/Layout";
+import "./globals.css";
 
-const inter = Inter({ subsets: ['latin'] });
-
-// Metadata must be exported from server component
 export const metadata: Metadata = {
-  title: 'Softcore - Visual Novel Game',
-  description: 'A programming-themed visual novel game',
+  title: "SoftCORE - AI Dating Experience",
+  description: "An immersive AI dating experience",
 };
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className} suppressHydrationWarning>
-        <Header />
-        <div className="pt-16">{children}</div>
+    <html lang="en">
+      <body>
+        <Layout>{children}</Layout>
       </body>
     </html>
   );

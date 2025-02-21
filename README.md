@@ -1,142 +1,156 @@
-# SoftCORE - AI-Powered Intimate Fantasy Experience
+# SoftCORE Games - AI-Powered Dating Experience on Core DAO
 
-SoftCORE provides a revolutionary solution to loneliness and isolation, utilizing AI technology to create and explore unlimited intimate moments with your fantasy companions. Our platform allows users to experience deep connections in a safe, private, and deeply immersive environment.
+## 🌟 About SoftCORE Games
 
-## 🌟 Key Features
+SoftCORE Games is a revolutionary AI-powered dating simulation platform built on Core DAO, developed for the Core DAO Hackathon. We create intimate stories that unfold with you, using AI to craft unique experiences that are yours alone.
 
-### 1. Immersive Experience
-- Dynamic story generation
-- Realistic character interactions
-- Emotional relationship development
-- Multiple story paths based on your choices
+### 🎯 Mission
 
-### 2. AI-Powered Interactions
-- Natural language processing
-- Context-aware responses
-- Personality adaptation
-- Dynamic emotion system
+"Where fantasy meets desire, we bring people together through immersive storytelling, fueled by AI and driven by passion."
 
-### 3. Character System
-- Unique personalities
-- Deep relationship building
-- Emotional connections
-- Adaptive responses
+## 🚀 Key Features
 
-### 4. Privacy & Security
-- End-to-end encryption
-- Secure data storage
-- Private user profiles
-- Anonymous interactions
+- **AI-Powered Storytelling**: Dynamic conversations and storylines that adapt to your choices
+- **Character Interaction**: Engage with unique AI characters with distinct personalities and backgrounds
+- **NFT Integration**: Mint and own your special moments as unique digital assets on Core DAO
+- **Blockchain Security**: Leveraging Core DAO for secure transactions and asset ownership
+- **Interactive Choices**: Shape your story through meaningful dialogue options
+- **Emotional Expression System**: Characters display various moods and reactions
+- **Save/Load System**: Preserve and revisit your favorite moments
+- **Wallet Integration**: Seamless Core DAO wallet connection for NFT minting
 
-### 5. Technical Features
-- Built with Next.js 14 and TypeScript
-- MongoDB database with Prisma ORM
-- OpenAI integration for natural dialogue
-- Responsive design for all devices
+## 🛠 Technologies
+
+- **Frontend**: Next.js 14, React 18, TailwindCSS
+- **AI Integration**: OpenAI GPT-4
+- **Blockchain**: Core DAO, Ethers.js
+- **Authentication**: Custom wallet authentication
+- **State Management**: React Query, Context API
+- **UI Components**: Radix UI, Framer Motion
+- **Database**: MongoDB with Prisma
+- **Styling**: Tailwind CSS with custom theme
+
+## 🏗 Architecture
+
+- **Smart Contracts**: NFT minting and ownership management on Core DAO
+- **Backend API**: Next.js API routes for scene generation and NFT management
+- **Frontend**: Responsive React components with dark/light mode support
+- **Database**: MongoDB for storing character data and game states
+- **Wallet Integration**: Core DAO wallet connection for NFT transactions
 
 ## 🚀 Getting Started
 
-### Prerequisites
-- Node.js 18 or higher
-- MongoDB database
-- OpenAI API key
+1. Clone the repository
+2. Install dependencies:
 
-### Environment Setup
-Create a `.env.local` file with:
-```env
-DATABASE_URL="your_mongodb_url"
-NEXTAUTH_SECRET="your_jwt_secret"
-OPENAI_API_KEY="your_openai_api_key"
-```
-
-### Installation
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/softcore.git
-cd softcore
-
-# Install dependencies
 npm install
-
-# Generate Prisma client
-npx prisma generate
-
-# Start development server
-npm run dev
+# or
+yarn install
 ```
 
-## 🎮 Experience Features
+3. Set up environment variables:
 
-### Character System
-- Multiple unique companions
-- Dynamic relationship tracking
-- AI-powered dialogue generation
-- Emotional response system
+```bash
+NEXT_PUBLIC_RPC_URL=your_core_dao_rpc_url
+NFT_CONTRACT_ADDRESS=your_contract_address
+DATABASE_URL=your_mongodb_url
+```
 
-### Story System
-- Branching narratives
-- Choice-based progression
-- Dynamic scene generation
-- Personalized experiences
+4. Run the development server:
 
-### Customization
-- Relationship preferences
-- Interaction styles
-- Personal boundaries
-- Experience settings
+```bash
+npm run dev
+# or
+yarn dev
+```
 
-## 🛠️ Technical Stack
+5. Open [http://localhost:3000](http://localhost:3000) with your browser to start your journey.
 
-### Frontend
-- Next.js 14
-- TypeScript
-- Tailwind CSS
-- Framer Motion
-- shadcn/ui Components
+### API Routes
 
-### Backend
-- Next.js API Routes
-- MongoDB
-- Prisma ORM
-- OpenAI Integration
+#### Authentication
 
-### Development Tools
-- ESLint
-- TypeScript
-- Zod Validation
-- Prettier
+- `POST /api/auth/register` - Create new user account
+- `POST /api/auth/login` - User login
+- `POST /api/auth/logout` - User logout
+- `GET /api/auth/verify` - Verify JWT token
 
-## 🔒 Security
+#### Game
 
-- JWT authentication
-- HTTP-only cookies
-- Password hashing
-- Protected API routes
-- Input validation
+- `POST /api/generate-scene` - Generate new game scene
+- `POST /api/generate-characters` - Generate character data
+- `POST /api/mint-nft` - Mint scene as NFT
 
-## 📚 Documentation
+### Authentication Flow
 
-Detailed documentation is available in the `/docs` directory:
-- [API Reference](docs/api.md)
-- [Character Guide](docs/characters.md)
-- [Story System](docs/stories.md)
-- [Development Guide](docs/development.md)
+1. **Registration**:
+
+   - User submits username, email, and password
+   - Password is hashed using bcryptjs
+   - User data is stored in MongoDB
+   - JWT token is generated and returned
+
+2. **Login**:
+
+   - User provides username and password
+   - Credentials are verified against database
+   - JWT token is generated and returned
+
+3. **Protected Routes**:
+   - JWT token is verified using middleware
+   - Invalid or expired tokens redirect to login
+   - Token is automatically refreshed when needed
+
+### Game State Management
+
+- Game state is persisted in localStorage
+- JWT token handles authentication state
+- React Query manages API state and caching
+- Automatic token verification on protected routes
+
+## 🌐 Core DAO Integration
+
+SoftCORE Games leverages Core DAO's blockchain infrastructure for:
+
+- NFT minting of special moments
+- Secure wallet connections
+- Transaction processing
+- Asset ownership verification
+- Cross-chain compatibility
+
+## 💎 NFT Features
+
+- Mint special moments as unique NFTs
+- View NFTs in your personal gallery
+- Trade NFTs with other users
+- Verify ownership on Core DAO blockchain
+- Custom metadata for each minted moment
+
+## 🔐 Security Features
+
+- Secure wallet integration
+- Private data encryption
+- Age verification system
+- Safe transaction handling
+- Blockchain-based asset protection
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+We welcome contributions to SoftCORE Games! Please check out our [Contributing Guidelines](CONTRIBUTING.md) for details.
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## 🏆 Core DAO Hackathon
+
+This project was developed for the Core DAO Hackathon, showcasing the potential of combining AI technology with blockchain infrastructure to create meaningful digital experiences.
+
 ## 🙏 Acknowledgments
 
-- Character artwork and backgrounds by [Artist Name]
-- OpenAI for dialogue generation
-- shadcn/ui for the component library
-- All contributors who have helped shape this project
+- Core DAO Team for their amazing blockchain infrastructure
+- OpenAI for their powerful language models
+- The entire blockchain gaming community
+
+For more information about Core DAO, visit [Core DAO Official Website](https://coredao.org)

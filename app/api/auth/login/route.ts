@@ -1,82 +1,36 @@
-import { NextResponse } from 'next/server';
-import { compare } from 'bcryptjs';
-import { sign } from 'jsonwebtoken';
-import { prisma } from '@/lib/prisma';
-import { z } from 'zod';
+import { NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
+import * as jose from "jose";
+import bcrypt from "bcryptjs";
 
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string(),
-});
+const prisma = new PrismaClient();
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
-    const body = await req.json();
-    const { email, password } = loginSchema.parse(body);
+    const { username, password } = await request.json();
 
     const user = await prisma.user.findUnique({
-      where: { email },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        password: true,
-        isAdmin: true,
-      },
+      where: { username },
     });
 
-    if (!user) {
+    if (!user || !(await bcrypt.compare(password, user.password))) {
       return NextResponse.json(
-        { error: 'Invalid credentials' },
+        { message: "Invalid credentials" },
         { status: 401 }
       );
     }
 
-    const isValidPassword = await compare(password, user.password);
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+    const token = await new jose.SignJWT({ userId: user.id })
+      .setProtectedHeader({ alg: "HS256" })
+      .setExpirationTime("24h")
+      .sign(secret);
 
-    if (!isValidPassword) {
-      return NextResponse.json(
-        { error: 'Invalid credentials' },
-        { status: 401 }
-      );
-    }
-
-    // Generate token with isAdmin claim
-    const accessToken = sign(
-      { 
-        userId: user.id,
-        isAdmin: user.isAdmin 
-      },
-      process.env.NEXTAUTH_SECRET!,
-      { expiresIn: '1d' }
-    );
-
-    const response = NextResponse.json(
-      {
-        user: {
-          id: user.id,
-          email: user.email,
-          username: user.username,
-          isAdmin: user.isAdmin,
-        },
-      },
-      { status: 200 }
-    );
-
-    // Set access token in HTTP-only cookie
-    response.cookies.set('accessToken', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 24 * 60 * 60, // 1 day
-      path: '/',
-    });
-
-    return response;
+    return NextResponse.json({ token, message: "Login successful" });
   } catch (error) {
-    console.error('Login error:', error);
+    console.error("Login error:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { message: "Internal server error" },
       { status: 500 }
     );
   }

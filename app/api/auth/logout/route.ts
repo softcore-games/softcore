@@ -1,10 +1,13 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
 export async function POST() {
-  const response = NextResponse.json({ success: true });
-  
-  // Clear access token cookie
-  response.cookies.delete('accessToken');
-  
-  return response;
+  return NextResponse.json(
+    { message: "Logged out successfully" },
+    {
+      status: 200,
+      headers: {
+        "Set-Cookie": "token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
+      },
+    }
+  );
 }
