@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { headers } from "next/headers";
-
+import { config } from "@/lib/config";
+const openAIKey = config.openAIKey;
 interface Scene {
   message: string;
   choices: Array<{
@@ -25,13 +26,13 @@ interface Choice {
 
 export async function POST(request: Request) {
   const headersList = headers();
-  const apiKey = headersList.get("x-api-key");
-  const characterId = headersList.get("x-character-id");
 
-  if (!apiKey) {
-    console.log("API key missing");
-    return NextResponse.json({ error: "API key is required" }, { status: 401 });
-  }
+  const characterId = headersList.get("x-character-id");
+  // const apiKey = headersList.get("x-api-key");
+  // if (!apiKey) {
+  //   console.log("API key missing");
+  //   return NextResponse.json({ error: "API key is required" }, { status: 401 });
+  // }
 
   try {
     const { currentScene, selectedChoice, history } = await request.json();
@@ -95,7 +96,7 @@ Your personality is warm, engaging, and genuinely interested in the player.`;
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${openAIKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -142,7 +143,7 @@ Your personality is warm, engaging, and genuinely interested in the player.`;
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          Authorization: `Bearer ${openAIKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({

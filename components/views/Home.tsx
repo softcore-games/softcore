@@ -73,15 +73,15 @@ const Home = () => {
 
   useEffect(() => {
     if (!isLoaded) return;
-    if (started && isLoggedIn && !selectedCharacter && !apiKey) {
-      toast({
-        title: "API Key Required",
-        description:
-          "Please set your OpenAI API key in the settings page before selecting a character.",
-        variant: "destructive",
-      });
-      router.push("/settings");
-    }
+    // if (started && isLoggedIn && !selectedCharacter && !apiKey) {
+    //   toast({
+    //     title: "API Key Required",
+    //     description:
+    //       "Please set your OpenAI API key in the settings page before selecting a character.",
+    //     variant: "destructive",
+    //   });
+    //   router.push("/settings");
+    // }
   }, [started, isLoggedIn, selectedCharacter, apiKey, router, isLoaded]);
 
   const handleLogout = () => {

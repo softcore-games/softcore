@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { headers } from "next/headers";
-
+import { config } from "@/lib/config";
+const openAIKey = config.openAIKey;
 const characterImages = [
   "https://im.runware.ai/image/ii/330a9c93-aa23-4d43-9e15-c0a05d70ae35.WEBP",
   "https://im.runware.ai/image/ii/b254fd6f-1d6f-417c-b1c4-66438200cb83.WEBP",
@@ -39,17 +40,17 @@ function getRandomImages(count: number) {
 
 export async function POST() {
   const headersList = headers();
-  const apiKey = headersList.get("x-api-key");
+  // const apiKey = headersList.get("x-api-key");
 
-  if (!apiKey) {
-    return NextResponse.json({ error: "API key is required" }, { status: 401 });
-  }
+  // if (!apiKey) {
+  //   return NextResponse.json({ error: "API key is required" }, { status: 401 });
+  // }
 
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${openAIKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
