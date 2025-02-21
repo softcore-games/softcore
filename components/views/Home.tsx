@@ -91,12 +91,12 @@ const Home = () => {
     );
   }
 
-  if (!isAuthenticated) {
-    return <LoginScreen onLogin={handleLogin} />;
-  }
-
   if (!started) {
     return <WelcomeScreen onStart={() => setStarted(true)} />;
+  }
+
+  if (!isAuthenticated) {
+    return <LoginScreen onLogin={handleLogin} />;
   }
 
   if (!selectedCharacter) {
