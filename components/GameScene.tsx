@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Character } from "@/data/gameData";
 import { Header } from "./Header";
 import { WalletConnection } from "./WalletConnection";
+import { useRouter } from "next/router";
 import {
   getStamina,
   decreaseStamina,
@@ -54,6 +55,7 @@ interface Choice {
 }
 
 export const GameScene = ({ onLogout }: GameSceneProps) => {
+  const router = useRouter();
   const [gameState, setGameState] = useState<GameState>(() => {
     const savedState = localStorage.getItem("gameState");
     const selectedCharacterId = localStorage.getItem("selectedCharacterId");
@@ -89,9 +91,39 @@ export const GameScene = ({ onLogout }: GameSceneProps) => {
     gameState.history[gameState.history.length - 1];
 
   const activeProvider = localStorage.getItem("ACTIVE_AI_PROVIDER") || "OPENAI";
-  const apiKey = localStorage.getItem(`${activeProvider}_API_KEY`);
+  // const apiKey = localStorage.getItem(`${activeProvider}_API_KEY`);
 
   const isReviewingPastScene = currentIndex < gameState.history.length - 1;
+
+  useEffect(() => {
+    // Check for JWT token on component mount
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/"); // Redirect to login page if no token
+      return;
+    }
+
+    // Verify token is valid
+    const verifyToken = async () => {
+      try {
+        const response = await fetch("/api/auth/verify", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Invalid token");
+        }
+      } catch (error) {
+        console.error("Token verification failed:", error);
+        localStorage.removeItem("token"); // Clear invalid token
+        router.push("/"); // Redirect to login page
+      }
+    };
+
+    verifyToken();
+  }, [router]);
 
   useEffect(() => {
     if (currentScene && currentScene.message) {
@@ -118,13 +150,13 @@ export const GameScene = ({ onLogout }: GameSceneProps) => {
     queryKey: ["initialScene"],
     queryFn: async () => {
       if (gameState.history.length > 0) return null;
-      if (!apiKey) throw new Error("No API key found");
 
+      const token = localStorage.getItem("token");
       const response = await fetch("/api/generate-scene", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-api-key": apiKey,
+          Authorization: `Bearer ${token}`,
           "x-provider": activeProvider,
           "x-character-id": gameState.currentState.selectedCharacterId,
         },
@@ -137,11 +169,17 @@ export const GameScene = ({ onLogout }: GameSceneProps) => {
 
       const data = await response.json();
 
-      if (data.error) throw data.error;
-      console.log("Initial scene response:", data);
+      if (!response.ok) {
+        if (response.status === 401) {
+          router.push("/"); // Redirect to login page if unauthorized
+          throw new Error("Please log in again");
+        }
+        throw new Error(data.error || "Failed to generate scene");
+      }
+
       return data;
     },
-    enabled: gameState.history.length === 0 && !!apiKey,
+    enabled: gameState.history.length === 0,
   });
 
   const {
@@ -151,13 +189,12 @@ export const GameScene = ({ onLogout }: GameSceneProps) => {
   } = useQuery({
     queryKey: ["nextScene", selectedChoice],
     queryFn: async () => {
-      if (!apiKey) throw new Error("No API key found");
-
       const currentStamina = getStamina();
       if (currentStamina <= 0) {
         throw new Error("Not enough stamina! Purchase more to continue.");
       }
 
+      const token = localStorage.getItem("token");
       const remainingStamina = decreaseStamina();
       setStamina(remainingStamina);
 
@@ -165,7 +202,7 @@ export const GameScene = ({ onLogout }: GameSceneProps) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-api-key": apiKey,
+          Authorization: `Bearer ${token}`,
           "x-provider": activeProvider,
           "x-character-id": gameState.currentState.selectedCharacterId,
         },
@@ -178,11 +215,17 @@ export const GameScene = ({ onLogout }: GameSceneProps) => {
 
       const data = await response.json();
 
-      if (data.error) throw data.error;
-      console.log("Next scene response:", data);
+      if (!response.ok) {
+        if (response.status === 401) {
+          router.push("/"); // Redirect to login page if unauthorized
+          throw new Error("Please log in again");
+        }
+        throw new Error(data.error || "Failed to generate scene");
+      }
+
       return data;
     },
-    enabled: selectedChoice !== null && !!apiKey,
+    enabled: selectedChoice !== null,
   });
 
   useEffect(() => {
@@ -198,14 +241,14 @@ export const GameScene = ({ onLogout }: GameSceneProps) => {
   }, [initialError, nextError]);
 
   useEffect(() => {
-    if (!apiKey) {
-      toast({
-        title: "API Key Required",
-        description: `Please set your ${activeProvider} API key in the settings page`,
-        variant: "destructive",
-      });
-    }
-  }, [apiKey, activeProvider]);
+    // if (!apiKey) {
+    //   toast({
+    //     title: "API Key Required",
+    //     description: `Please set your ${activeProvider} API key in the settings page`,
+    //     variant: "destructive",
+    //   });
+    // }
+  }, [activeProvider]);
 
   useEffect(() => {
     if (initialScene && gameState.history.length === 0) {
@@ -435,6 +478,13 @@ export const GameScene = ({ onLogout }: GameSceneProps) => {
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [isTyping, currentScene]);
 
+  const handleLogout = () => {
+    // The actual logout logic is now handled in the Header component
+    if (onLogout) {
+      onLogout();
+    }
+  };
+
   if (!currentScene) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-love-100 to-love-200 dark:from-love-900 dark:to-love-800">
@@ -448,7 +498,7 @@ export const GameScene = ({ onLogout }: GameSceneProps) => {
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-love-100 to-love-200 dark:from-love-900 dark:to-love-800">
       <Header
-        onLogout={onLogout}
+        onLogout={handleLogout}
         onSave={handleSave}
         onLoad={() => fileInputRef.current?.click()}
       >

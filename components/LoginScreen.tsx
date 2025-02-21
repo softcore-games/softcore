@@ -10,19 +10,51 @@ interface LoginScreenProps {
 }
 
 export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
+  const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
   const { toast } = useToast();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (username && password) {
-      localStorage.setItem("user", JSON.stringify({ username }));
-      onLogin();
-    } else {
+
+    if (!username || !password || (!isLogin && !email)) {
       toast({
         title: "Error",
         description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          password,
+          ...(isLogin ? {} : { email }),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message);
+      }
+
+      localStorage.setItem("token", data.token);
+      onLogin();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "An error occurred",
         variant: "destructive",
       });
     }
@@ -40,7 +72,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           <h1 className="text-3xl font-display text-love-800 text-center">
             Welcome to SoftCORE
           </h1>
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Input
                 type="text"
@@ -50,6 +82,17 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                 className="w-full"
               />
             </div>
+            {!isLogin && (
+              <div>
+                <Input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+            )}
             <div>
               <Input
                 type="password"
@@ -60,8 +103,18 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
               />
             </div>
             <Button type="submit" className="w-full bg-primary text-white">
-              Start Your Journey
+              {isLogin ? "Login" : "Register"}
             </Button>
+            <p className="text-center text-sm">
+              {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+              <button
+                type="button"
+                onClick={() => setIsLogin(!isLogin)}
+                className="text-primary hover:underline"
+              >
+                {isLogin ? "Register" : "Login"}
+              </button>
+            </p>
           </form>
         </motion.div>
       </Card>

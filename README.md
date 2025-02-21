@@ -67,6 +67,48 @@ yarn dev
 
 5. Open [http://localhost:3000](http://localhost:3000) with your browser to start your journey.
 
+### API Routes
+
+#### Authentication
+
+- `POST /api/auth/register` - Create new user account
+- `POST /api/auth/login` - User login
+- `POST /api/auth/logout` - User logout
+- `GET /api/auth/verify` - Verify JWT token
+
+#### Game
+
+- `POST /api/generate-scene` - Generate new game scene
+- `POST /api/generate-characters` - Generate character data
+- `POST /api/mint-nft` - Mint scene as NFT
+
+### Authentication Flow
+
+1. **Registration**:
+
+   - User submits username, email, and password
+   - Password is hashed using bcryptjs
+   - User data is stored in MongoDB
+   - JWT token is generated and returned
+
+2. **Login**:
+
+   - User provides username and password
+   - Credentials are verified against database
+   - JWT token is generated and returned
+
+3. **Protected Routes**:
+   - JWT token is verified using middleware
+   - Invalid or expired tokens redirect to login
+   - Token is automatically refreshed when needed
+
+### Game State Management
+
+- Game state is persisted in localStorage
+- JWT token handles authentication state
+- React Query manages API state and caching
+- Automatic token verification on protected routes
+
 ## 🌐 Core DAO Integration
 
 SoftCORE Games leverages Core DAO's blockchain infrastructure for:

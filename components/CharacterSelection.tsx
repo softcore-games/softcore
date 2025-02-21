@@ -22,16 +22,16 @@ export const CharacterSelection = ({ onSelect }: CharacterSelectionProps) => {
   const { data, isLoading, error } = useQuery({
     queryKey: ["characters"],
     queryFn: async () => {
-      const apiKey = localStorage.getItem("OPENAI_API_KEY");
-      if (!apiKey) {
-        throw new Error("OpenAI API key is required");
-      }
+      // const apiKey = localStorage.getItem("OPENAI_API_KEY");
+      // if (!apiKey) {
+      //   throw new Error("OpenAI API key is required");
+      // }
 
       const response = await fetch("/api/generate-characters", {
         method: "POST",
-        headers: {
-          "x-api-key": apiKey,
-        },
+        // headers: {
+        //   "x-api-key": apiKey,
+        // },
       });
 
       if (!response.ok) {
