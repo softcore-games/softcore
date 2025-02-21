@@ -18,10 +18,14 @@ interface ConversationContext {
   choice: string | null;
 }
 
+interface Choice {
+  text: string;
+  relationshipImpact: number;
+}
+
 export async function POST(request: Request) {
   const headersList = headers();
   const apiKey = headersList.get("x-api-key");
-  const provider = headersList.get("x-provider");
   const characterId = headersList.get("x-character-id");
 
   if (!apiKey) {
@@ -50,7 +54,7 @@ export async function POST(request: Request) {
     );
 
     const conversationContext: ConversationContext[] = lastFewScenes.map(
-      (scene) => ({
+      (scene: Scene) => ({
         message: scene.message,
         choice:
           scene.selectedChoice !== null &&
@@ -62,7 +66,7 @@ export async function POST(request: Request) {
     );
 
     const emotionalContext = lastFewScenes
-      .map((scene: any) => scene.mood)
+      .map((scene: Scene) => scene.mood)
       .filter(Boolean)
       .join(", ");
     console.log("Emotional context:", emotionalContext);
@@ -81,7 +85,7 @@ Your personality is warm, engaging, and genuinely interested in the player.`;
 
     const conversationSummary = conversationContext
       .map(
-        (ctx: any) =>
+        (ctx: ConversationContext) =>
           `${ctx.message}${ctx.choice ? ` (Player chose: ${ctx.choice})` : ""}`
       )
       .join("\n");
@@ -186,7 +190,7 @@ Your personality is warm, engaging, and genuinely interested in the player.`;
           relationshipImpact: Math.floor(Math.random() * 3) + 1,
         };
       })
-      .filter((choice: any) => {
+      .filter((choice: Choice) => {
         // Validate choice text
         return (
           choice.text &&

@@ -18,7 +18,9 @@ interface WalletContextType {
   switchNetwork: () => Promise<void>;
 }
 
-const WalletContext = createContext<WalletContextType>({} as WalletContextType);
+export const WalletContext = createContext<WalletContextType>(
+  {} as WalletContextType
+);
 
 export const NETWORKS = {
   mainnet: {
@@ -45,13 +47,6 @@ export const NETWORKS = {
   },
 };
 
-interface EthereumProvider {
-  request: (args: { method: string; params?: any[] }) => Promise<any>;
-  on: (event: string, callback: (params: any) => void) => void;
-  removeListener: (event: string, callback: (params: any) => void) => void;
-  isMetaMask?: boolean;
-}
-
 export function WalletProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const [address, setAddress] = useState<string | null>(null);
@@ -60,8 +55,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [isConnecting, setIsConnecting] = useState(false);
 
   const getBalance = async (addr: string) => {
+    if (!window.ethereum || !addr) return;
+
     const ethereum = window.ethereum as EthereumProvider;
-    if (!ethereum || !addr) return;
 
     try {
       const provider = new BrowserProvider(ethereum);

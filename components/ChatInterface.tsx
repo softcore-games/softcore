@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Send } from "lucide-react";
 import { characters, scenes, type Scene } from "@/data/gameData";
+import Image from "next/image";
 
 const defaultCharacter = characters[0];
 
@@ -110,13 +111,13 @@ export const ChatInterface = () => {
     <div className="flex flex-col h-screen bg-love-50">
       <header className="p-4 bg-white border-b border-love-100 flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Avatar className="w-10 h-10">
-            <img
-              src={defaultCharacter.avatar}
-              alt={defaultCharacter.name}
-              className="rounded-full"
-            />
-          </Avatar>
+          <Image
+            src={defaultCharacter.avatar}
+            alt={defaultCharacter.name}
+            width={40}
+            height={40}
+            className="rounded-full"
+          />
           <div>
             <h2 className="font-display text-xl text-love-800">
               {defaultCharacter.name}
@@ -145,9 +146,11 @@ export const ChatInterface = () => {
                 }`}
               >
                 {message.imageURL && (
-                  <img
+                  <Image
                     src={message.imageURL}
                     alt="Scene"
+                    width={300}
+                    height={150}
                     className="w-full h-48 object-cover rounded-lg mb-4"
                   />
                 )}

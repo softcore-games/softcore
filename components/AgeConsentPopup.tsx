@@ -71,15 +71,16 @@ export const AgeConsentPopup = ({ onConsent }: AgeConsentPopupProps) => {
             onClick={handleReject}
             className="sm:order-1"
           >
-            I'm Under 18
+            I&apos;m Under 18
           </Button>
           <Button
             onClick={handleConsent}
             className="bg-love-600 hover:bg-love-700 text-white"
           >
-            I'm 18 or Older
+            I&apos;m 18 or Older
           </Button>
         </div>
+        <p>Don&apos;t worry, we&apos;ll keep things tasteful!</p>
       </DialogContent>
     </Dialog>
   );

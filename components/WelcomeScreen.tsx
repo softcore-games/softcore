@@ -23,8 +23,8 @@ export const WelcomeScreen = ({ onStart }: { onStart: () => void }) => {
             </h1>
 
             <p className="text-xl md:text-2xl text-love-700 dark:text-love-300 max-w-2xl mx-auto">
-              "We create intimate stories that unfold with you, using AI to
-              craft a unique erotic experience that's yours alone."
+              &quot;We create intimate stories that unfold with you, using AI to
+              craft a unique erotic experience that&apos;s yours alone.&quot;
             </p>
 
             <motion.div

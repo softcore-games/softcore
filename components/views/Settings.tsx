@@ -12,48 +12,29 @@ import { Key, Eye, EyeOff } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 export default function SettingsPage() {
   const [currentProvider, setCurrentProvider] = useState<string>("");
   const [apiKey, setApiKey] = useState("");
-  const [activeProvider, setActiveProvider] = useState<string>("OPENAI");
+  const [activeProvider, setActiveProvider] = useLocalStorage<string>(
+    "ACTIVE_AI_PROVIDER",
+    "OPENAI"
+  );
+  const [openAIKey, setOpenAIKey] = useLocalStorage<string>(
+    "OPENAI_API_KEY",
+    ""
+  );
+  const [deepSeekKey, setDeepSeekKey] = useLocalStorage<string>(
+    "DEEPSEEK_API_KEY",
+    ""
+  );
   const [showOpenAIKey, setShowOpenAIKey] = useState(false);
   const [showDeepSeekKey, setShowDeepSeekKey] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
-    // Load the active provider from localStorage
-    const savedProvider = localStorage.getItem("ACTIVE_AI_PROVIDER");
-    if (savedProvider) {
-      setActiveProvider(savedProvider);
-    } else {
-      // Check which provider has an API key set
-      const openaiKey = localStorage.getItem("OPENAI_API_KEY");
-      const deepseekKey = localStorage.getItem("DEEPSEEK_API_KEY");
-
-      if (openaiKey) {
-        setActiveProvider("OPENAI");
-        localStorage.setItem("ACTIVE_AI_PROVIDER", "OPENAI");
-      } else if (deepseekKey) {
-        setActiveProvider("DEEPSEEK");
-        localStorage.setItem("ACTIVE_AI_PROVIDER", "DEEPSEEK");
-      }
-    }
-
-    // Load saved API keys
-    const openaiKey = localStorage.getItem("OPENAI_API_KEY") || "";
-    const deepseekKey = localStorage.getItem("DEEPSEEK_API_KEY") || "";
-
-    if (currentProvider === "OPENAI") {
-      setApiKey(openaiKey);
-    } else if (currentProvider === "DEEPSEEK") {
-      setApiKey(deepseekKey);
-    }
-  }, [currentProvider]);
-
   const handleSwitchProvider = (provider: string) => {
-    // Check if the provider has an API key set
-    const hasKey = localStorage.getItem(`${provider}_API_KEY`);
+    const hasKey = provider === "OPENAI" ? openAIKey : deepSeekKey;
     if (!hasKey) {
       toast({
         title: "API Key Required",
@@ -63,7 +44,6 @@ export default function SettingsPage() {
       return;
     }
 
-    localStorage.setItem("ACTIVE_AI_PROVIDER", provider);
     setActiveProvider(provider);
     toast({
       title: "Provider Switched",
@@ -73,28 +53,26 @@ export default function SettingsPage() {
 
   const handleSaveKey = (provider: string) => {
     if (apiKey.trim()) {
-      localStorage.setItem(`${provider}_API_KEY`, apiKey.trim());
-      localStorage.setItem("ACTIVE_AI_PROVIDER", provider);
+      if (provider === "OPENAI") {
+        setOpenAIKey(apiKey.trim());
+      } else {
+        setDeepSeekKey(apiKey.trim());
+      }
       setActiveProvider(provider);
       toast({
         title: "API Key Updated",
         description: `Your ${provider} API key has been saved and set as active.`,
       });
     } else {
-      localStorage.removeItem(`${provider}_API_KEY`);
+      if (provider === "OPENAI") {
+        setOpenAIKey("");
+      } else {
+        setDeepSeekKey("");
+      }
       toast({
         title: "API Key Removed",
         description: `Your ${provider} API key has been removed.`,
       });
-
-      // If removing the active provider, switch to the other one if available
-      if (provider === activeProvider) {
-        const otherProvider = provider === "OPENAI" ? "DEEPSEEK" : "OPENAI";
-        if (localStorage.getItem(`${otherProvider}_API_KEY`)) {
-          setActiveProvider(otherProvider);
-          localStorage.setItem("ACTIVE_AI_PROVIDER", otherProvider);
-        }
-      }
     }
     setApiKey("");
     setCurrentProvider("");
@@ -137,7 +115,7 @@ export default function SettingsPage() {
                   ? "bg-love-500 hover:bg-love-600 text-white flex-1"
                   : "border-love-200 dark:border-love-800 text-love-800 dark:text-love-200 flex-1"
               }
-              disabled={!localStorage.getItem("OPENAI_API_KEY")}
+              disabled={!openAIKey}
             >
               Switch to OpenAI
             </Button>
@@ -149,7 +127,7 @@ export default function SettingsPage() {
                   ? "bg-love-500 hover:bg-love-600 text-white flex-1"
                   : "border-love-200 dark:border-love-800 text-love-800 dark:text-love-200 flex-1"
               }
-              disabled={!localStorage.getItem("DEEPSEEK_API_KEY")}
+              disabled={!deepSeekKey}
             >
               Switch to DeepSeek
             </Button>
@@ -170,11 +148,7 @@ export default function SettingsPage() {
               <Input
                 type={showOpenAIKey ? "text" : "password"}
                 placeholder="Enter OpenAI API key"
-                value={
-                  currentProvider === "OPENAI"
-                    ? apiKey
-                    : localStorage.getItem("OPENAI_API_KEY") || ""
-                }
+                value={apiKey}
                 onChange={(e) =>
                   handleProviderInputChange("OPENAI", e.target.value)
                 }
@@ -218,11 +192,7 @@ export default function SettingsPage() {
               <Input
                 type={showDeepSeekKey ? "text" : "password"}
                 placeholder="Enter DeepSeek API key"
-                value={
-                  currentProvider === "DEEPSEEK"
-                    ? apiKey
-                    : localStorage.getItem("DEEPSEEK_API_KEY") || ""
-                }
+                value={apiKey}
                 onChange={(e) =>
                   handleProviderInputChange("DEEPSEEK", e.target.value)
                 }

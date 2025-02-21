@@ -46,6 +46,13 @@ interface GameSceneProps {
   onLogout?: () => void;
 }
 
+interface Choice {
+  id: string;
+  text: string;
+  nextSceneId: string;
+  relationshipImpact: number;
+}
+
 export const GameScene = ({ onLogout }: GameSceneProps) => {
   const [gameState, setGameState] = useState<GameState>(() => {
     const savedState = localStorage.getItem("gameState");
@@ -67,11 +74,9 @@ export const GameScene = ({ onLogout }: GameSceneProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [stamina, setStamina] = useState(() => getStamina());
 
-  console.log(displayedText, "displayedText");
-
   const [currentIndex, setCurrentIndex] = useState<number>(0);
 
-  const [currentCharacter, setCurrentCharacter] = useState<Character>(() => {
+  const [currentCharacter] = useState<Character>(() => {
     const savedCharacterData = localStorage.getItem("selectedCharacterData");
     if (savedCharacterData) {
       return JSON.parse(savedCharacterData);
@@ -97,7 +102,7 @@ export const GameScene = ({ onLogout }: GameSceneProps) => {
 
       const interval = setInterval(() => {
         if (index < messageText.length) {
-          setDisplayedText((prev) => messageText.substring(0, index + 1));
+          setDisplayedText(messageText.substring(0, index + 1));
           index++;
         } else {
           clearInterval(interval);
@@ -109,11 +114,7 @@ export const GameScene = ({ onLogout }: GameSceneProps) => {
     }
   }, [currentScene]);
 
-  const {
-    data: initialScene,
-    isLoading: isInitialSceneLoading,
-    error: initialError,
-  } = useQuery({
+  const { data: initialScene, error: initialError } = useQuery({
     queryKey: ["initialScene"],
     queryFn: async () => {
       if (gameState.history.length > 0) return null;
@@ -219,7 +220,7 @@ export const GameScene = ({ onLogout }: GameSceneProps) => {
             timestamp: Date.now(),
             message: messageText,
             imageURL: initialScene.imageURL,
-            choices: initialScene.choices.map((choice: any) => ({
+            choices: initialScene.choices.map((choice: Choice) => ({
               id: choice.id,
               text: choice.text,
               nextSceneId: choice.nextSceneId,
@@ -231,7 +232,7 @@ export const GameScene = ({ onLogout }: GameSceneProps) => {
       setGameState(newGameState);
       localStorage.setItem("gameState", JSON.stringify(newGameState));
     }
-  }, [initialScene]);
+  }, [initialScene, gameState]);
 
   useEffect(() => {
     if (nextScene && selectedChoice !== null) {
@@ -247,7 +248,7 @@ export const GameScene = ({ onLogout }: GameSceneProps) => {
             timestamp: Date.now(),
             message: messageText,
             imageURL: nextScene.imageURL,
-            choices: nextScene.choices.map((choice: any) => ({
+            choices: nextScene.choices.map((choice: Choice) => ({
               id: choice.id,
               text: choice.text,
               nextSceneId: choice.nextSceneId,
@@ -266,7 +267,7 @@ export const GameScene = ({ onLogout }: GameSceneProps) => {
       setSelectedChoice(null);
       localStorage.setItem("gameState", JSON.stringify(newGameState));
     }
-  }, [nextScene]);
+  }, [nextScene, selectedChoice, gameState, currentScene?.choices]);
 
   const handleChoiceSelect = (choiceIndex: number) => {
     if (isTyping) {
