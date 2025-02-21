@@ -27,6 +27,8 @@ export const DialogueBox = (props: DialogueBoxProps) => {
     return <MobileDialogueBox {...props} />;
   }
 
+  console.log(props, "propspropsprops");
+
   const getFirstSentence = (text: string) => {
     if (!text) return "";
     const match = text.match(/^[^.!?]+[.!?]?/);

@@ -67,6 +67,8 @@ export const GameScene = ({ onLogout }: GameSceneProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [stamina, setStamina] = useState(() => getStamina());
 
+  console.log(displayedText, "displayedText");
+
   const [currentIndex, setCurrentIndex] = useState<number>(0);
 
   const [currentCharacter, setCurrentCharacter] = useState<Character>(() => {
@@ -88,14 +90,14 @@ export const GameScene = ({ onLogout }: GameSceneProps) => {
 
   useEffect(() => {
     if (currentScene && currentScene.message) {
-      const messageText = currentScene.message.toString();
+      const messageText = currentScene.message.toString().trim();
       setIsTyping(true);
       setDisplayedText("");
       let index = 0;
 
       const interval = setInterval(() => {
         if (index < messageText.length) {
-          setDisplayedText((prev) => prev + messageText[index]);
+          setDisplayedText((prev) => messageText.substring(0, index + 1));
           index++;
         } else {
           clearInterval(interval);
@@ -217,7 +219,7 @@ export const GameScene = ({ onLogout }: GameSceneProps) => {
             timestamp: Date.now(),
             message: messageText,
             imageURL: initialScene.imageURL,
-            choices: initialScene.choices.map((choice) => ({
+            choices: initialScene.choices.map((choice: any) => ({
               id: choice.id,
               text: choice.text,
               nextSceneId: choice.nextSceneId,
@@ -245,7 +247,7 @@ export const GameScene = ({ onLogout }: GameSceneProps) => {
             timestamp: Date.now(),
             message: messageText,
             imageURL: nextScene.imageURL,
-            choices: nextScene.choices.map((choice) => ({
+            choices: nextScene.choices.map((choice: any) => ({
               id: choice.id,
               text: choice.text,
               nextSceneId: choice.nextSceneId,

@@ -1,3 +1,4 @@
+"use client";
 import { useTheme } from "next-themes";
 import { Settings as SettingsIcon, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
