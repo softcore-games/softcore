@@ -1,10 +1,12 @@
+"use client";
+
 import React, { useState, useEffect, useRef } from "react";
 import { toast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { Character } from "@/data/gameData";
 import { Header } from "./Header";
 import { WalletConnection } from "./WalletConnection";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import {
   getStamina,
   decreaseStamina,
@@ -94,36 +96,6 @@ export const GameScene = ({ onLogout }: GameSceneProps) => {
   // const apiKey = localStorage.getItem(`${activeProvider}_API_KEY`);
 
   const isReviewingPastScene = currentIndex < gameState.history.length - 1;
-
-  useEffect(() => {
-    // Check for JWT token on component mount
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/"); // Redirect to login page if no token
-      return;
-    }
-
-    // Verify token is valid
-    const verifyToken = async () => {
-      try {
-        const response = await fetch("/api/auth/verify", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Invalid token");
-        }
-      } catch (error) {
-        console.error("Token verification failed:", error);
-        localStorage.removeItem("token"); // Clear invalid token
-        router.push("/"); // Redirect to login page
-      }
-    };
-
-    verifyToken();
-  }, [router]);
 
   useEffect(() => {
     if (currentScene && currentScene.message) {

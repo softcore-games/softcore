@@ -1,7 +1,9 @@
+"use client";
+
 import { ModeToggle } from "./mode-toggle";
 import { Button } from "./ui/button";
 import { Save, Upload, Menu } from "lucide-react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useToast } from "./ui/use-toast";
 import {
   DropdownMenu,
@@ -36,9 +38,9 @@ export const Header = ({ onLogout, onSave, onLoad, children }: HeaderProps) => {
 
       // Clear local storage
       localStorage.removeItem("token");
-      localStorage.removeItem("gameState");
-      localStorage.removeItem("selectedCharacterData");
-      localStorage.removeItem("selectedCharacterId");
+      // localStorage.removeItem("gameState");
+      // localStorage.removeItem("selectedCharacterData");
+      // localStorage.removeItem("selectedCharacterId");
 
       // Call the parent's onLogout handler if provided
       if (onLogout) {

@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "./ui/button";
@@ -11,30 +13,32 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { Character } from "@/data/gameData";
 import { toast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 interface CharacterSelectionProps {
   onSelect: (characterId: string) => void;
 }
 
 export const CharacterSelection = ({ onSelect }: CharacterSelectionProps) => {
+  const router = useRouter();
   const [characters, setCharacters] = useState<Character[]>([]);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["characters"],
     queryFn: async () => {
-      // const apiKey = localStorage.getItem("OPENAI_API_KEY");
-      // if (!apiKey) {
-      //   throw new Error("OpenAI API key is required");
-      // }
-
+      const token = localStorage.getItem("token");
       const response = await fetch("/api/generate-characters", {
         method: "POST",
-        // headers: {
-        //   "x-api-key": apiKey,
-        // },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          router.push("/");
+          throw new Error("Please login again");
+        }
         throw new Error("Failed to generate characters");
       }
 
@@ -45,7 +49,6 @@ export const CharacterSelection = ({ onSelect }: CharacterSelectionProps) => {
   useEffect(() => {
     if (data?.characters) {
       setCharacters(data.characters);
-      // Store the characters in localStorage for persistence
       localStorage.setItem(
         "generatedCharacters",
         JSON.stringify(data.characters)
@@ -61,17 +64,18 @@ export const CharacterSelection = ({ onSelect }: CharacterSelectionProps) => {
           error instanceof Error ? error.message : "Failed to load characters",
         variant: "destructive",
       });
+      if (error.message === "Please login again") {
+        router.push("/");
+      }
     }
-  }, [error]);
+  }, [error, router]);
 
   const handleCharacterSelect = (characterId: string) => {
-    // Find the selected character's full data
     const selectedCharacter = characters.find(
       (char) => char.id === characterId
     );
     if (selectedCharacter) {
       localStorage.setItem("selectedCharacterId", characterId);
-      // Store the selected character's full data
       localStorage.setItem(
         "selectedCharacterData",
         JSON.stringify(selectedCharacter)

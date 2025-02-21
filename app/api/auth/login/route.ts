@@ -13,16 +13,7 @@ export async function POST(request: Request) {
       where: { username },
     });
 
-    if (!user) {
-      return NextResponse.json(
-        { message: "Invalid credentials" },
-        { status: 401 }
-      );
-    }
-
-    const isValidPassword = await bcrypt.compare(password, user.password);
-
-    if (!isValidPassword) {
+    if (!user || !(await bcrypt.compare(password, user.password))) {
       return NextResponse.json(
         { message: "Invalid credentials" },
         { status: 401 }
@@ -35,7 +26,7 @@ export async function POST(request: Request) {
       .setExpirationTime("24h")
       .sign(secret);
 
-    return NextResponse.json({ token });
+    return NextResponse.json({ token, message: "Login successful" });
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json(

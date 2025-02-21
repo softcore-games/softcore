@@ -5,14 +5,12 @@ import { LoginScreen } from "@/components/LoginScreen";
 import { GameScene } from "@/components/GameScene";
 import { CharacterSelection } from "@/components/CharacterSelection";
 import { AgeConsentPopup } from "@/components/AgeConsentPopup";
-import { useRouter } from "next/navigation";
-import { toast } from "@/hooks/use-toast";
+import { useRouteProtection } from "@/hooks/useRouteProtection";
 
 const Home = () => {
-  // Initialize all states with default values
+  const { isAuthenticated, setIsAuthenticated } = useRouteProtection();
   const [isLoaded, setIsLoaded] = useState(false);
   const [started, setStarted] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [selectedCharacter, setSelectedCharacter] = useState<string | null>(
     null
   );
@@ -25,28 +23,20 @@ const Home = () => {
     },
   });
   const [activeProvider, setActiveProvider] = useState("OPENAI");
-  const [apiKey, setApiKey] = useState<string | null>(null);
-
-  const router = useRouter();
 
   // Load all localStorage values after component mounts
   useEffect(() => {
-    // Load basic game state
     setStarted(localStorage.getItem("game_started") === "true");
-    setIsLoggedIn(localStorage.getItem("user") !== null);
     setHasAgeConsent(localStorage.getItem("age-consent") === "true");
     setSelectedCharacter(localStorage.getItem("selectedCharacterId"));
 
-    // Load game state
     const savedState = localStorage.getItem("gameState");
     if (savedState) {
       setGameState(JSON.parse(savedState));
     }
 
-    // Load provider settings
     const provider = localStorage.getItem("ACTIVE_AI_PROVIDER") || "OPENAI";
     setActiveProvider(provider);
-    setApiKey(localStorage.getItem(`${provider}_API_KEY`));
 
     setIsLoaded(true);
   }, []);
@@ -71,32 +61,25 @@ const Home = () => {
     }
   }, [hasAgeConsent, isLoaded]);
 
-  useEffect(() => {
-    if (!isLoaded) return;
-    // if (started && isLoggedIn && !selectedCharacter && !apiKey) {
-    //   toast({
-    //     title: "API Key Required",
-    //     description:
-    //       "Please set your OpenAI API key in the settings page before selecting a character.",
-    //     variant: "destructive",
-    //   });
-    //   router.push("/settings");
-    // }
-  }, [started, isLoggedIn, selectedCharacter, apiKey, router, isLoaded]);
-
   const handleLogout = () => {
-    setIsLoggedIn(false);
     setStarted(false);
     setSelectedCharacter(null);
-    // Clear relevant localStorage items
-    localStorage.removeItem("user");
     localStorage.removeItem("game_started");
     localStorage.removeItem("selectedCharacterId");
     localStorage.removeItem("gameState");
   };
 
-  if (!isLoaded) {
-    return null; // or a loading spinner
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+    setStarted(true);
+  };
+
+  if (!isLoaded || isAuthenticated === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-2xl text-love-800">Loading...</div>
+      </div>
+    );
   }
 
   if (!hasAgeConsent) {
@@ -108,16 +91,12 @@ const Home = () => {
     );
   }
 
+  if (!isAuthenticated) {
+    return <LoginScreen onLogin={handleLogin} />;
+  }
+
   if (!started) {
     return <WelcomeScreen onStart={() => setStarted(true)} />;
-  }
-
-  if (!isLoggedIn) {
-    return <LoginScreen onLogin={() => setIsLoggedIn(true)} />;
-  }
-
-  if (!selectedCharacter && !apiKey) {
-    return null;
   }
 
   if (!selectedCharacter) {

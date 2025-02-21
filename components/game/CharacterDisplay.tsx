@@ -59,12 +59,16 @@ export const CharacterDisplay = ({
               transition={{ duration: 0.5 }}
               className="w-full aspect-[3/4] relative overflow-hidden rounded-lg mb-4"
             >
-              <Image
-                src={currentCharacter.avatar}
-                alt={currentCharacter.name}
-                width={300}
-                height={300}
-                className="rounded-lg shadow-xl"
+              <img
+                src={getCharacterImage()}
+                alt={`${currentCharacter.name} - ${
+                  currentScene?.mood || "default"
+                }`}
+                className="w-full h-full object-cover rounded-lg"
+                onError={(e) => {
+                  console.error("Image failed to load:", e);
+                  e.currentTarget.src = currentCharacter.avatar; // Fallback to avatar
+                }}
               />
             </motion.div>
           </AnimatePresence>

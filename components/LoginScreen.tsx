@@ -49,7 +49,9 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       }
 
       localStorage.setItem("token", data.token);
-      onLogin();
+      if (onLogin) {
+        onLogin();
+      }
     } catch (error) {
       toast({
         title: "Error",
