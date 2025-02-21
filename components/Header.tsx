@@ -1,164 +1,107 @@
-"use client";
+import { ModeToggle } from "./mode-toggle";
+import { Button } from "./ui/button";
+import { Save, Upload, Menu } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { LoginDialog } from "@/components/LoginDialog";
-import { RegisterDialog } from "@/components/RegisterDialog";
-import { WalletConnect } from "@/components/WalletConnect";
-import { useToast } from "@/hooks/use-toast";
-import { LogOut, Settings, Play, User } from "lucide-react";
-import { GradientButton } from "@/components/ui/gradient-button";
+interface HeaderProps {
+  onLogout?: () => void;
+  onSave?: () => void;
+  onLoad?: () => void;
+  children?: React.ReactNode;
+}
 
-export function Header() {
-  const router = useRouter();
-  const { toast } = useToast();
-  const [showLoginDialog, setShowLoginDialog] = useState(false);
-  const [showRegisterDialog, setShowRegisterDialog] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    // Check for authentication and admin status
-    const checkAuth = async () => {
-      try {
-        const response = await fetch("/api/profile", {
-          credentials: "include",
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setIsAuthenticated(true);
-          setIsAdmin(data.user.isAdmin || false);
-        } else {
-          setIsAuthenticated(false);
-          setIsAdmin(false);
-        }
-      } catch (error) {
-        setIsAuthenticated(false);
-        setIsAdmin(false);
-      }
-    };
-    checkAuth();
-  }, []);
-
-  // Prevent hydration mismatch by not rendering until mounted
-  if (!mounted) return null;
-
-  const handleLogout = async () => {
-    try {
-      await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-      setIsAuthenticated(false);
-      setIsAdmin(false);
-      localStorage.removeItem("accessToken");
-      toast({
-        title: "Success",
-        description: "Logged out successfully",
-      });
-      router.push("/");
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to logout",
-        variant: "destructive",
-      });
-    }
-  };
-
+export const Header = ({ onLogout, onSave, onLoad, children }: HeaderProps) => {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-sm border-b border-gray-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center">
-            <h1
-              onClick={() => router.push("/")}
-              className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent cursor-pointer"
-            >
-              Softcore
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800">
+      <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-3">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg sm:text-xl font-semibold text-love-900 dark:text-love-100 truncate">
+              SoftCORE
             </h1>
+            <div className="hidden sm:block">
+              <ModeToggle />
+            </div>
           </div>
 
-          <nav className="flex items-center space-x-4">
-            {isAuthenticated ? (
-              <>
-                <WalletConnect />
-                <GradientButton
-                  variant="play"
-                  onClick={() => router.push("/game")}
+          <div className="flex items-center gap-1 sm:gap-2">
+            <div className="hidden sm:flex items-center gap-2">
+              {children}
+              {onSave && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="sm:size-default"
+                  onClick={onSave}
                 >
-                  <Play className="w-4 h-4 mr-2" />
-                  Play
-                </GradientButton>
+                  <Save className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Save</span>
+                </Button>
+              )}
+              {onLoad && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="sm:size-default"
+                  onClick={onLoad}
+                >
+                  <Upload className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Load</span>
+                </Button>
+              )}
+              {onLogout && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/50 sm:size-default"
+                  onClick={onLogout}
+                >
+                  <span>Logout</span>
+                </Button>
+              )}
+            </div>
 
-                {isAdmin && (
-                  <GradientButton
-                    variant="settings"
-                    onClick={() => router.push("/admin")}
-                  >
-                    Admin
-                  </GradientButton>
-                )}
-
-                <GradientButton
-                  variant="settings"
-                  onClick={() => router.push("/settings")}
-                >
-                  <Settings className="w-4 h-4 mr-2" />
-                  Settings
-                </GradientButton>
-                <GradientButton
-                  variant="profile"
-                  onClick={() => router.push("/profile")}
-                >
-                  <User className="w-4 h-4 mr-2" />
-                  Profile
-                </GradientButton>
-
-                <GradientButton variant="logout" onClick={handleLogout}>
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Logout
-                </GradientButton>
-              </>
-            ) : (
-              <>
-                <GradientButton
-                  variant="login"
-                  onClick={() => setShowLoginDialog(true)}
-                >
-                  Login
-                </GradientButton>
-                <GradientButton
-                  variant="register"
-                  onClick={() => setShowRegisterDialog(true)}
-                >
-                  Register
-                </GradientButton>
-              </>
-            )}
-          </nav>
+            <div className="sm:hidden flex items-center gap-2">
+              <ModeToggle />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <Menu className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  {children}
+                  {onSave && (
+                    <DropdownMenuItem onClick={onSave}>
+                      <Save className="w-4 h-4 mr-2" />
+                      Save
+                    </DropdownMenuItem>
+                  )}
+                  {onLoad && (
+                    <DropdownMenuItem onClick={onLoad}>
+                      <Upload className="w-4 h-4 mr-2" />
+                      Load
+                    </DropdownMenuItem>
+                  )}
+                  {onLogout && (
+                    <DropdownMenuItem
+                      onClick={onLogout}
+                      className="text-red-500 hover:text-red-600 focus:text-red-600"
+                    >
+                      Logout
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
         </div>
       </div>
-
-      <LoginDialog
-        open={showLoginDialog}
-        onOpenChange={setShowLoginDialog}
-        onSuccess={() => {
-          setIsAuthenticated(true);
-          setShowLoginDialog(false);
-        }}
-      />
-
-      <RegisterDialog
-        open={showRegisterDialog}
-        onOpenChange={setShowRegisterDialog}
-        onSuccess={() => {
-          setShowLoginDialog(true);
-          setShowRegisterDialog(false);
-        }}
-      />
     </header>
   );
-}
+};
