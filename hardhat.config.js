@@ -5,6 +5,7 @@ const { PrivateKey } = require("./secret.json");
 module.exports = {
   solidity: "0.8.24",
   defaultNetwork: "core_testnet",
+  // defaultNetwork: "core_mainnet",
 
   networks: {
     hardhat: {},
@@ -12,6 +13,11 @@ module.exports = {
       url: "https://rpc.test2.btcs.network",
       accounts: [PrivateKey],
       chainId: 1114,
+    },
+    core_mainnet: {
+      url: "https://rpc.coredao.org",
+      accounts: [PrivateKey],
+      chainId: 1116,
     },
   },
   solidity: {

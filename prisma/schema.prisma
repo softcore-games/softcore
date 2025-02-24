@@ -38,13 +38,15 @@ model Scene {
 }
 
 model NFT {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  sceneId       String
-  imageUrl      String
-  characterName String
-  metadata      Json
-  tokenId       String?
-  walletAddress String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  sceneId         String
+  imageUrl        String
+  characterName   String
+  walletAddress   String
+  network         String   // "mainnet" or "testnet"
+  metadata        Json
+  transactionHash String?
+  status          String   // "PENDING" or "MINTED"
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 } 

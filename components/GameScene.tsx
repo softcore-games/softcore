@@ -341,61 +341,6 @@ export const GameScene = ({ onLogout }: GameSceneProps) => {
     reader.readAsText(file);
   };
 
-  const handleMintNFT = async () => {
-    try {
-      const address = localStorage.getItem("walletAddress");
-
-      if (!address) {
-        toast({
-          title: "Wallet Required",
-          description: "Please connect your Core DAO wallet first",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const metadata = {
-        title: currentScene.message.split(/[.!?]/)[0],
-        description: currentScene.message,
-        character: currentCharacter.name,
-        mood: currentScene.mood,
-        timestamp: new Date().toISOString(),
-      };
-
-      const response = await fetch("/api/mint-nft", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id: currentScene.id,
-          imageUrl: currentScene.imageURL || currentCharacter.avatar,
-          characterName: currentCharacter.name,
-          metadata,
-          walletAddress: address,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.error) throw data.error;
-
-      toast({
-        title: "Success!",
-        description: "Your scene has been minted as an NFT. Check your wallet!",
-      });
-
-      window.open(`https://scan.coredao.org/tx/${data.transaction}`, "_blank");
-    } catch (error) {
-      console.error("NFT minting error:", error);
-      toast({
-        title: "Minting Failed",
-        description: "Failed to mint the NFT. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handlePurchaseStamina = () => {
     purchaseStamina(5);
     setStamina(getStamina());
@@ -507,7 +452,6 @@ export const GameScene = ({ onLogout }: GameSceneProps) => {
               currentCharacter={currentCharacter}
               currentScene={currentScene}
               relationshipScore={gameState.currentState.relationshipScore}
-              onMintNFT={handleMintNFT}
             />
           </div>
         </div>

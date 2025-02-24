@@ -1,23 +1,20 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 import { Character } from "@/data/gameData";
 import { Scene } from "@/data/gameData";
-import Image from "next/image";
+import MintNFT from "@/components/MintNFT";
 
 interface CharacterDisplayProps {
   currentCharacter: Character;
   currentScene: Scene;
   relationshipScore: number;
-  onMintNFT: () => void;
 }
 
 export const CharacterDisplay = ({
   currentCharacter,
   currentScene,
   relationshipScore,
-  onMintNFT,
 }: CharacterDisplayProps) => {
   const getCharacterImage = () => {
     console.log("Current mood:", currentScene?.mood); // Debug mood
@@ -82,15 +79,13 @@ export const CharacterDisplay = ({
             <span>Relationship Score: {relationshipScore}</span>
           </div>
 
-          <Button
-            variant="default"
-            size="lg"
-            className="w-full bg-love-500 hover:bg-love-600 text-white"
-            onClick={onMintNFT}
-          >
-            <Sparkles className="w-5 h-5 mr-2" />
-            Mint this Moment
-          </Button>
+          <MintNFT
+            sceneId={currentScene?.id || ""}
+            imageUrl={getCharacterImage()}
+            characterName={currentCharacter.name}
+            message={currentScene?.message || ""}
+            mood={currentScene?.mood || "default"}
+          />
         </div>
       </Card>
     </motion.div>

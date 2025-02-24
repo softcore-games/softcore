@@ -1,14 +1,6 @@
 import { NextResponse } from "next/server";
-import { ethers } from "ethers";
 import { headers } from "next/headers";
 import prisma from "@/lib/prisma";
-
-const NFT_CONTRACT_ADDRESS = process.env.NFT_CONTRACT_ADDRESS!;
-const NFT_CONTRACT_ABI = [
-  "function safeMint(address to, string memory uri) public",
-  "function tokenURI(uint256 tokenId) public view returns (string memory)",
-  "function totalSupply() public view returns (uint256)",
-];
 
 export async function POST(request: Request) {
   try {
@@ -22,12 +14,19 @@ export async function POST(request: Request) {
       );
     }
 
-    const { sceneId, imageUrl, characterName, metadata, walletAddress } =
-      await request.json();
+    const {
+      sceneId,
+      imageUrl,
+      characterName,
+      metadata,
+      walletAddress,
+      network,
+      transactionHash,
+    } = await request.json();
 
-    if (!walletAddress) {
+    if (!walletAddress || !transactionHash) {
       return NextResponse.json(
-        { error: "Wallet address is required" },
+        { error: "Wallet address and transaction hash are required" },
         { status: 400 }
       );
     }
@@ -39,49 +38,55 @@ export async function POST(request: Request) {
         imageUrl,
         characterName,
         walletAddress,
-        metadata: JSON.parse(JSON.stringify(metadata)), // Convert to plain JSON
+        network,
+        metadata: JSON.parse(JSON.stringify(metadata)),
+        transactionHash,
+        status: "MINTED",
       },
     });
 
-    // Initialize provider and wallet
-    const provider = new ethers.JsonRpcProvider(
-      process.env.NEXT_PUBLIC_RPC_URL || "https://rpc.coredao.org"
+    return NextResponse.json({
+      success: true,
+      nft: nftData,
+    });
+  } catch (error) {
+    console.error("Error saving NFT:", error);
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error ? error.message : "Failed to save NFT data",
+      },
+      { status: 500 }
     );
-    const privateKey = process.env.MINTER_PRIVATE_KEY!;
-    const wallet = new ethers.Wallet(privateKey, provider);
+  }
+}
 
-    // Connect to the NFT contract
-    const nftContract = new ethers.Contract(
-      NFT_CONTRACT_ADDRESS,
-      NFT_CONTRACT_ABI,
-      wallet
-    );
+// Add a PATCH endpoint to update the transaction hash
+export async function PATCH(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { transactionHash } = await request.json();
 
-    // Mint the NFT
-    const tx = await nftContract.safeMint(
-      walletAddress,
-      `ipfs://${nftData.id}` // You'll need to implement IPFS storage for the metadata
-    );
-
-    // Wait for transaction confirmation
-    const receipt = await tx.wait();
-
-    // Update the database record with the transaction hash
     const updatedNft = await prisma.nFT.update({
-      where: { id: nftData.id },
-      data: { tokenId: receipt.hash },
+      where: { id: params.id },
+      data: {
+        transactionHash,
+        status: "MINTED",
+      },
     });
 
     return NextResponse.json({
       success: true,
       nft: updatedNft,
-      transaction: receipt.hash,
     });
   } catch (error) {
-    console.error("Error in mint-nft:", error);
+    console.error("Error updating NFT:", error);
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Failed to mint NFT",
+        error:
+          error instanceof Error ? error.message : "Failed to update NFT data",
       },
       { status: 500 }
     );

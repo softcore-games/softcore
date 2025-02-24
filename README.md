@@ -66,9 +66,13 @@ yarn install
 4. Set up environment variables:
 
 ```bash
-NEXT_PUBLIC_RPC_URL=your_core_dao_rpc_url
-NFT_CONTRACT_ADDRESS=your_contract_address
+
 DATABASE_URL=your_mongodb_url
+OPENAI_API_KEY=your_openai_api_key
+JWT_SECRET=your_jwt_secret
+NEXT_PUBLIC_NFT_CONTRACT_ADDRESS_TESTNET=your_nft_contract_address_testnet
+NEXT_PUBLIC_NFT_CONTRACT_ADDRESS_MAINNET=your_nft_contract_address_mainnet
+NEXT_PUBLIC_API_KEY=your_random_api_key
 ```
 
 5. Deploy the SoftCoreNFT Smart Contract:
@@ -131,7 +135,7 @@ The contract can be deployed to:
 
   - RPC URL: https://rpc.test2.btcs.network
   - Chain ID: 1114
-  - Explorer: https://scan.test.btcs.network
+  - Explorer: https://scan.test2.btcs.network
 
 - Core DAO Mainnet
   - RPC URL: https://rpc.coredao.org
