@@ -41,6 +41,12 @@ SoftCORE Games is a revolutionary AI-powered dating simulation platform built on
 ## 🚀 Getting Started
 
 1. Clone the repository
+
+```bash
+git clone https://github.com/developla/softcore-games.git
+cd softcore-games
+```
+
 2. Install dependencies:
 
 ```bash
@@ -49,7 +55,15 @@ npm install
 yarn install
 ```
 
-3. Set up environment variables:
+3. Create a secret.json file in the root directory:
+
+```json
+{
+  "PrivateKey": "your-private-key-here"
+}
+```
+
+4. Set up environment variables:
 
 ```bash
 NEXT_PUBLIC_RPC_URL=your_core_dao_rpc_url
@@ -57,7 +71,29 @@ NFT_CONTRACT_ADDRESS=your_contract_address
 DATABASE_URL=your_mongodb_url
 ```
 
-4. Run the development server:
+5. Deploy the SoftCoreNFT Smart Contract:
+
+First, compile the contract:
+
+```bash
+npx hardhat compile
+```
+
+Then deploy to Core DAO testnet:
+
+```bash
+npx hardhat run scripts/deploy.js --network core_testnet
+```
+
+Or deploy to Core DAO mainnet:
+
+```bash
+npx hardhat run scripts/deploy.js --network coredao
+```
+
+Save the deployed contract address that appears in the console output.
+
+6. Run the development server:
 
 ```bash
 npm run dev
@@ -65,7 +101,50 @@ npm run dev
 yarn dev
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) with your browser to start your journey.
+7. Open [http://localhost:3000](http://localhost:3000) with your browser to start your journey.
+
+## 📝 Smart Contract Details
+
+### SoftCoreNFT Contract
+
+The SoftCoreNFT contract is an ERC721 implementation that allows:
+
+- Minting of special moments as NFTs
+- Storage of metadata URIs for each token
+- Transfer and management of NFT ownership
+
+Key contract features:
+
+```solidity
+// Mint new NFTs (only contract owner)
+function safeMint(address to, string memory uri) public onlyOwner
+
+// Get token URI
+function tokenURI(uint256 tokenId) public view returns (string memory)
+```
+
+### Deployment Configuration
+
+The contract can be deployed to:
+
+- Core DAO Testnet
+
+  - RPC URL: https://rpc.test2.btcs.network
+  - Chain ID: 1114
+  - Explorer: https://scan.test.btcs.network
+
+- Core DAO Mainnet
+  - RPC URL: https://rpc.coredao.org
+  - Chain ID: 1116
+  - Explorer: https://scan.coredao.org
+
+### Contract Verification
+
+After deployment, verify your contract on Core DAO Explorer:
+
+```bash
+npx hardhat verify --network core_testnet <DEPLOYED_CONTRACT_ADDRESS>
+```
 
 ### API Routes
 
@@ -135,9 +214,25 @@ SoftCORE Games leverages Core DAO's blockchain infrastructure for:
 - Safe transaction handling
 - Blockchain-based asset protection
 
+## 🔐 Security Considerations
+
+When deploying and interacting with the smart contract:
+
+1. Never commit your private keys or secret.json to version control
+2. Use a dedicated development wallet for testing
+3. Always test on testnet before mainnet deployment
+4. Verify contract source code on the blockchain explorer
+5. Audit contract code before mainnet deployment
+
 ## 🤝 Contributing
 
-We welcome contributions to SoftCORE Games! Please check out our [Contributing Guidelines](CONTRIBUTING.md) for details.
+We welcome contributions! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to your branch
+5. Create a Pull Request
 
 ## 📄 License
 
