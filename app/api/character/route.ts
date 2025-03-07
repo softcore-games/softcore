@@ -81,7 +81,7 @@ async function generateCharacterImage() {
       `https://api.night-api.com/images/nsfw/hentai`,
       {
         headers: {
-          Authorization: "8ZSvcqz0nx-lTQMsudXCXTeksLgIbnt-wkSCgm1nfC",
+          Authorization: `${process.env.NIGHT_API_KEY}`,
         },
       }
     );
