@@ -1,10 +1,23 @@
 import type { Metadata } from "next";
-import Layout from "@/components/Layout";
+import { Geist, Geist_Mono } from "next/font/google";
+import Layout from "@/components/layout";
+import Navbar from "@/components/nav-bar";
+import { WalletProvider } from "@/lib/contexts/WalletContext";
 import "./globals.css";
 
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
-  title: "SoftCORE - AI Dating Experience",
-  description: "An immersive AI dating experience",
+  title: "Softcore Games",
+  description: "Softcore Games",
 };
 
 export default function RootLayout({
@@ -14,8 +27,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
-        <Layout>{children}</Layout>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        cz-shortcut-listen="true"
+      >
+        <WalletProvider>
+          <Navbar />
+          <Layout>{children}</Layout>
+        </WalletProvider>
       </body>
     </html>
   );

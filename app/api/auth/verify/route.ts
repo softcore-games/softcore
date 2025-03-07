@@ -1,22 +1,32 @@
 import { NextResponse } from "next/server";
-import * as jose from "jose";
+import { getAuthUser } from "@/lib/auth";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const token = request.headers.get("Authorization")?.split(" ")[1];
+    const user = await getAuthUser();
 
-    if (!token) {
-      return NextResponse.json(
-        { message: "No token provided" },
-        { status: 401 }
-      );
+    if (!user) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-    await jose.jwtVerify(token, secret);
-
-    return NextResponse.json({ message: "Token is valid" });
+    return NextResponse.json(
+      {
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          stamina: user.stamina,
+          walletAddress: user.walletAddress,
+          selectedCharacterId: user.selectedCharacterId,
+        },
+      },
+      { status: 200 }
+    );
   } catch (error) {
-    return NextResponse.json({ message: "Invalid token" }, { status: 401 });
+    console.error("Verify error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

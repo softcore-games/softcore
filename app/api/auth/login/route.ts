@@ -1,36 +1,69 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-import * as jose from "jose";
-import bcrypt from "bcryptjs";
+import prisma from "@/lib/prisma";
+import { verifyPassword, createAuthToken } from "@/lib/auth";
+import { cookies } from "next/headers";
 
-const prisma = new PrismaClient();
-
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    const { username, password } = await request.json();
+    const { login, password } = await req.json();
 
-    const user = await prisma.user.findUnique({
-      where: { username },
+    if (!login || !password) {
+      return NextResponse.json(
+        { error: "Missing credentials" },
+        { status: 400 }
+      );
+    }
+
+    // Find user by email or username
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [{ email: login }, { username: login }],
+      },
     });
 
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    if (!user) {
       return NextResponse.json(
-        { message: "Invalid credentials" },
+        { error: "Invalid credentials" },
         { status: 401 }
       );
     }
 
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-    const token = await new jose.SignJWT({ userId: user.id })
-      .setProtectedHeader({ alg: "HS256" })
-      .setExpirationTime("24h")
-      .sign(secret);
+    // Verify password
+    const isValid = await verifyPassword(password, user.password);
+    if (!isValid) {
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 401 }
+      );
+    }
 
-    return NextResponse.json({ token, message: "Login successful" });
+    // Generate token
+    const token = await createAuthToken(user.id);
+    (await cookies()).set("auth_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 60 * 60 * 24, // 24 hours
+    });
+
+    // Return user data without sensitive information
+    return NextResponse.json(
+      {
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          stamina: user.stamina,
+          walletAddress: user.walletAddress,
+          selectedCharacterId: user.selectedCharacterId,
+        },
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json(
-      { message: "Internal server error" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

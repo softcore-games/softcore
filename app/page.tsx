@@ -1,7 +1,9 @@
 import React from "react";
-import Home from "@/components/views/Home";
-function Page() {
-  return <Home />;
+import Auth from "@/components/auth";
+export default function Home() {
+  return (
+    <main>
+      <Auth />
+    </main>
+  );
 }
-
-export default Page;

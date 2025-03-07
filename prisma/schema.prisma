@@ -8,45 +8,65 @@ datasource db {
 }
 
 model User {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  username    String   @unique
-  email       String   @unique
-  password    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  username      String        @unique
+  email         String        @unique
+  walletAddress String?       @unique
+  password      String
+  stamina       Int          @default(3)
+  characters    Character[]
+  scenes        Scene[]
+  sceneChoices  SceneChoice[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  selectedCharacterId String? @db.ObjectId
+  selectedCharacter   Character? @relation(name: "SelectedCharacter", fields: [selectedCharacterId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model Character {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   name        String
-  avatar      String
-  personality String
-  background  String
-  expressions Json
+  imageUrl    String
+  description String
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id])
+  scenes      Scene[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  selectedByUsers User[] @relation("SelectedCharacter")
 }
 
 model Scene {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  message   String
-  choices   Json
-  mood      String
-  imageURL  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  content     String
+  imageUrl    String
+  choices     String[]
+  chapter     Int          // Changed from String to Int for better ordering
+  characterId String       @db.ObjectId
+  character   Character    @relation(fields: [characterId], references: [id])
+  userId      String       @db.ObjectId
+  user        User        @relation(fields: [userId], references: [id])
+  nftMinted   Boolean      @default(false)
+  nftTokenId  String?
+  userChoices SceneChoice[]
+  sceneNumber Int         // Ensure this is required
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([characterId, chapter, sceneNumber]) // Ensure scene uniqueness
 }
 
-model NFT {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  sceneId         String
-  imageUrl        String
-  characterName   String
-  walletAddress   String
-  network         String   // "mainnet" or "testnet"
-  metadata        Json
-  transactionHash String?
-  status          String   // "PENDING" or "MINTED"
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-} 
+model SceneChoice {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id])
+  sceneId     String   @db.ObjectId
+  scene       Scene    @relation(fields: [sceneId], references: [id])
+  choiceIndex Int
+  choiceText  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, sceneId]) // Ensure one choice per user per scene
+}
