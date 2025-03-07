@@ -100,20 +100,6 @@ export default function SceneDialog({
 
   return (
     <div className="h-[280px] sm:h-[400px] md:h-full bg-white rounded-xl p-3 sm:p-4 md:p-5 sm:pb-1 md:pb-1 relative bottom-1 sm:bottom-2 md:bottom-9 border-2 border-black z-10 shadow-[0_0_20px_rgba(0,0,0,0.25)] flex flex-col justify-between">
-      {/* <div className="flex items-center space-x-2 sm:space-x-1 mb-1">
-        <span className="font-bold text-sm sm:text-base md:text-2xl">
-          {character?.name || 'Unknown Character'}
-        </span>
-        {renderHearts()}
-        <div className="flex items-center ml-auto">
-          <span className="font-bold text-sm sm:text-base md:text-sm">
-            {stamina || 0}
-          </span>
-          <span className="w-6 h-6 flex items-center justify-center font-bold text-sm sm:text-base md:text-3xl">
-            <TiBatteryMid className="text-black w-5 h-5 text-sm sm:text-base md:text-3xl" />
-          </span>
-        </div>
-      </div> */}
       <div className="flex items-center space-x-3 mb-2">
         <span className="font-bold text-sm sm:text-base md:text-2xl text-black">
           {character?.name || 'Unknown Character'}
