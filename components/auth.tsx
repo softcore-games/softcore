@@ -95,8 +95,16 @@ const Auth = () => {
   };
 
   return (
-    <div className="w-full h-full grid place-items-center justify-center mt-6 sm:mt-8 md:mt-10 lg:mt-14 px-4">
-      <div className="bg-black bg-opacity-70 p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl shadow-lg w-full max-w-[90%] sm:max-w-[80%] md:max-w-[70%] lg:max-w-[580px] text-center pt-10 sm:pt-12 md:pt-16 lg:pt-20 px-4 sm:px-6 md:px-10 lg:px-20">
+    <div
+      className="w-full min-h-screen grid place-items-center justify-center bg-cover bg-center bg-no-repeat fixed inset-0"
+      style={{
+        backgroundImage: "url('/images/wmremove-transformed.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed",
+      }}
+    >
+      <div className="bg-black/70 backdrop-blur-none shadow-xl p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-4xl shadow-lg w-full max-w-[90%] sm:max-w-[80%] md:max-w-[70%] lg:max-w-[580px] text-center pt-10 sm:pt-12 md:pt-16 lg:pt-20 px-4 sm:px-6 md:px-10 lg:px-20 relative z-10 ">
         <form onSubmit={handleSubmit}>
           {!isLogin && (
             <input
@@ -105,7 +113,7 @@ const Auth = () => {
               placeholder="USERNAME"
               value={formData.username}
               onChange={handleInputChange}
-              className="w-full p-2 sm:p-3 mb-3 sm:mb-4 rounded-full bg-gray-100 text-gray-900 placeholder-gray-400 focus:outline-none shadow-inner border border-gray-300 text-sm sm:text-base"
+              className="w-full p-2 sm:p-3 mb-3 sm:mb-4 rounded-full bg-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none shadow-inner border border-gray-300 text-sm sm:text-base"
             />
           )}
           <input
@@ -114,7 +122,7 @@ const Auth = () => {
             placeholder={isLogin ? "EMAIL OR USERNAME" : "EMAIL ADDRESS"}
             value={formData.login}
             onChange={handleInputChange}
-            className="w-full p-2 sm:p-3 mb-3 sm:mb-4 rounded-full bg-gray-100 text-gray-900 placeholder-gray-400 focus:outline-none shadow-inner border border-gray-300 text-sm sm:text-base"
+            className="w-full p-2 sm:p-3 mb-3 sm:mb-4 rounded-full bg-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none shadow-inner border border-gray-300 text-sm sm:text-base"
           />
           <input
             type="password"
@@ -122,9 +130,8 @@ const Auth = () => {
             placeholder="PASSWORD"
             value={formData.password}
             onChange={handleInputChange}
-            className="w-full p-2 sm:p-3 mb-3 sm:mb-4 rounded-full bg-gray-100 text-gray-900 placeholder-gray-400 focus:outline-none shadow-inner border border-gray-300 text-sm sm:text-base"
+            className="w-full p-2 sm:p-3 mb-3 sm:mb-1 rounded-full bg-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none shadow-inner border border-gray-300 text-sm sm:text-base"
           />
-
           {error && (
             <div className="text-red-500 text-sm mb-3 bg-red-100/10 p-2 rounded">
               {error}
@@ -135,7 +142,6 @@ const Auth = () => {
               {success}
             </div>
           )}
-
           {isLogin && (
             <div className="flex justify-between text-xs text-gray-300 mb-3 sm:mb-4 mx-2 sm:mx-4">
               <button
@@ -153,13 +159,19 @@ const Auth = () => {
               </Link>
             </div>
           )}
-
           <button
             type="submit"
-            className="w-28 sm:w-32 md:w-36 bg-pink-500 hover:bg-pink-600 text-white p-1 rounded-lg font-normal shadow-xl sm:shadow-2xl text-sm sm:text-base"
+            className="w-28 sm:w-32 md:w-36 bg-pink-500 hover:bg-pink-600 text-white p-1 mb-3 mt-3 rounded-lg font-normal shadow-xl sm:shadow-2xl text-sm sm:text-base"
           >
             {isLogin ? "LOGIN" : "REGISTER"}
           </button>
+
+          {isLogin && (
+            <>
+              <hr className="my-4 border-gray-300 border-t-2" />
+              <h2 className="text-gray-100 text-xl pt-2">Register</h2>
+            </>
+          )}
 
           {!isLogin && (
             <div className="mt-4">
