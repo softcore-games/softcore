@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ["api.night-api.com", "cdn.night-api.com"],
+    domains: ["api.night-api.com", "cdn.night-api.com", "placehold.co"],
     remotePatterns: [
       {
         protocol: "https",
@@ -13,6 +13,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "cdn.night-api.com",
         pathname: "/api/images/**",
+      },
+      {
+        protocol: "https",
+        hostname: "placehold.co",
+        pathname: "/**",
       },
     ],
   },
@@ -28,10 +33,6 @@ const nextConfig: NextConfig = {
         {
           key: "X-Frame-Options",
           value: "DENY",
-        },
-        {
-          key: "X-XSS-Protection",
-          value: "1; mode=block",
         },
       ],
     },

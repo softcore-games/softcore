@@ -40,7 +40,7 @@ function Mint({ scene, onMint }: MintProps) {
         throw new Error("NFT contract address is not configured");
       }
 
-      // Create metadata for the NFT
+      // Create and upload metadata
       const metadata = {
         name: scene.title,
         description: scene.content,
@@ -53,7 +53,6 @@ function Mint({ scene, onMint }: MintProps) {
         ],
       };
 
-      // Upload metadata to IPFS
       const response = await fetch("/api/upload-metadata", {
         method: "POST",
         headers: {
@@ -68,8 +67,31 @@ function Mint({ scene, onMint }: MintProps) {
 
       const { uri } = await response.json();
 
+      // Mint the NFT
       const abi = ["function safeMint(address to, string memory uri) public"];
-      await mintNFT(contractAddress, abi, signer, walletAddress, uri);
+      const contract = new ethers.Contract(contractAddress, abi, signer);
+      const tx = await contract.safeMint(walletAddress, uri);
+      const receipt = await tx.wait();
+
+      // Save the transaction details
+      const saveResponse = await fetch("/api/nft-transaction", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sceneId: scene.id,
+          tokenId: receipt.events[0].args.tokenId.toString(),
+          contractAddress,
+          transactionHash: receipt.transactionHash,
+          ipfsUri: uri,
+        }),
+      });
+
+      if (!saveResponse.ok) {
+        console.error("Failed to save NFT transaction");
+      }
+
       await onMint();
     } catch (error) {
       console.error("Failed to mint scene:", error);

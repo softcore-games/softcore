@@ -17,6 +17,7 @@ model User {
   characters    Character[]
   scenes        Scene[]
   sceneChoices  SceneChoice[]
+  nftTransactions NFTTransaction[]
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   selectedCharacterId String? @db.ObjectId
@@ -51,6 +52,7 @@ model Scene {
   nftTokenId  String?
   userChoices SceneChoice[]
   sceneNumber Int         // Ensure this is required
+  nftTransaction NFTTransaction?  // Add this line
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
@@ -69,4 +71,20 @@ model SceneChoice {
   updatedAt   DateTime @updatedAt
 
   @@unique([userId, sceneId]) // Ensure one choice per user per scene
+}
+
+model NFTTransaction {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  tokenId     String   
+  contractAddress String
+  transactionHash String
+  sceneId     String   @db.ObjectId
+  scene       Scene    @relation(fields: [sceneId], references: [id])
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id])
+  ipfsUri     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([sceneId]) // One NFT per scene
 }
