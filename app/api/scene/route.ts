@@ -1,91 +1,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
-import OpenAI from "openai";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || "",
-});
-
-async function generateSceneImage() {
-  try {
-    const response = await fetch(
-      `https://api.night-api.com/images/nsfw/hentai`,
-      {
-        headers: {
-          Authorization: `${process.env.NIGHT_API_KEY}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`API responded with status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    if (!data?.content?.url) {
-      throw new Error("Invalid response format from image API");
-    }
-
-    return data.content.url;
-  } catch (error) {
-    console.error("Image API Error:", error);
-    return "https://placehold.co/600x800/pink/white?text=Scene+Image";
-  }
-}
-
-async function generateSceneContent(
-  characterName: string,
-  chapter: number,
-  sceneNumber: number,
-  previousChoice?: { text: string; index: number }
-) {
-  try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are generating romantic visual novel scenes. Create engaging, flirtatious dialogue suitable for an adult dating simulation. Return ONLY valid JSON.",
-        },
-        {
-          role: "user",
-          content: `Generate a scene for character ${characterName} in Chapter ${chapter}, Scene ${sceneNumber}${
-            previousChoice
-              ? `. This scene should be a natural continuation after the player chose: "${previousChoice.text}"`
-              : ""
-          } with the following JSON structure:
-          {
-            "title": "Scene title",
-            "content": "Character's dialogue (2-3 sentences)",
-            "choices": ["Flirty response", "Romantic response", "Playful response"]
-          }`,
-        },
-      ],
-      response_format: { type: "json_object" },
-      temperature: 0.8,
-    });
-
-    const content = completion.choices[0].message.content;
-    if (!content) {
-      throw new Error("No content received from OpenAI");
-    }
-    return JSON.parse(content);
-  } catch (error) {
-    console.error("OpenAI API Error:", error);
-    return {
-      title: `Chapter ${chapter} - Scene ${sceneNumber}`,
-      content:
-        "The character gazes at you with a warm smile, creating a moment of intimate connection.",
-      choices: [
-        "Tell them they look beautiful",
-        "Share a gentle compliment",
-        "Express your feelings",
-      ],
-    };
-  }
-}
+import { generateSceneContent } from "@/lib/open-ai";
+import { generateSceneImage } from "@/lib/fal-ai";
 
 export async function POST(req: Request) {
   try {
@@ -152,7 +69,11 @@ export async function POST(req: Request) {
       sceneNumber || 1,
       previousChoice
     );
-    const imageUrl = await generateSceneImage();
+    const imageUrl = await generateSceneImage(
+      character.imageUrl,
+      sceneContent.title,
+      sceneContent.content
+    );
 
     const newScene = await prisma.scene.create({
       data: {

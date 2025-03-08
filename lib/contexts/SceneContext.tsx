@@ -1,6 +1,5 @@
 "use client";
 import { createContext, useContext, useState, ReactNode } from "react";
-import { generateEnhancedImage } from "@/lib/fal-ai";
 import { Scene, Character, User, SceneContextType } from "@/types/game";
 
 const SceneContext = createContext<SceneContextType | undefined>(undefined);

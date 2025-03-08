@@ -1,22 +1,31 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { Character } from "@/types/game";
+import Loading from "@/components/loading";
 
 export default function CharacterSelection() {
   const { user } = useAuth();
   const router = useRouter();
-
-  console.log(user);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   useEffect(() => {
-    // If user has a selected character, redirect to game
-    if (user?.selectedCharacterId) {
-      router.push(`/game/${user.selectedCharacterId}`);
-    }
+    const checkExistingCharacter = async () => {
+      try {
+        if (user?.selectedCharacterId) {
+          window.location.href = `/game/${user.selectedCharacterId}`;
+          return;
+        }
+        setInitialLoading(false);
+      } catch (error) {
+        console.error("Error checking character:", error);
+        setInitialLoading(false);
+      }
+    };
+
+    checkExistingCharacter();
   }, [user, router]);
 
   const [characters, setCharacters] = useState<Character[]>([]);
@@ -27,8 +36,10 @@ export default function CharacterSelection() {
   const [generating, setGenerating] = useState(false); // Add this new state
 
   useEffect(() => {
-    fetchCharacters();
-  }, []);
+    if (!initialLoading) {
+      fetchCharacters();
+    }
+  }, [initialLoading]);
 
   const fetchCharacters = async () => {
     try {
@@ -110,8 +121,8 @@ export default function CharacterSelection() {
     }
   };
 
-  if (loading) {
-    return <div className="text-center mt-8">Loading...</div>;
+  if (initialLoading || loading) {
+    return <Loading />;
   }
 
   return (

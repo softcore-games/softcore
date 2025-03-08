@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import SoftCoreNFTAbi from "@/abis/SoftCoreNFT.json";
+import Loading from "@/components/loading";
 
 interface NFT {
   tokenId: string;
@@ -83,16 +84,7 @@ function NFTGallery() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="mt-4 text-lg text-gray-200">
-            Loading NFT Collection...
-          </p>
-        </div>
-      </div>
-    );
+    return <Loading />;
   }
 
   return (
