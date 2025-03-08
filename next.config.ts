@@ -65,6 +65,14 @@ const nextConfig: NextConfig = {
       ],
     },
   ],
+  serverRuntimeConfig: {
+    maxDuration: 60,
+  },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "2mb",
+    },
+  },
 };
 
 export default nextConfig;
