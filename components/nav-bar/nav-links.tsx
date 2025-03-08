@@ -19,6 +19,6 @@ export const NavLinks = ({
     )}
     <NavLink href="#">FAQ</NavLink>
     <NavLink href="#">{isLoggedIn ? "ABOUT" : "About"}</NavLink>
-    <NavLink href="#">{isLoggedIn ? "CONTACT" : "Contact"}</NavLink>
+    <NavLink href="/contact">{isLoggedIn ? "CONTACT" : "Contact"}</NavLink>
   </div>
 );
