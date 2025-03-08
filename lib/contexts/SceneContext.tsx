@@ -123,12 +123,37 @@ export function SceneProvider({ children }: { children: ReactNode }) {
           setSelectedChoice(uniqueScenes[0].userChoices[0].choiceIndex);
         }
       } else {
-        const generatedData = await api.generateScene(characterId);
-        if (generatedData.scene) {
-          setAllScenes([generatedData.scene]);
-          setCurrentScene(generatedData.scene);
-        } else {
-          throw new Error("No scene data received from generation");
+        // Generate initial scene with retry logic
+        let retries = 0;
+        const maxRetries = 3;
+
+        while (retries < maxRetries) {
+          try {
+            const generatedData = await api.generateScene(characterId, 1);
+
+            if (generatedData.scene) {
+              if (generatedData.scene.status === "GENERATING") {
+                // Wait for 2 seconds before retrying
+                await new Promise((resolve) => setTimeout(resolve, 2000));
+                retries++;
+                continue;
+              }
+
+              if (generatedData.scene.status === "COMPLETED") {
+                setAllScenes([generatedData.scene]);
+                setCurrentScene(generatedData.scene);
+                break;
+              }
+            }
+
+            throw new Error("Invalid scene data received");
+          } catch (error) {
+            if (retries === maxRetries - 1) {
+              throw error;
+            }
+            retries++;
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+          }
         }
       }
     } catch (error) {
@@ -182,37 +207,47 @@ export function SceneProvider({ children }: { children: ReactNode }) {
         };
       });
 
-      // Wait a moment to show the selection
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Generate next scene if not at the end
       const nextSceneNumber = currentScene.sceneNumber + 1;
-      if (nextSceneNumber <= 10) {
-        let retries = 0;
-        const maxRetries = 3;
 
-        while (retries < maxRetries) {
-          try {
-            const data = await api.generateScene(character.id, nextSceneNumber);
+      let retries = 0;
+      const maxRetries = 3;
+      let lastError = null;
 
-            if (data.scene.status === "GENERATING") {
-              // Wait and retry if scene is still generating
-              await new Promise((resolve) => setTimeout(resolve, 2000));
-              retries++;
-              continue;
-            }
+      while (retries < maxRetries) {
+        try {
+          const data = await api.generateScene(character.id, nextSceneNumber);
 
-            setAllScenes((prev) => [...prev, data.scene]);
+          // Handle generating status with polling
+          if (data.scene.status === "GENERATING") {
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+            retries++;
+            continue;
+          }
+
+          // Only update scenes if we got a valid scene back
+          if (data.scene && data.scene.status === "COMPLETED") {
+            setAllScenes((prev) => {
+              // Prevent duplicate scenes
+              const exists = prev.some((s) => s.id === data.scene.id);
+              return exists ? prev : [...prev, data.scene];
+            });
             setCurrentScene(data.scene);
             setCurrentIndex(nextSceneNumber - 1);
             setSelectedChoice(undefined);
             break;
-          } catch (error) {
-            if (retries === maxRetries - 1) throw error;
-            retries++;
-            await new Promise((resolve) => setTimeout(resolve, 2000));
           }
+
+          throw new Error("Invalid scene data received");
+        } catch (error) {
+          lastError = error;
+          if (retries === maxRetries - 1) throw error;
+          retries++;
+          await new Promise((resolve) => setTimeout(resolve, 2000));
         }
+      }
+
+      if (retries === maxRetries) {
+        throw lastError || new Error("Failed to generate scene after retries");
       }
     } catch (error) {
       console.error("Error processing choice:", error);
@@ -228,7 +263,6 @@ export function SceneProvider({ children }: { children: ReactNode }) {
 
     try {
       const nextSceneNumber = currentScene ? currentScene.sceneNumber + 1 : 1;
-      if (nextSceneNumber > 10) return;
 
       const data = await api.generateScene(character.id, nextSceneNumber);
       setAllScenes((prev) => [...prev, data.scene]);

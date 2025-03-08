@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       // Calculate current chapter
       const lastScene = character.scenes[0];
       const currentChapter = lastScene
-        ? lastScene.sceneNumber === 10
+        ? lastScene.sceneNumber === 1
           ? lastScene.chapter + 1
           : lastScene.chapter
         : 1;
@@ -101,10 +101,20 @@ export async function POST(req: Request) {
         previousChoice
       );
 
+      // Get the previous scene if it exists
+      const previousScene = await prisma.scene.findFirst({
+        where: {
+          characterId: character.id,
+          chapter: currentChapter,
+          sceneNumber: (sceneNumber || 1) - 1,
+        },
+      });
+
       const imageUrl = await generateSceneImage(
-        character.imageUrl,
+        previousScene?.imageUrl || character.imageUrl,
         sceneContent.title,
-        sceneContent.content
+        sceneContent.content,
+        previousChoice
       );
 
       // Update the placeholder scene with actual content

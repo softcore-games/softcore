@@ -7,22 +7,38 @@ fal.config({
 export async function generateSceneImage(
   characterImageUrl: string,
   sceneTitle: string,
-  sceneContent: string
+  sceneContent: string,
+  previousChoice?: { text: string; index: number }
 ) {
   try {
     if (!process.env.FAL_AI_KEY) {
       throw new Error("FAL_AI_KEY is not configured");
     }
 
+    console.log("Character Image URL:", characterImageUrl);
+    console.log("Scene Title:", sceneTitle);
+    console.log("Scene Content:", sceneContent);
+
+    const basePrompt = `NSFW nude boos erotic ${sceneContent}.`;
+
+    // Build context-aware prompt
+    let contextPrompt = "";
+    if (previousChoice) {
+      contextPrompt = ` "${previousChoice.text}". Naked`;
+    }
+
+    const prompt = `${sceneTitle} ${basePrompt} ${contextPrompt} NSFW nude boobs erotic`;
+
+    console.log("Prompt:", prompt);
+
     const result = await fal.subscribe("fal-ai/flux/dev/image-to-image", {
       input: {
         image_url: characterImageUrl,
-        prompt: `Transform into a romantic visual novel scene depicting: ${sceneTitle}. ${sceneContent}. 
-                Maintain the character's appearance, add romantic background and lighting matching the scene's mood. 
-                High quality, detailed anime style, visual novel aesthetic`,
+        prompt: prompt,
         num_inference_steps: 30,
         guidance_scale: 7.5,
-        strength: 0.75,
+        strength: previousChoice ? 0.85 : 0.75, // Stronger transformation if there's a previous choice
+        enable_safety_checker: false,
       },
       logs: true,
       onQueueUpdate: (update) => {
