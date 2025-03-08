@@ -79,7 +79,7 @@ Welcome to SoftCORE, an exciting AI-powered dating game built for the Core DAO H
 ## ❓ Need Help?
 
 - Check our [FAQ page](/faq)
-- Email us at support@softcore.games
+- Email us at contact@softcore.games or softcoregames69@gmail.com
 
 ## 🏆 About the Core DAO Hackathon
 
