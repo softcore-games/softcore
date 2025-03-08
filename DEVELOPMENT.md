@@ -69,7 +69,7 @@ yarn install
 3. **Environment Setup**
 
 ```bash
-cp .env.example .env
+cp .example-env .env
 ```
 
 Required Environment Variables:
