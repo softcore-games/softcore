@@ -104,7 +104,7 @@ const Auth = () => {
         backgroundAttachment: "fixed",
       }}
     >
-      <div className="bg-black/70 backdrop-blur-none shadow-xl p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-4xl shadow-lg w-full max-w-[90%] sm:max-w-[80%] md:max-w-[70%] lg:max-w-[580px] text-center pt-10 sm:pt-12 md:pt-16 lg:pt-20 px-4 sm:px-6 md:px-10 lg:px-20 relative z-10 ">
+      <div className="bg-black/70 backdrop-blur-none p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-4xl shadow-lg w-full max-w-[90%] sm:max-w-[80%] md:max-w-[70%] lg:max-w-[580px] text-center pt-10 sm:pt-12 md:pt-16 lg:pt-20 px-4 sm:px-6 md:px-10 lg:px-20 relative z-10 ">
         <form onSubmit={handleSubmit}>
           {!isLogin && (
             <input
@@ -166,12 +166,12 @@ const Auth = () => {
             {isLogin ? "LOGIN" : "REGISTER"}
           </button>
 
-          {isLogin && (
+          {/* {isLogin && (
             <>
               <hr className="my-4 border-gray-300 border-t-2" />
               <h2 className="text-gray-100 text-xl pt-2">Register</h2>
             </>
-          )}
+          )} */}
 
           {!isLogin && (
             <div className="mt-4">
