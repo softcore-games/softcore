@@ -36,7 +36,7 @@ const Contact = () => {
 
   return (
     <div
-      className="w-full min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat fixed inset-0 px-4 py-6 sm:px-6 md:px-8"
+      className="w-full min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat fixed inset-0 px-3 py-4 sm:px-6 md:px-8 lg:px-10"
       style={{
         backgroundImage: "url('/images/wmremove-transformed.png')",
         backgroundSize: "cover",
@@ -44,72 +44,72 @@ const Contact = () => {
         backgroundAttachment: "fixed",
       }}
     >
-      <div className="bg-black/70 backdrop-blur-sm shadow-2xl p-5 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl md:rounded-4xl w-full max-w-[95%] xs:max-w-[90%] sm:max-w-[80%] md:max-w-[600px] lg:max-w-[650px] text-center relative z-10 border border-gray-800">
-        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3 sm:mb-4 md:mb-5">
+      <div className="bg-black/70  shadow-2xl p-4 sm:p-6 md:p-8 rounded-4xl w-full max-w-[90%] sm:max-w-[450px] md:max-w-[500px] lg:max-w-[550px] text-center relative z-10 border border-gray-800">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-4 sm:mb-6">
           Contact
         </h2>
-        <hr className="border-t border-gray-600 mb-4 sm:mb-5 md:mb-6 mx-auto w-3/4" />
 
         <form
           onSubmit={handleSubmit}
-          className="space-y-3 sm:space-y-4 md:space-y-5"
+          className="space-y-4 sm:space-y-5 md:space-y-6"
         >
-          <div>
+          <div className="text-left">
             <input
               type="text"
               name="fullName"
               placeholder="Full Name"
               value={formData.fullName}
               onChange={handleInputChange}
-              className="w-full p-2 sm:p-3 rounded-full bg-gray-200/90 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50 shadow-inner border border-gray-300 text-sm sm:text-base transition-all"
+              className="w-full pb-2 bg-transparent text-gray-300 placeholder-gray-100 focus:outline-none border-b border-gray-400 text-xs sm:text-sm md:text-base"
               required
             />
           </div>
-          <div>
+          <div className="text-left">
             <input
               type="email"
               name="email"
               placeholder="Email"
               value={formData.email}
               onChange={handleInputChange}
-              className="w-full p-2 sm:p-3 rounded-full bg-gray-200/90 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50 shadow-inner border border-gray-300 text-sm sm:text-base transition-all"
+              className="w-full pb-2 bg-transparent text-gray-300 placeholder-gray-100 focus:outline-none border-b border-gray-400 text-xs sm:text-sm md:text-base"
               required
             />
           </div>
-          <div>
-            <textarea
+          <div className="text-left">
+            <input
               name="message"
               placeholder="Message"
               value={formData.message}
               onChange={handleInputChange}
-              rows={3}
-              className="w-full p-3 sm:p-4 rounded-xl bg-gray-200/90 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50 shadow-inner border border-gray-300 text-sm sm:text-base transition-all"
+              className="w-full pb-2 bg-transparent text-gray-300 placeholder-gray-100 focus:outline-none border-b border-gray-400 text-xs sm:text-sm md:text-base"
               required
             />
           </div>
 
-          <div className="flex justify-between items-center pt-2">
+          <div className="space-y-4 pt-2 text-start">
             <button
               type="button"
               onClick={handleReset}
-              className="px-3 py-1.5 text-gray-300 border border-gray-600 rounded-lg hover:bg-gray-700 hover:text-white transition-colors text-sm sm:text-base flex items-center gap-1"
+              className="px-2 text-gray-300 border border-gray-400 rounded-md hover:bg-gray-700 hover:text-white transition-colors text-sm sm:text-base"
             >
-              <span>Reset</span>
+              Reset
             </button>
 
-            <button
-              type="submit"
-              className="px-5 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-lg font-medium shadow-xl transition-colors text-sm sm:text-base"
-            >
-              Submit
-            </button>
+            <div className="w-full">
+              <button
+                type="submit"
+                className="w-full py-3 bg-pink-500 hover:bg-pink-600 text-white rounded-full font-medium shadow-xl transition-colors text-sm sm:text-base"
+              >
+                Submit
+              </button>
+            </div>
           </div>
         </form>
 
-        <div className="text-center mt-6 sm:mt-8">
+        <div className="text-center mt-4 sm:mt-5 md:mt-6">
           <Link
             href="/"
-            className="text-gray-300 hover:text-white hover:underline transition-colors text-sm sm:text-base inline-flex items-center gap-1"
+            className="text-blue-400 hover:text-blue-300 hover:underline transition-colors text-xs sm:text-sm md:text-base"
           >
             Back to Home page
           </Link>
