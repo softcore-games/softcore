@@ -48,6 +48,7 @@ export interface SceneContextType {
   handleNextScene: () => Promise<void>;
   handlePreviousScene: () => void;
   handleMintScene: () => Promise<void>;
+  handleSceneSelect: (index: number) => void;
   setCurrentIndex: (index: number) => void;
   setCurrentScene: (scene: Scene | null) => void;
   setSelectedChoice: (choice: number | undefined) => void;
@@ -107,6 +108,7 @@ export interface SceneContextType {
   handleNextScene: () => Promise<void>;
   handlePreviousScene: () => void;
   handleMintScene: () => Promise<void>;
+  handleSceneSelect: (index: number) => void;
   setCurrentIndex: (index: number) => void;
   setCurrentScene: (scene: Scene | null) => void;
   setSelectedChoice: (choice: number | undefined) => void;

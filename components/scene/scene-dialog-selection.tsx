@@ -6,6 +6,7 @@ interface SceneDialogSelectionProps {
   selectedChoice?: number;
   previousChoice?: number;
   isProcessing: boolean;
+  isHistoricalScene?: boolean;
 }
 
 export default function SceneDialogSelection({
@@ -14,12 +15,14 @@ export default function SceneDialogSelection({
   selectedChoice,
   previousChoice,
   isProcessing,
+  isHistoricalScene = false,
 }: SceneDialogSelectionProps) {
   return (
     <div className="grid justify-center md:justify-start items-center gap-2 md:gap-7 bg-opacity-50 pb-2 md:pb-9 rounded-lg mb-2 md:mb-10">
       {choices.map((choice, index) => {
         const isSelected = selectedChoice === index || previousChoice === index;
-        const isDisabled = previousChoice !== undefined || isProcessing;
+        const isDisabled =
+          isHistoricalScene || previousChoice !== undefined || isProcessing;
 
         return (
           <button

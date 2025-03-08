@@ -104,12 +104,13 @@ export default function Scene() {
     <div className="w-11/12 md:w-4/5 mx-auto grid grid-cols-1 md:grid-cols-4 gap-2 md:gap-4 h-full">
       <div className="col-span-1 md:col-span-3 text-center md:text-start flex flex-col justify-end">
         <SceneDialogSelection
-          key={`selection-${currentScene?._updateKey || 0}-${currentIndex}`} // Add currentIndex to key
+          key={`selection-${currentScene?._updateKey || 0}-${currentIndex}`}
           choices={currentScene?.choices || []}
           onChoiceSelect={handleChoiceSelect}
           selectedChoice={selectedChoice}
           previousChoice={currentScene?.userChoices?.[0]?.choiceIndex}
           isProcessing={isChoiceProcessing}
+          isHistoricalScene={Boolean(currentScene?.userChoices?.length)}
         />
       </div>
       <div className="col-span-1 text-center">
@@ -121,7 +122,7 @@ export default function Scene() {
       <div className="col-span-1 md:col-span-4 text-center h-44 sm:h-40 md:h-48 rounded-xl -mb-4 sm:-mb-6 md:-mb-8">
         {character && (
           <SceneDialog
-            key={`dialog-${currentScene?._updateKey || 0}-${currentIndex}`} // Add currentIndex to key
+            key={`dialog-${currentScene?._updateKey || 0}-${currentIndex}`}
             scene={currentScene}
             character={character}
             stamina={user?.stamina || 0}

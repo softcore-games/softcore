@@ -248,6 +248,20 @@ export function SceneProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const handleSceneSelect = (index: number) => {
+    const selectedScene = allScenes[index];
+    setCurrentIndex(index);
+    setCurrentScene({ ...selectedScene, _updateKey: Date.now() });
+
+    // If the scene has user choices, set the selected choice
+    // Otherwise, reset the selected choice
+    if (selectedScene.userChoices && selectedScene.userChoices.length > 0) {
+      setSelectedChoice(selectedScene.userChoices[0].choiceIndex);
+    } else {
+      setSelectedChoice(undefined);
+    }
+  };
+
   const handleMintScene = async () => {
     if (!currentScene) return;
 
@@ -277,6 +291,7 @@ export function SceneProvider({ children }: { children: ReactNode }) {
         handleChoiceSelect,
         handleNextScene,
         handlePreviousScene,
+        handleSceneSelect,
         handleMintScene,
         setCurrentIndex,
         setCurrentScene,
