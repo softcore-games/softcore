@@ -2,7 +2,15 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ["api.night-api.com", "cdn.night-api.com", "placehold.co"],
+    domains: [
+      "api.night-api.com",
+      "cdn.night-api.com",
+      "placehold.co",
+      "im.runware.ai",
+      "fal.media",
+      "fal-cdn.com",
+      "v3.fal.media",
+    ],
     remotePatterns: [
       {
         protocol: "https",
@@ -18,6 +26,26 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "placehold.co",
         pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "im.runware.ai",
+        pathname: "/image/**",
+      },
+      {
+        protocol: "https",
+        hostname: "fal.media",
+        pathname: "/files/**",
+      },
+      {
+        protocol: "https",
+        hostname: "fal-cdn.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "v3.fal.media",
+        pathname: "/files/**",
       },
     ],
   },

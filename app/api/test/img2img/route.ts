@@ -1,32 +1,14 @@
 import { NextResponse } from "next/server";
-import { getAuthUser } from "@/lib/auth";
 import { fal } from "@fal-ai/client";
 
 fal.config({
   credentials: process.env.FAL_AI_KEY,
 });
 
-async function generateImg2Img(imageUrl: string, prompt: string) {
-  const result = await fal.subscribe("fal-ai/flux/dev/image-to-image", {
-    input: {
-      image_url: imageUrl,
-      prompt: prompt,
-    },
-    logs: true,
-  });
-
-  return result;
-}
-
 export async function POST(req: Request) {
   try {
-    const user = await getAuthUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     if (!process.env.FAL_AI_KEY) {
-      throw new Error("Fal.ai API key not configured");
+      throw new Error("FAL_AI_KEY is not configured");
     }
 
     const { imageUrl, prompt } = await req.json();
@@ -38,7 +20,26 @@ export async function POST(req: Request) {
       );
     }
 
-    const result = await generateImg2Img(imageUrl, prompt);
+    console.log("Starting image generation with:", { imageUrl, prompt });
+
+    const result = await fal.subscribe("fal-ai/flux/dev/image-to-image", {
+      input: {
+        image_url: imageUrl,
+        prompt: prompt,
+      },
+      logs: true,
+      onQueueUpdate: (update) => {
+        if (update.status === "IN_PROGRESS") {
+          console.log("Processing:", update.logs.map((log) => log.message));
+        }
+      },
+    });
+
+    console.log("Generation completed:", result);
+
+    if (!result.data?.images?.[0]?.url) {
+      throw new Error("No image URL in response");
+    }
 
     return NextResponse.json({
       status: "completed",

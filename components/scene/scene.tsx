@@ -5,6 +5,7 @@ import SceneDialog from "./scene-dialog";
 import SceneDialogSelection from "./scene-dialog-selection";
 import SceneCharacter from "./scene-character";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { generateEnhancedImage } from "@/lib/fal-ai";
 
 interface SceneChoice {
   choiceIndex: number;
@@ -235,6 +236,7 @@ export default function Scene() {
     setSelectedChoice(index);
 
     try {
+      // Save the choice first
       const choiceResponse = await fetch("/api/scene/choice", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -247,6 +249,23 @@ export default function Scene() {
 
       if (!choiceResponse.ok) throw new Error("Failed to save choice");
 
+      // Generate new image based on the choice
+      const enhancedImage = await generateEnhancedImage(
+        currentScene.imageUrl,
+        `Create a romantic visual novel scene where the character reacts to: ${choice}`
+      );
+
+      // Update scene with new image
+      await fetch("/api/scene/update-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sceneId: currentScene.id,
+          imageUrl: enhancedImage,
+        }),
+      });
+
+      // Update stamina
       const staminaResponse = await fetch("/api/user/stamina", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -259,11 +278,12 @@ export default function Scene() {
       setUser(updatedUser);
       await verifyAuth();
 
-      // Update the current scene in allScenes
+      // Update the current scene in allScenes with new choice and image
       const updatedScenes = allScenes.map((scene) =>
         scene.id === currentScene.id
           ? {
               ...scene,
+              imageUrl: enhancedImage,
               userChoices: [
                 {
                   choiceIndex: index,
@@ -281,6 +301,7 @@ export default function Scene() {
         if (!prev) return prev;
         return {
           ...prev,
+          imageUrl: enhancedImage,
           userChoices: [
             {
               choiceIndex: index,
@@ -296,7 +317,6 @@ export default function Scene() {
 
       // Force next scene
       if (currentIndex < updatedScenes.length - 1) {
-        console.log("Attempting to move to next scene"); // Debug log
         handleNextScene();
       }
     } catch (error) {
@@ -329,7 +349,7 @@ export default function Scene() {
       <div className="col-span-1 text-center">
         <SceneCharacter
           key={`character-${currentScene._updateKey || 0}`}
-          imageUrl={character?.imageUrl} // Use character image instead of scene image
+          imageUrl={currentScene?.imageUrl} // Use character image instead of scene image
         />
       </div>
       <div className="col-span-1 md:col-span-4 text-center h-44 sm:h-40 md:h-48 rounded-xl -mb-4 sm:-mb-6 md:-mb-8">

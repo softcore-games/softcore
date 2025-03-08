@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { generateEnhancedImage } from "@/lib/fal-ai";
 
 interface Character {
   id: string;
@@ -52,22 +53,34 @@ export default function CharacterSelection() {
   };
 
   const handleCharacterSelect = async (characterId: string) => {
-    try {
-      const response = await fetch("/api/character/select", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ characterId }),
-      });
+    setSelectedCharacter(characterId);
+    const character = characters.find((c) => c.id === characterId);
 
-      if (!response.ok) {
-        throw new Error("Failed to select character");
+    if (character) {
+      try {
+        // Generate enhanced image for the initial scene
+        const enhancedImage = await generateEnhancedImage(
+          character.imageUrl,
+          `Create a romantic visual novel scene with ${character.name}: ${character.description}`
+        );
+
+        // Update character with enhanced image
+        const response = await fetch("/api/character/select", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            characterId,
+            enhancedImageUrl: enhancedImage,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to select character");
+        }
+      } catch (error) {
+        console.error("Error enhancing character image:", error);
+        // Continue with original image if enhancement fails
       }
-
-      setSelectedCharacter(characterId);
-    } catch (error) {
-      console.error("Error selecting character:", error);
     }
   };
 

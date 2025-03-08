@@ -10,6 +10,7 @@
     "postinstall": "npx prisma generate"
   },
   "dependencies": {
+    "@fal-ai/client": "^1.2.3",
     "@prisma/client": "^5.22.0",
     "bcryptjs": "^3.0.2",
     "ethers": "^6.13.5",

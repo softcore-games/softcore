@@ -9,7 +9,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { characterId } = await req.json();
+    const { characterId, enhancedImageUrl } = await req.json();
     if (!characterId) {
       return NextResponse.json(
         { error: "Character ID is required" },
@@ -17,11 +17,18 @@ export async function POST(req: Request) {
       );
     }
 
-    // Update the user's selected character
+    // Update both the selected character and its image
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: { selectedCharacterId: characterId },
     });
+
+    if (enhancedImageUrl) {
+      await prisma.character.update({
+        where: { id: characterId },
+        data: { imageUrl: enhancedImageUrl },
+      });
+    }
 
     return NextResponse.json({ success: true, user: updatedUser });
   } catch (error) {
