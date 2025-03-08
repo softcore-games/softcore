@@ -64,23 +64,40 @@ function Mint({ scene, onMint }: MintProps) {
       const tx = await contract.safeMint(walletAddress, uri);
       const receipt = await tx.wait();
 
+      console.log("Mint transaction receipt:", receipt);
+
+      // Get the token ID from logs
+      const tokenId = receipt.logs[0].topics[3]; // The token ID is in the last topic
+      console.log("Token ID:", tokenId);
+
+      // Log the data we're about to send
+      const transactionData = {
+        sceneId: scene.id,
+        tokenId: parseInt(tokenId, 16).toString(), // Convert hex to decimal string
+        contractAddress: contractAddress,
+        transactionHash: receipt.hash,
+        ipfsUri: uri,
+      };
+      console.log("Saving transaction data:", transactionData);
+
       // Save the transaction details
       const saveResponse = await fetch("/api/nft-transaction", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          sceneId: scene.id,
-          tokenId: receipt.events[0].args.tokenId.toString(),
-          contractAddress,
-          transactionHash: receipt.transactionHash,
-          ipfsUri: uri,
-        }),
+        body: JSON.stringify(transactionData),
       });
 
+      // Log the response
+      console.log("Save response status:", saveResponse.status);
+      const responseData = await saveResponse.json();
+      console.log("Save response data:", responseData);
+
       if (!saveResponse.ok) {
-        console.error("Failed to save NFT transaction");
+        throw new Error(
+          `Failed to save NFT transaction: ${JSON.stringify(responseData)}`
+        );
       }
 
       await onMint();

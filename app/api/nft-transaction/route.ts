@@ -9,7 +9,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { sceneId, tokenId, contractAddress, transactionHash, ipfsUri } = await req.json();
+    const { sceneId, tokenId, contractAddress, transactionHash, ipfsUri } =
+      await req.json();
+
+    // Validate required fields
+    if (
+      !sceneId ||
+      !tokenId ||
+      !contractAddress ||
+      !transactionHash ||
+      !ipfsUri
+    ) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
 
     // Create the NFT transaction record
     const transaction = await prisma.nFTTransaction.create({
@@ -26,7 +41,7 @@ export async function POST(req: Request) {
     // Update the scene to mark it as minted
     await prisma.scene.update({
       where: { id: sceneId },
-      data: { 
+      data: {
         nftMinted: true,
         nftTokenId: tokenId,
       },
@@ -36,7 +51,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("Failed to save NFT transaction:", error);
     return NextResponse.json(
-      { 
+      {
         error: "Failed to save NFT transaction",
         details: error instanceof Error ? error.message : "Unknown error",
       },
