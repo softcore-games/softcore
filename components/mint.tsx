@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { ethers } from 'ethers';
-import { GrDownload } from 'react-icons/gr';
-import { useWallet } from '@/lib/contexts/WalletContext';
+import React, { useState } from "react";
+import { ethers } from "ethers";
+import { GrDownload } from "react-icons/gr";
+import { useWallet } from "@/lib/contexts/WalletContext";
 
 interface MintProps {
   scene: {
@@ -37,47 +37,38 @@ function Mint({ scene, onMint }: MintProps) {
     try {
       const contractAddress = process.env.NEXT_PUBLIC_NFT_CONTRACT_ADDRESS;
       if (!contractAddress) {
-        throw new Error('NFT contract address is not configured');
+        throw new Error("NFT contract address is not configured");
       }
 
-      // Create and upload metadata
+      // Create metadata URI directly with scene data
       const metadata = {
         name: scene.title,
         description: scene.content,
         image: scene.imageUrl,
         attributes: [
           {
-            trait_type: 'Scene ID',
+            trait_type: "Scene ID",
             value: scene.id,
           },
         ],
       };
 
-      const response = await fetch('/api/upload-metadata', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(metadata),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to upload metadata to IPFS');
-      }
-
-      const { uri } = await response.json();
+      // Convert metadata to base64 encoded URI
+      const uri = `data:application/json;base64,${Buffer.from(
+        JSON.stringify(metadata)
+      ).toString("base64")}`;
 
       // Mint the NFT
-      const abi = ['function safeMint(address to, string memory uri) public'];
+      const abi = ["function safeMint(address to, string memory uri) public"];
       const contract = new ethers.Contract(contractAddress, abi, signer);
       const tx = await contract.safeMint(walletAddress, uri);
       const receipt = await tx.wait();
 
       // Save the transaction details
-      const saveResponse = await fetch('/api/nft-transaction', {
-        method: 'POST',
+      const saveResponse = await fetch("/api/nft-transaction", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           sceneId: scene.id,
@@ -89,12 +80,12 @@ function Mint({ scene, onMint }: MintProps) {
       });
 
       if (!saveResponse.ok) {
-        console.error('Failed to save NFT transaction');
+        console.error("Failed to save NFT transaction");
       }
 
       await onMint();
     } catch (error) {
-      console.error('Failed to mint scene:', error);
+      console.error("Failed to mint scene:", error);
     } finally {
       setIsMinting(false);
     }
@@ -106,12 +97,12 @@ function Mint({ scene, onMint }: MintProps) {
       disabled={isMinting || scene.nftMinted || !signer}
       className={`flex items-center justify-center px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-xs sm:text-sm ${
         isMinting || scene.nftMinted || !signer
-          ? 'bg-gray-300 cursor-not-allowed'
-          : 'bg-blue-500 hover:bg-blue-600'
+          ? "bg-gray-300 cursor-not-allowed"
+          : "bg-blue-500 hover:bg-blue-600"
       } text-white font-semibold`}
     >
       <GrDownload className="mr-1 sm:mr-2 w-2.5 h-2.5 sm:w-3 sm:h-3" />
-      {isMinting ? 'Minting...' : scene.nftMinted ? 'Minted' : 'Mint NFT'}
+      {isMinting ? "Minting..." : scene.nftMinted ? "Minted" : "Mint NFT"}
     </button>
   );
 }
