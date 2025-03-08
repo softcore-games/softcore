@@ -19,15 +19,20 @@ export async function generateSceneImage(
     console.log("Scene Title:", sceneTitle);
     console.log("Scene Content:", sceneContent);
 
-    const basePrompt = `NSFW nude boos erotic ${sceneContent}.`;
+    const basePrompt = ``;
 
-    // Build context-aware prompt
     let contextPrompt = "";
     if (previousChoice) {
-      contextPrompt = ` "${previousChoice.text}". Naked`;
+      contextPrompt = ` "${previousChoice.text}". Maintain the character's confidence and outfit style.`;
     }
 
-    const prompt = `${sceneTitle} ${basePrompt} ${contextPrompt} NSFW nude boobs erotic`;
+    const prompt = `NSFW nude erotic boobs
+   
+    
+     ${contextPrompt} 
+    
+    
+    **Negative prompt:** "different hairstyle, different eye color, different skin tone, altered face shape, unrealistic proportions, extra fingers, blurred details."`;
 
     console.log("Prompt:", prompt);
 
@@ -35,9 +40,9 @@ export async function generateSceneImage(
       input: {
         image_url: characterImageUrl,
         prompt: prompt,
-        num_inference_steps: 30,
-        guidance_scale: 7.5,
-        strength: previousChoice ? 0.85 : 0.75, // Stronger transformation if there's a previous choice
+        num_inference_steps: 40,
+        guidance_scale: 8.5,
+        strength: previousChoice ? 0.7 : 0.6, // Ensure outfit & expression change only
         enable_safety_checker: false,
       },
       logs: true,

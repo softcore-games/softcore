@@ -10,6 +10,8 @@ const nextConfig: NextConfig = {
       "fal.media",
       "fal-cdn.com",
       "v3.fal.media",
+      "www.softcore.games",
+      "softcore.games",
     ],
     remotePatterns: [
       {
@@ -46,6 +48,16 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "v3.fal.media",
         pathname: "/files/**",
+      },
+      {
+        protocol: "https",
+        hostname: "www.softcore.games",
+        pathname: "/images/**",
+      },
+      {
+        protocol: "https",
+        hostname: "softcore.games",
+        pathname: "/images/**",
       },
     ],
   },
