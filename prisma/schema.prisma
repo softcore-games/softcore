@@ -56,7 +56,7 @@ model Scene {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
-  @@unique([characterId, chapter, sceneNumber]) // Ensure scene uniqueness
+  @@unique([characterId, chapter, sceneNumber], name: "characterId_chapter_sceneNumber")
 }
 
 model SceneChoice {

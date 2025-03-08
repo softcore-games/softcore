@@ -37,7 +37,8 @@ async function generateSceneImage() {
 async function generateSceneContent(
   characterName: string,
   chapter: number,
-  sceneNumber: number
+  sceneNumber: number,
+  previousChoice?: { text: string; index: number }
 ) {
   try {
     const completion = await openai.chat.completions.create({
@@ -50,7 +51,11 @@ async function generateSceneContent(
         },
         {
           role: "user",
-          content: `Generate a scene for character ${characterName} in Chapter ${chapter}, Scene ${sceneNumber} with the following JSON structure:
+          content: `Generate a scene for character ${characterName} in Chapter ${chapter}, Scene ${sceneNumber}${
+            previousChoice
+              ? `. This scene should be a natural continuation after the player chose: "${previousChoice.text}"`
+              : ""
+          } with the following JSON structure:
           {
             "title": "Scene title",
             "content": "Character's dialogue (2-3 sentences)",
@@ -89,7 +94,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { characterId } = await req.json();
+    const { characterId, sceneNumber, previousChoice } = await req.json();
 
     const character = await prisma.character.findUnique({
       where: { id: characterId },
@@ -116,13 +121,15 @@ export async function POST(req: Request) {
         : lastScene.chapter
       : 1;
 
-    // Check for existing complete chapter
-    const existingScenes = await prisma.scene.findMany({
+    // Check if requested scene already exists
+    const existingScene = await prisma.scene.findUnique({
       where: {
-        characterId: character.id,
-        chapter: currentChapter,
+        characterId_chapter_sceneNumber: {
+          characterId: character.id,
+          chapter: currentChapter,
+          sceneNumber: sceneNumber || 1,
+        },
       },
-      orderBy: { sceneNumber: "asc" },
       include: {
         userChoices: {
           where: { userId: user.id },
@@ -130,67 +137,45 @@ export async function POST(req: Request) {
       },
     });
 
-    // Return existing chapter if complete
-    if (existingScenes.length === 10) {
+    if (existingScene) {
       return NextResponse.json({
         success: true,
-        scenes: existingScenes,
+        scene: existingScene,
         chapter: currentChapter,
       });
     }
 
-    // Delete incomplete chapter if exists
-    if (existingScenes.length > 0) {
-      await prisma.scene.deleteMany({
-        where: {
-          characterId: character.id,
-          chapter: currentChapter,
-        },
-      });
-    }
-
-    // Pre-generate all content before transaction
-    const sceneDataToCreate = await Promise.all(
-      Array.from({ length: 10 }, async (_, i) => {
-        const sceneNumber = i + 1;
-        const sceneContent = await generateSceneContent(
-          character.name,
-          currentChapter,
-          sceneNumber
-        );
-        const imageUrl = await generateSceneImage();
-
-        return {
-          title: sceneContent.title,
-          content: sceneContent.content,
-          imageUrl,
-          choices: sceneContent.choices,
-          chapter: currentChapter,
-          characterId: character.id,
-          userId: user.id,
-          sceneNumber,
-        };
-      })
+    // Generate single scene
+    const sceneContent = await generateSceneContent(
+      character.name,
+      currentChapter,
+      sceneNumber || 1,
+      previousChoice
     );
+    const imageUrl = await generateSceneImage();
 
-    // Create scenes sequentially instead of in a transaction
-    const newScenes = [];
-    for (const sceneData of sceneDataToCreate) {
-      const scene = await prisma.scene.create({
-        data: sceneData,
-      });
-      newScenes.push(scene);
-    }
+    const newScene = await prisma.scene.create({
+      data: {
+        title: sceneContent.title,
+        content: sceneContent.content,
+        imageUrl,
+        choices: sceneContent.choices,
+        chapter: currentChapter,
+        characterId: character.id,
+        userId: user.id,
+        sceneNumber: sceneNumber || 1,
+      },
+    });
 
     return NextResponse.json({
       success: true,
-      scenes: newScenes,
+      scene: newScene,
       chapter: currentChapter,
     });
   } catch (error) {
-    console.error("API Error:", error);
+    console.error("Error generating scene:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Failed to generate scene" },
       { status: 500 }
     );
   }

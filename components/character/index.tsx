@@ -4,17 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
-import { generateEnhancedImage } from "@/lib/fal-ai";
-
-interface Character {
-  id: string;
-  name: string;
-  imageUrl: string;
-  description: string;
-  userId: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import { Character } from "@/types/game";
 
 export default function CharacterSelection() {
   const { user } = useAuth();
@@ -58,19 +48,12 @@ export default function CharacterSelection() {
 
     if (character) {
       try {
-        // Generate enhanced image for the initial scene
-        const enhancedImage = await generateEnhancedImage(
-          character.imageUrl,
-          `Create a romantic visual novel scene with ${character.name}: ${character.description}`
-        );
-
         // Update character with enhanced image
         const response = await fetch("/api/character/select", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             characterId,
-            enhancedImageUrl: enhancedImage,
           }),
         });
 
