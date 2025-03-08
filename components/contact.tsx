@@ -36,7 +36,7 @@ const Contact = () => {
 
   return (
     <div
-      className="w-full min-h-screen grid place-items-center justify-center bg-cover bg-center bg-no-repeat fixed inset-0"
+      className="w-full min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat fixed inset-0 px-4 py-6 sm:px-6 md:px-8"
       style={{
         backgroundImage: "url('/images/wmremove-transformed.png')",
         backgroundSize: "cover",
@@ -44,10 +44,16 @@ const Contact = () => {
         backgroundAttachment: "fixed",
       }}
     >
-      <div className="bg-black/70 backdrop-blur-none shadow-xl p-6 rounded-2xl sm:rounded-4xl shadow-lg w-full max-w-[90%] sm:max-w-[80%] md:max-w-[70%] lg:max-w-[580px] text-center relative z-10">
-        <h2 className="text-xl font-bold text-white mb-4">Contact</h2>
-        <hr className="border-t-2 border-gray-300 mb-5" />
-        <form onSubmit={handleSubmit} className="space-y-3">
+      <div className="bg-black/70 backdrop-blur-sm shadow-2xl p-5 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl md:rounded-4xl w-full max-w-[95%] xs:max-w-[90%] sm:max-w-[80%] md:max-w-[600px] lg:max-w-[650px] text-center relative z-10 border border-gray-800">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3 sm:mb-4 md:mb-5">
+          Contact
+        </h2>
+        <hr className="border-t border-gray-600 mb-4 sm:mb-5 md:mb-6 mx-auto w-3/4" />
+
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-3 sm:space-y-4 md:space-y-5"
+        >
           <div>
             <input
               type="text"
@@ -55,7 +61,8 @@ const Contact = () => {
               placeholder="Full Name"
               value={formData.fullName}
               onChange={handleInputChange}
-              className="w-full p-2 rounded-full bg-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none shadow-inner border border-gray-300 text-sm sm:text-base"
+              className="w-full p-2 sm:p-3 rounded-full bg-gray-200/90 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50 shadow-inner border border-gray-300 text-sm sm:text-base transition-all"
+              required
             />
           </div>
           <div>
@@ -65,7 +72,8 @@ const Contact = () => {
               placeholder="Email"
               value={formData.email}
               onChange={handleInputChange}
-              className="w-full p-2 rounded-full bg-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none shadow-inner border border-gray-300 text-sm sm:text-base"
+              className="w-full p-2 sm:p-3 rounded-full bg-gray-200/90 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50 shadow-inner border border-gray-300 text-sm sm:text-base transition-all"
+              required
             />
           </div>
           <div>
@@ -75,27 +83,34 @@ const Contact = () => {
               value={formData.message}
               onChange={handleInputChange}
               rows={3}
-              className="w-full p-2 rounded-xl bg-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none shadow-inner border border-gray-300 text-sm sm:text-base"
+              className="w-full p-3 sm:p-4 rounded-xl bg-gray-200/90 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50 shadow-inner border border-gray-300 text-sm sm:text-base transition-all"
+              required
             />
           </div>
-          <div className="flex justify-start">
+
+          <div className="flex justify-between items-center pt-2">
             <button
               type="button"
               onClick={handleReset}
-              className="px-1  text-gray-300 border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors"
+              className="px-3 py-1.5 text-gray-300 border border-gray-600 rounded-lg hover:bg-gray-700 hover:text-white transition-colors text-sm sm:text-base flex items-center gap-1"
             >
-              Reset
+              <span>Reset</span>
+            </button>
+
+            <button
+              type="submit"
+              className="px-5 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-lg font-medium shadow-xl transition-colors text-sm sm:text-base"
+            >
+              Submit
             </button>
           </div>
-          <button
-            type="submit"
-            className="w-full bg-pink-500 hover:bg-pink-600 text-white py-1.5 rounded-lg font-normal shadow-xl transition-colors"
-          >
-            Submit
-          </button>
         </form>
-        <div className="text-center mt-4">
-          <Link href="/" className="text-white hover:underline">
+
+        <div className="text-center mt-6 sm:mt-8">
+          <Link
+            href="/"
+            className="text-gray-300 hover:text-white hover:underline transition-colors text-sm sm:text-base inline-flex items-center gap-1"
+          >
             Back to Home page
           </Link>
         </div>
