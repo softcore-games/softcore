@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { CgPlayPause } from "react-icons/cg";
 import { TiBatteryMid } from "react-icons/ti";
-import { FaHistory } from "react-icons/fa";
+import { FaHistory, FaArrowRight } from "react-icons/fa";
 import Mint from "../mint";
 import SceneHistoryDialog from "./scene-history-dialog";
 import { Scene } from "@/types/game";
@@ -51,6 +51,14 @@ export default function SceneDialog({
 }: SceneDialogProps) {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
+  // Check if we're viewing a historical scene
+  const isHistoricalScene = !isLastScene;
+
+  // Function to go to the latest scene
+  const goToLatestScene = () => {
+    onSceneSelect(allScenes.length - 1);
+  };
+
   // Define constants for hearts display
   const MAX_HEARTS = 3;
   const currentHearts = Math.min(
@@ -77,17 +85,28 @@ export default function SceneDialog({
 
   return (
     <div className=" bg-white rounded-xl p-3 sm:p-4 md:p-5 sm:pb-1 md:pb-1 relative bottom-1 sm:bottom-2 md:bottom-9 border-2 border-black z-10 shadow-[0_0_20px_rgba(0,0,0,0.25)] flex flex-col justify-between">
-      <div className="flex items-center space-x-3 mb-2">
-        <span className="font-bold text-sm sm:text-base md:text-2xl text-black">
-          {character?.name || "Unknown Character"}
-        </span>
-        <div className="flex space-x-1 mr-5">{renderHearts()}</div>
-        <div className="flex items-center justify-center gap-1">
-          <span className="font-bold text-sm sm:text-lg md:text-xl text-black justify-center items-center">
-            {stamina || 0}
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center space-x-3">
+          <span className="font-bold text-sm sm:text-base md:text-2xl text-black">
+            {character?.name || "Unknown Character"}
           </span>
-          <TiBatteryMid className="text-black w-6 h-6 md:w-8 md:h-8" />
+          <div className="flex space-x-1 mr-5">{renderHearts()}</div>
+          <div className="flex items-center justify-center gap-1">
+            <span className="font-bold text-sm sm:text-lg md:text-xl text-black justify-center items-center">
+              {stamina || 0}
+            </span>
+            <TiBatteryMid className="text-black w-6 h-6 md:w-8 md:h-8" />
+          </div>
         </div>
+        {isHistoricalScene && (
+          <button
+            onClick={goToLatestScene}
+            className="flex items-center space-x-2 px-3 py-1 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors text-sm"
+          >
+            <span>Latest Scene</span>
+            <FaArrowRight className="w-3 h-3" />
+          </button>
+        )}
       </div>
       <p className="md:w-3/4 text-gray-700 text-xs sm:text-sm md:text-base leading-relaxed text-start">
         {scene.content}
