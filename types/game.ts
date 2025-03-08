@@ -35,9 +35,11 @@ export interface User {
 }
 export interface SceneContextType {
   loading: boolean;
+  setLoading: (loading: boolean) => void;
   error: string | null;
   character: Character | null;
   allScenes: Scene[];
+  setAllScenes: (scenes: Scene[]) => void;
   currentScene: Scene | null;
   currentIndex: number;
   selectedChoice: number | undefined;
@@ -95,9 +97,11 @@ export interface User {
 
 export interface SceneContextType {
   loading: boolean;
+  setLoading: (loading: boolean) => void;
   error: string | null;
   character: Character | null;
   allScenes: Scene[];
+  setAllScenes: (scenes: Scene[]) => void;
   currentScene: Scene | null;
   currentIndex: number;
   selectedChoice: number | undefined;

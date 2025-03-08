@@ -5,6 +5,7 @@ import SceneDialog from "./scene-dialog";
 import SceneDialogSelection from "./scene-dialog-selection";
 import SceneCharacter from "./scene-character";
 import { useScene } from "@/lib/contexts/SceneContext";
+import type { Scene } from "@/types/game";
 
 export default function Scene() {
   const params = useParams();
@@ -26,6 +27,8 @@ export default function Scene() {
     setCurrentIndex,
     setCurrentScene,
     setSelectedChoice,
+    setLoading,
+    setAllScenes,
   } = useScene();
 
   // Initial data fetching
@@ -75,11 +78,24 @@ export default function Scene() {
   }, [currentScene?.status, currentScene?.id]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-lg">Loading scene...</p>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center text-red-600">
+          <p className="text-lg">{error}</p>
+        </div>
+      </div>
+    );
   }
 
   if (!currentScene) {
@@ -135,12 +151,36 @@ export default function Scene() {
             disableNext={
               !selectedChoice && currentScene?.userChoices?.length === 0
             }
-            onSceneSelect={(index) => {
-              const selectedScene = allScenes[index];
-              setCurrentIndex(index);
-              setCurrentScene({ ...selectedScene, _updateKey: Date.now() });
-              // Update selected choice based on the selected scene's choices
-              setSelectedChoice(selectedScene.userChoices?.[0]?.choiceIndex);
+            onSceneSelect={async (index) => {
+              try {
+                const selectedScene = allScenes[index];
+                setLoading(true);
+
+                // Fetch fresh data from the database
+                const response = await fetch(
+                  `/api/scene?sceneId=${selectedScene.id}`
+                );
+                if (!response.ok) {
+                  throw new Error("Failed to fetch scene data");
+                }
+                const { scene: freshScene } = await response.json();
+
+                // Update the scene in allScenes array
+                const updatedScenes = allScenes.map(
+                  (s, i): Scene =>
+                    i === index ? { ...freshScene, _updateKey: Date.now() } : s
+                );
+                setAllScenes(updatedScenes);
+
+                setCurrentIndex(index);
+                setCurrentScene({ ...freshScene, _updateKey: Date.now() });
+                setSelectedChoice(freshScene.userChoices?.[0]?.choiceIndex);
+              } catch (error) {
+                console.error("Error fetching scene:", error);
+                setError("Failed to load scene data");
+              } finally {
+                setLoading(false);
+              }
             }}
             currentIndex={currentIndex}
           />

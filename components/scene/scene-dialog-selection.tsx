@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 interface SceneDialogSelectionProps {
   choices: string[];
@@ -17,10 +17,22 @@ export default function SceneDialogSelection({
   isProcessing,
   isHistoricalScene = false,
 }: SceneDialogSelectionProps) {
+  // Local state to track the effective choice
+  const [effectiveChoice, setEffectiveChoice] = useState<number | undefined>(
+    undefined
+  );
+
+  // Update effective choice whenever props change
+  useEffect(() => {
+    setEffectiveChoice(
+      previousChoice !== undefined ? previousChoice : selectedChoice
+    );
+  }, [previousChoice, selectedChoice]);
+
   return (
     <div className="grid justify-center md:justify-start items-center gap-2 md:gap-7 bg-opacity-50 pb-2 md:pb-9 rounded-lg mb-2 md:mb-10">
       {choices.map((choice, index) => {
-        const isSelected = selectedChoice === index || previousChoice === index;
+        const isSelected = effectiveChoice === index;
         const isDisabled =
           isHistoricalScene || previousChoice !== undefined || isProcessing;
 

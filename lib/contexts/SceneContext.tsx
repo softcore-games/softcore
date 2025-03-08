@@ -75,6 +75,14 @@ const api = {
 
     return response.json();
   },
+
+  async fetchSingleScene(sceneId: string) {
+    const response = await fetch(`/api/scene?sceneId=${sceneId}`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch scene data");
+    }
+    return response.json();
+  },
 };
 
 export function SceneProvider({ children }: { children: ReactNode }) {
@@ -248,17 +256,39 @@ export function SceneProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const handleSceneSelect = (index: number) => {
+  const handleSceneSelect = async (index: number) => {
     const selectedScene = allScenes[index];
-    setCurrentIndex(index);
-    setCurrentScene({ ...selectedScene, _updateKey: Date.now() });
+    if (!selectedScene) return;
 
-    // If the scene has user choices, set the selected choice
-    // Otherwise, reset the selected choice
-    if (selectedScene.userChoices && selectedScene.userChoices.length > 0) {
-      setSelectedChoice(selectedScene.userChoices[0].choiceIndex);
-    } else {
-      setSelectedChoice(undefined);
+    try {
+      setLoading(true);
+      // Fetch fresh data from the database
+      const { scene: freshScene } = await api.fetchSingleScene(
+        selectedScene.id
+      );
+
+      // Update the scene in allScenes array
+      setAllScenes((prev) =>
+        prev.map((s, i) =>
+          i === index ? { ...freshScene, _updateKey: Date.now() } : s
+        )
+      );
+
+      // Update current scene with fresh data
+      setCurrentScene({ ...freshScene, _updateKey: Date.now() });
+      setCurrentIndex(index);
+
+      // Update selected choice based on the fresh scene data
+      if (freshScene.userChoices && freshScene.userChoices.length > 0) {
+        setSelectedChoice(freshScene.userChoices[0].choiceIndex);
+      } else {
+        setSelectedChoice(undefined);
+      }
+    } catch (error) {
+      console.error("Error fetching scene:", error);
+      setError("Failed to load scene data");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -281,6 +311,7 @@ export function SceneProvider({ children }: { children: ReactNode }) {
         error,
         character,
         allScenes,
+        setAllScenes,
         currentScene,
         currentIndex,
         selectedChoice,
@@ -295,6 +326,7 @@ export function SceneProvider({ children }: { children: ReactNode }) {
         handleMintScene,
         setCurrentIndex,
         setCurrentScene,
+        setLoading,
       }}
     >
       {children}
