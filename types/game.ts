@@ -14,6 +14,7 @@ export interface Scene {
   nftMinted: boolean;
   userChoices?: SceneChoice[];
   _updateKey?: number;
+  status: "GENERATING" | "COMPLETED" | "FAILED";
 }
 export interface Character {
   id: string;
@@ -47,6 +48,9 @@ export interface SceneContextType {
   handleNextScene: () => Promise<void>;
   handlePreviousScene: () => void;
   handleMintScene: () => Promise<void>;
+  setCurrentIndex: (index: number) => void;
+  setCurrentScene: (scene: Scene | null) => void;
+  setSelectedChoice: (choice: number | undefined) => void;
 }
 
 export interface SceneChoice {
@@ -66,6 +70,7 @@ export interface Scene {
   nftMinted: boolean;
   userChoices?: SceneChoice[];
   _updateKey?: number;
+  status: "GENERATING" | "COMPLETED" | "FAILED";
 }
 
 export interface Character {
@@ -102,4 +107,7 @@ export interface SceneContextType {
   handleNextScene: () => Promise<void>;
   handlePreviousScene: () => void;
   handleMintScene: () => Promise<void>;
+  setCurrentIndex: (index: number) => void;
+  setCurrentScene: (scene: Scene | null) => void;
+  setSelectedChoice: (choice: number | undefined) => void;
 }

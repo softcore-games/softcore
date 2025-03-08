@@ -43,7 +43,7 @@ model Scene {
   content     String
   imageUrl    String
   choices     String[]
-  chapter     Int          // Changed from String to Int for better ordering
+  chapter     Int
   characterId String       @db.ObjectId
   character   Character    @relation(fields: [characterId], references: [id])
   userId      String       @db.ObjectId
@@ -51,12 +51,20 @@ model Scene {
   nftMinted   Boolean      @default(false)
   nftTokenId  String?
   userChoices SceneChoice[]
-  sceneNumber Int         // Ensure this is required
-  nftTransaction NFTTransaction?  // Add this line
+  sceneNumber Int
+  nftTransaction NFTTransaction?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+  status      SceneStatus @default(GENERATING)
 
   @@unique([characterId, chapter, sceneNumber], name: "characterId_chapter_sceneNumber")
+  @@index([userId, characterId])
+}
+
+enum SceneStatus {
+  GENERATING
+  COMPLETED
+  FAILED
 }
 
 model SceneChoice {

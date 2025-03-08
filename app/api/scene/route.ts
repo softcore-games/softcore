@@ -13,86 +13,125 @@ export async function POST(req: Request) {
 
     const { characterId, sceneNumber, previousChoice } = await req.json();
 
-    const character = await prisma.character.findUnique({
-      where: { id: characterId },
-      include: {
-        scenes: {
-          orderBy: [{ chapter: "desc" }, { sceneNumber: "desc" }],
-          take: 1,
+    // Start a transaction to handle concurrent requests
+    const result = await prisma.$transaction(async (tx) => {
+      // Lock the character record for atomic operations
+      const character = await tx.character.findUnique({
+        where: { id: characterId },
+        include: {
+          scenes: {
+            orderBy: [{ chapter: "desc" }, { sceneNumber: "desc" }],
+            take: 1,
+          },
         },
-      },
-    });
+      });
 
-    if (!character) {
-      return NextResponse.json(
-        { error: "Character not found" },
-        { status: 404 }
-      );
-    }
+      if (!character) {
+        throw new Error("Character not found");
+      }
 
-    // Calculate current chapter
-    const lastScene = character.scenes[0];
-    const currentChapter = lastScene
-      ? lastScene.sceneNumber === 10
-        ? lastScene.chapter + 1
-        : lastScene.chapter
-      : 1;
+      // Calculate current chapter
+      const lastScene = character.scenes[0];
+      const currentChapter = lastScene
+        ? lastScene.sceneNumber === 10
+          ? lastScene.chapter + 1
+          : lastScene.chapter
+        : 1;
 
-    // Check if requested scene already exists
-    const existingScene = await prisma.scene.findUnique({
-      where: {
-        characterId_chapter_sceneNumber: {
-          characterId: character.id,
+      // Check for existing scene with FOR UPDATE lock
+      const existingScene = await tx.scene.findUnique({
+        where: {
+          characterId_chapter_sceneNumber: {
+            characterId: character.id,
+            chapter: currentChapter,
+            sceneNumber: sceneNumber || 1,
+          },
+        },
+        include: {
+          userChoices: {
+            where: { userId: user.id },
+          },
+        },
+      });
+
+      if (existingScene) {
+        if (existingScene.status === "COMPLETED") {
+          return { scene: existingScene, chapter: currentChapter };
+        } else if (existingScene.status === "GENERATING") {
+          // Wait and retry if scene is still generating
+          throw new Error("Scene generation in progress");
+        }
+      }
+
+      // Create a placeholder scene with GENERATING status
+      const placeholderScene = await tx.scene.create({
+        data: {
+          title: "Generating...",
+          content: "Please wait while your scene is being generated...",
+          imageUrl: "",
+          choices: [],
           chapter: currentChapter,
+          characterId: character.id,
+          userId: user.id,
           sceneNumber: sceneNumber || 1,
+          status: "GENERATING",
         },
-      },
-      include: {
-        userChoices: {
-          where: { userId: user.id },
-        },
-      },
+      });
+
+      return { placeholderScene, character, currentChapter };
     });
 
-    if (existingScene) {
+    // If we got an existing completed scene, return it
+    if ("scene" in result) {
       return NextResponse.json({
         success: true,
-        scene: existingScene,
-        chapter: currentChapter,
+        scene: result.scene,
+        chapter: result.chapter,
       });
     }
 
-    // Generate single scene
-    const sceneContent = await generateSceneContent(
-      character.name,
-      currentChapter,
-      sceneNumber || 1,
-      previousChoice
-    );
-    const imageUrl = await generateSceneImage(
-      character.imageUrl,
-      sceneContent.title,
-      sceneContent.content
-    );
+    // Generate scene content and image asynchronously
+    const { placeholderScene, character, currentChapter } = result;
 
-    const newScene = await prisma.scene.create({
-      data: {
-        title: sceneContent.title,
-        content: sceneContent.content,
-        imageUrl,
-        choices: sceneContent.choices,
+    try {
+      const sceneContent = await generateSceneContent(
+        character.name,
+        currentChapter,
+        sceneNumber || 1,
+        previousChoice
+      );
+
+      const imageUrl = await generateSceneImage(
+        character.imageUrl,
+        sceneContent.title,
+        sceneContent.content
+      );
+
+      // Update the placeholder scene with actual content
+      const completedScene = await prisma.scene.update({
+        where: { id: placeholderScene.id },
+        data: {
+          title: sceneContent.title,
+          content: sceneContent.content,
+          imageUrl,
+          choices: sceneContent.choices,
+          status: "COMPLETED",
+        },
+      });
+
+      return NextResponse.json({
+        success: true,
+        scene: completedScene,
         chapter: currentChapter,
-        characterId: character.id,
-        userId: user.id,
-        sceneNumber: sceneNumber || 1,
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      scene: newScene,
-      chapter: currentChapter,
-    });
+      });
+    } catch (error) {
+      // Mark the scene as failed if generation fails
+      await prisma.scene.update({
+        where: { id: placeholderScene.id },
+        data: { status: "FAILED" },
+      });
+      throw error;
+    }
   } catch (error) {
     console.error("Error generating scene:", error);
     return NextResponse.json(
@@ -114,13 +153,7 @@ export async function GET(req: Request) {
     const sceneId = url.searchParams.get("sceneId");
     const chapter = url.searchParams.get("chapter");
 
-    if (!characterId) {
-      return NextResponse.json(
-        { error: "Character ID required" },
-        { status: 400 }
-      );
-    }
-
+    // If sceneId is provided, fetch single scene
     if (sceneId) {
       const scene = await prisma.scene.findUnique({
         where: { id: sceneId },
@@ -136,6 +169,14 @@ export async function GET(req: Request) {
       }
 
       return NextResponse.json({ scene });
+    }
+
+    // If no sceneId, then characterId is required for fetching multiple scenes
+    if (!characterId) {
+      return NextResponse.json(
+        { error: "Character ID required when scene ID is not provided" },
+        { status: 400 }
+      );
     }
 
     const whereClause = {

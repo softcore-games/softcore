@@ -84,7 +84,9 @@ export function SceneProvider({ children }: { children: ReactNode }) {
   const [allScenes, setAllScenes] = useState<Scene[]>([]);
   const [currentScene, setCurrentScene] = useState<Scene | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedChoice, setSelectedChoice] = useState<number | undefined>();
+  const [selectedChoice, setSelectedChoice] = useState<number | undefined>(
+    undefined
+  );
   const [user, setUser] = useState<User | null>(null);
   const [isChoiceProcessing, setIsChoiceProcessing] = useState(false);
 
@@ -101,10 +103,16 @@ export function SceneProvider({ children }: { children: ReactNode }) {
       setUser(userData.user);
 
       if (scenesData.scenes?.length > 0) {
-        setAllScenes(scenesData.scenes);
-        setCurrentScene(scenesData.scenes[0]);
-        if (scenesData.scenes[0].userChoices?.[0]?.choiceIndex) {
-          setSelectedChoice(scenesData.scenes[0].userChoices[0].choiceIndex);
+        // Prevent duplicate scenes by checking IDs
+        const uniqueScenes = scenesData.scenes.filter(
+          (scene: Scene, index: number, self: Scene[]) =>
+            index === self.findIndex((s) => s.id === scene.id)
+        );
+
+        setAllScenes(uniqueScenes);
+        setCurrentScene(uniqueScenes[0]);
+        if (uniqueScenes[0].userChoices?.[0]?.choiceIndex !== undefined) {
+          setSelectedChoice(uniqueScenes[0].userChoices[0].choiceIndex);
         }
       } else {
         const generatedData = await api.generateScene(characterId);
@@ -172,11 +180,31 @@ export function SceneProvider({ children }: { children: ReactNode }) {
       // Generate next scene if not at the end
       const nextSceneNumber = currentScene.sceneNumber + 1;
       if (nextSceneNumber <= 10) {
-        const data = await api.generateScene(character.id, nextSceneNumber);
-        setAllScenes((prev) => [...prev, data.scene]);
-        setCurrentScene(data.scene);
-        setCurrentIndex(nextSceneNumber - 1);
-        setSelectedChoice(undefined);
+        let retries = 0;
+        const maxRetries = 3;
+
+        while (retries < maxRetries) {
+          try {
+            const data = await api.generateScene(character.id, nextSceneNumber);
+
+            if (data.scene.status === "GENERATING") {
+              // Wait and retry if scene is still generating
+              await new Promise((resolve) => setTimeout(resolve, 2000));
+              retries++;
+              continue;
+            }
+
+            setAllScenes((prev) => [...prev, data.scene]);
+            setCurrentScene(data.scene);
+            setCurrentIndex(nextSceneNumber - 1);
+            setSelectedChoice(undefined);
+            break;
+          } catch (error) {
+            if (retries === maxRetries - 1) throw error;
+            retries++;
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+          }
+        }
       }
     } catch (error) {
       console.error("Error processing choice:", error);
@@ -242,6 +270,7 @@ export function SceneProvider({ children }: { children: ReactNode }) {
         currentScene,
         currentIndex,
         selectedChoice,
+        setSelectedChoice,
         user,
         isChoiceProcessing,
         fetchSceneData,
@@ -249,6 +278,8 @@ export function SceneProvider({ children }: { children: ReactNode }) {
         handleNextScene,
         handlePreviousScene,
         handleMintScene,
+        setCurrentIndex,
+        setCurrentScene,
       }}
     >
       {children}

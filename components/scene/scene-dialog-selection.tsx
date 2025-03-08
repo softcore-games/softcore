@@ -5,7 +5,7 @@ interface SceneDialogSelectionProps {
   onChoiceSelect: (choice: string, index: number) => void;
   selectedChoice?: number;
   previousChoice?: number;
-  isProcessing: boolean; // Added this prop
+  isProcessing: boolean;
 }
 
 export default function SceneDialogSelection({
@@ -23,7 +23,7 @@ export default function SceneDialogSelection({
 
         return (
           <button
-            key={index}
+            key={`${choice}-${index}`}
             onClick={() => !isDisabled && onChoiceSelect(choice, index)}
             disabled={isDisabled}
             className={`cursor-pointer text-left px-2 sm:px-4 md:px-10 md:pr-72 py-2 border-b-2 border-black shadow-lg font-semibold text-xs sm:text-sm md:text-base max-w-[300px] sm:max-w-[400px] md:max-w-none mx-auto md:mx-0 transition-colors ${

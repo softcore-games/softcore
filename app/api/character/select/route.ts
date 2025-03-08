@@ -4,43 +4,6 @@ import prisma from "@/lib/prisma";
 import { generateInitialScene } from "@/lib/open-ai";
 import { generateSceneImage } from "@/lib/fal-ai";
 
-async function createInitialScene(
-  characterId: string,
-  userId: string,
-  character: any
-) {
-  try {
-    // Generate the initial scene content
-    const sceneContent = await generateInitialScene(character.name);
-
-    // Generate the scene image
-    const imageUrl = await generateSceneImage(
-      character.imageUrl,
-      sceneContent.title,
-      sceneContent.content
-    );
-
-    // Create the scene in the database
-    const scene = await prisma.scene.create({
-      data: {
-        title: sceneContent.title,
-        content: sceneContent.content,
-        imageUrl,
-        choices: sceneContent.choices,
-        chapter: 1,
-        sceneNumber: 1,
-        characterId,
-        userId,
-      },
-    });
-
-    return scene;
-  } catch (error) {
-    console.error("Error creating initial scene:", error);
-    throw error;
-  }
-}
-
 export async function POST(req: Request) {
   try {
     const user = await getAuthUser();
@@ -76,31 +39,64 @@ export async function POST(req: Request) {
       );
     }
 
-    // Start a transaction to update user and create initial scene
-    const result = await prisma.$transaction(async (tx) => {
-      // Update the selected character
-      const updatedUser = await tx.user.update({
-        where: { id: user.id },
-        data: { selectedCharacterId: characterId },
+    // First, update the selected character
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: { selectedCharacterId: characterId },
+    });
+
+    // Check if initial scene exists
+    let initialScene = character.scenes[0];
+
+    if (!initialScene) {
+      // Create a placeholder scene first
+      initialScene = await prisma.scene.create({
+        data: {
+          title: "Generating...",
+          content: "Your story is being created...",
+          imageUrl: character.imageUrl, // Use character image temporarily
+          choices: [],
+          chapter: 1,
+          sceneNumber: 1,
+          characterId,
+          userId: user.id,
+          status: "GENERATING",
+        },
       });
 
-      // Create initial scene if it doesn't exist
-      let initialScene = character.scenes[0];
-      if (!initialScene) {
-        initialScene = await createInitialScene(
-          characterId,
-          user.id,
-          character
-        );
-      }
+      // Generate the scene content asynchronously
+      generateInitialScene(character.name)
+        .then(async (sceneContent) => {
+          const imageUrl = await generateSceneImage(
+            character.imageUrl,
+            sceneContent.title,
+            sceneContent.content
+          );
 
-      return { user: updatedUser, scene: initialScene };
-    });
+          await prisma.scene.update({
+            where: { id: initialScene.id },
+            data: {
+              title: sceneContent.title,
+              content: sceneContent.content,
+              imageUrl,
+              choices: sceneContent.choices,
+              status: "COMPLETED",
+            },
+          });
+        })
+        .catch(async (error) => {
+          console.error("Error generating initial scene:", error);
+          await prisma.scene.update({
+            where: { id: initialScene.id },
+            data: { status: "FAILED" },
+          });
+        });
+    }
 
     return NextResponse.json({
       success: true,
-      user: result.user,
-      initialScene: result.scene,
+      user: updatedUser,
+      initialScene,
     });
   } catch (error) {
     console.error("Error selecting character:", error);

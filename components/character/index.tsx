@@ -10,6 +10,9 @@ export default function CharacterSelection() {
   const { user } = useAuth();
   const router = useRouter();
   const [initialLoading, setInitialLoading] = useState(true);
+  const [characters, setCharacters] = useState<Character[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     const checkExistingCharacter = async () => {
@@ -27,13 +30,6 @@ export default function CharacterSelection() {
 
     checkExistingCharacter();
   }, [user, router]);
-
-  const [characters, setCharacters] = useState<Character[]>([]);
-  const [selectedCharacter, setSelectedCharacter] = useState<string | null>(
-    null
-  );
-  const [loading, setLoading] = useState(true);
-  const [generating, setGenerating] = useState(false); // Add this new state
 
   useEffect(() => {
     if (!initialLoading) {
@@ -54,53 +50,32 @@ export default function CharacterSelection() {
   };
 
   const handleCharacterSelect = async (characterId: string) => {
-    setSelectedCharacter(characterId);
     const character = characters.find((c) => c.id === characterId);
-
-    if (character) {
-      try {
-        // Update character with enhanced image
-        const response = await fetch("/api/character/select", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            characterId,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to select character");
-        }
-      } catch (error) {
-        console.error("Error enhancing character image:", error);
-        // Continue with original image if enhancement fails
-      }
-    }
-  };
-
-  const handleStartGame = async () => {
-    if (!selectedCharacter) return;
+    if (!character) return;
 
     try {
-      // Verify character selection before navigation
-      const response = await fetch(
-        `/api/character?characterId=${selectedCharacter}`
-      );
-      const data = await response.json();
+      const response = await fetch("/api/character/select", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ characterId }),
+      });
 
-      if (data.character) {
-        router.push(`/game/${selectedCharacter}`);
-      } else {
-        console.error("Character not found");
+      if (!response.ok) {
+        throw new Error("Failed to select character");
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        router.push(`/game/${characterId}`);
       }
     } catch (error) {
-      console.error("Error starting game:", error);
+      console.error("Error selecting character:", error);
     }
   };
 
   const generateCharacters = async () => {
     try {
-      setGenerating(true); // Set generating state to true when starting
+      setGenerating(true);
       const response = await fetch("/api/character", {
         method: "POST",
         headers: {
@@ -117,7 +92,7 @@ export default function CharacterSelection() {
     } catch (error) {
       console.error("Error generating characters:", error);
     } finally {
-      setGenerating(false); // Reset generating state when done
+      setGenerating(false);
     }
   };
 
@@ -168,11 +143,7 @@ export default function CharacterSelection() {
           {characters.map((character) => (
             <div
               key={character.id}
-              className={`bg-black bg-opacity-50 rounded-lg p-4 cursor-pointer transition duration-300 ${
-                selectedCharacter === character.id
-                  ? "ring-2 ring-pink-500"
-                  : "hover:bg-opacity-70"
-              }`}
+              className="bg-black bg-opacity-50 rounded-lg p-4 cursor-pointer transition duration-300 hover:bg-opacity-70 hover:ring-2 hover:ring-pink-500"
               onClick={() => handleCharacterSelect(character.id)}
             >
               <div className="relative h-[400px] mb-4">
@@ -192,17 +163,6 @@ export default function CharacterSelection() {
               </div>
             </div>
           ))}
-        </div>
-      )}
-
-      {selectedCharacter && (
-        <div className="fixed bottom-8 left-0 right-0 flex justify-center">
-          <button
-            onClick={handleStartGame}
-            className="bg-pink-500 hover:bg-pink-600 text-white px-8 py-3 rounded-lg text-lg font-semibold transition duration-300"
-          >
-            Start Romance
-          </button>
         </div>
       )}
     </div>
