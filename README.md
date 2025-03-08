@@ -8,16 +8,16 @@ Welcome to SoftCORE, an exciting AI-powered dating game built for the Core DAO H
 
 ### 🤖 AI Characters
 
-- Meet three unique AI-generated characters
+- Meet unique AI-generated characters using fal.ai
 - Each character has their own personality and story
 - Your chosen character stays with you throughout your journey
 
 ### 📖 Story Experience
 
 - Engaging storylines with multiple choices
-- 10 unique scenes in each chapter
+- Dynamic scene generation with AI
 - Navigate freely between scenes
-- 3 free interactions per session
+- 3 stamina points per session
 
 ### 💎 NFT Collection
 
@@ -29,12 +29,12 @@ Welcome to SoftCORE, an exciting AI-powered dating game built for the Core DAO H
 
 1. **Create Your Account**
 
-   - Sign up with your email
+   - Sign up with email and username
    - Connect your crypto wallet (optional, for NFTs)
 
 2. **Meet Your Characters**
 
-   - Three unique AI characters will be generated
+   - AI-generated characters with unique personalities
    - Choose your favorite to start your journey
 
 3. **Experience the Story**
@@ -52,12 +52,12 @@ Welcome to SoftCORE, an exciting AI-powered dating game built for the Core DAO H
 
 - **Save Your Progress**: Your story continues where you left off
 - **Previous/Next Navigation**: Easily move between scenes
-- **Stamina System**: Get 3 free interactions per session
+- **Stamina System**: 3 stamina points per session
 - **NFT Minting**: Own your favorite moments forever
 
 ## 🚀 Quick Start
 
-1. Visit [our website](https://softcore-game.com)
+1. Visit [our website](https://softcore.games)
 2. Create your account
 3. Choose your character
 4. Start your adventure!
@@ -71,16 +71,15 @@ Welcome to SoftCORE, an exciting AI-powered dating game built for the Core DAO H
 
 ## 🔒 Your Security Matters
 
-- Secure login system
+- Secure JWT-based authentication
 - Safe wallet integration
 - Protected game progress
 - Private user data
 
 ## ❓ Need Help?
 
-- Join our [Discord community](https://discord.gg/softcore)
-- Check our [FAQ page](https://softcore-game.com/faq)
-- Email us at support@softcore-game.com
+- Check our [FAQ page](/faq)
+- Email us at support@softcore.games
 
 ## 🏆 About the Core DAO Hackathon
 
@@ -88,10 +87,13 @@ SoftCORE is proudly built for the Core DAO Hackathon, bringing together gaming a
 
 ## 🙏 Special Thanks
 
-- Core DAO Team for the amazing platform
-- Our wonderful community of players
-- Night API for character creation
-- All our early testers and supporters
+- Core DAO Team for the platform
+- Hardhat team for development tools
+- OpenAI for AI integration
+- Prisma for database management
+- fal.ai for AI image generation
+- OpenZeppelin for smart contracts
+- Our early testers and supporters
 
 ---
 

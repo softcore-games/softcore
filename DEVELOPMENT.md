@@ -7,40 +7,48 @@
 - Next.js 15 (App Router)
 - TypeScript
 - TailwindCSS
-- WalletConnect v2
+- Ethers.js v6
 
 ### Backend
 
 - MongoDB + Prisma
-- NextAuth.js
+- JWT Authentication
 - Server Actions
-- Night API Integration
+- OpenAI Integration
+- fal.ai Integration
 
 ### Blockchain
 
 - Core DAO Network
-- Ethers.js
-- Smart Contracts (Solidity)
+- OpenZeppelin Contracts
+- Hardhat
 
 ## 📁 Project Structure
 
 ```
-/app
-├── api/                  # API routes
-│   ├── auth/            # Authentication endpoints
-│   ├── characters/      # Character management
-│   └── scenes/          # Scene management
-├── components/          # Reusable components
-├── lib/                 # Utility functions
-└── pages/              # App routes
+/app                    # Next.js app directory
+├── /character/         # Character selection page
+├── /game/[characterId] # Game page for each character
+├── /about/             # About page
+├── /faq/               # FAQ page
+├── /nft-gallery        # NFT gallery page
+├── /contact            # Contact page/       # NFT gallery page
+└── /page.tsx           # Home page
 
-/builder                # Smart Contract Builder
-├── contracts/          # Solidity contracts
-├── scripts/            # Deployment scripts
-└── test/              # Contract tests
+/builder              # Smart Contract Builder
+├── contracts/        # Solidity contracts
+├── scripts/          # Deployment scripts
+└── test/             # Contract tests
+
+/lib                 # Utility functions
+├── auth.ts          # Authentication logic
+├── open-ai.ts       # OpenAI integration
+├── fal-ai.ts        # AI integration
+├── prisma.ts        # Prisma client
+└── constants.ts     # App constants
 
 /prisma
-└── schema.prisma      # Database schema
+└── schema.prisma    # Database schema
 ```
 
 ## 🚀 Development Setup
@@ -48,14 +56,14 @@
 1. **Clone Repository**
 
 ```bash
-git clone https://github.com/your-username/softcore-game.git
-cd softcore-game
+git clone https://github.com/softcore-games/softcore.git
+cd softcore
 ```
 
 2. **Install Dependencies**
 
 ```bash
-npm install
+yarn install
 ```
 
 3. **Environment Setup**
@@ -67,20 +75,23 @@ cp .env.example .env
 Required Environment Variables:
 
 ```env
+# Next.js
+NEXT_PUBLIC_URL="your-domain.com"
+
 # Database
 DATABASE_URL="mongodb://..."
 
 # Authentication
-NEXTAUTH_SECRET="your-secret"
-NEXTAUTH_URL="http://localhost:3000"
+JWT_SECRET="your-secret"
 
 # APIs
+OPENAI_API_KEY="your-openai-key"
+FAL_AI_KEY="your-fal-ai-key"
 NIGHT_API_KEY="your-night-api-key"
 
 # Blockchain
-CORE_DAO_RPC="your-rpc-url"
-PRIVATE_KEY="your-private-key"
-CONTRACT_ADDRESS="your-contract-address"
+NEXT_PUBLIC_CORE_DAO_RPC="your-rpc-url"
+NEXT_PUBLIC_NFT_CONTRACT_ADDRESS="your-contract-address"
 ```
 
 4. **Database Setup**
@@ -93,7 +104,7 @@ npx prisma db push
 5. **Run Development Server**
 
 ```bash
-npm run dev
+yarn dev
 ```
 
 ## 🔧 Smart Contract Development
@@ -102,45 +113,40 @@ npm run dev
 
 ```bash
 cd builder
-npm install
+yarn install
 ```
 
 ### Deploy Contracts
 
 ```bash
-npx hardhat run scripts/deploy.ts --network core
+npx hardhat compile
 ```
 
-### Test Contracts
+### Build Contracts
 
 ```bash
-npx hardhat test
-```
-
-### Verify Contracts
-
-```bash
-npx hardhat verify --network core [CONTRACT_ADDRESS]
+yarn build
 ```
 
 ## 🔄 API Endpoints
 
 ### Authentication
 
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `GET /api/auth/verify` - Session verification
+- User registration and login using JWT
+- Session verification
+- Wallet address linking
 
 ### Characters
 
-- `POST /api/characters/generate` - Generate new characters
-- `GET /api/characters` - Get user's characters
-- `PUT /api/characters/select` - Select active character
+- AI character generation using fal.ai
+- Character selection and management
+- Character state persistence
 
 ### Scenes
 
-- `GET /api/scenes` - Get available scenes
-- `POST /api/scenes/mint` - Mint scene as NFT
+- Scene generation and progression
+- NFT minting integration
+- Scene history tracking
 
 ## 💾 Database Schema
 
@@ -149,97 +155,73 @@ npx hardhat verify --network core [CONTRACT_ADDRESS]
 ```prisma
 model User {
   id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  username      String      @unique
   email         String      @unique
-  passwordHash  String
-  characters    Character[]
-  ownedScenes   Scene[]
+  walletAddress String?     @unique
+  password      String
   stamina       Int         @default(3)
-  walletAddress String?
-}
-```
-
-### Character
-
-```prisma
-model Character {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String   @db.ObjectId
-  name        String
-  personality String
-  imageUrl    String
-  user        User     @relation(fields: [userId], references: [id])
+  characters    Character[]
+  scenes        Scene[]
+  selectedCharacterId String? @db.ObjectId
 }
 ```
 
 ## 🔐 Security Considerations
 
-- Implement rate limiting for API routes
-- Validate all user inputs
-- Secure storage of private keys
-- Protected API routes with authentication
+- JWT-based authentication
+- Password hashing with bcryptjs
+- Protected API routes
 - Wallet signature verification
-- Data validation middleware
+- Input validation
 
 ## 🧪 Testing
 
-### Run Tests
-
 ```bash
-# Frontend/Backend Tests
+# Run tests
 npm run test
 
 # Smart Contract Tests
 cd builder && npx hardhat test
 ```
 
-### Test Coverage
+## 📦 Deployment
 
 ```bash
-npm run test:coverage
-```
-
-## 📦 Build and Deploy
-
-### Production Build
-
-```bash
+# Production build
 npm run build
-```
 
-### Deploy to Production
-
-```bash
-npm run deploy
+# Deploy
+vercel deploy
 ```
 
 ## 🔍 Monitoring
 
-- Use Sentry for error tracking
+- Vercel Analytics
 - MongoDB Atlas monitoring
 - Core DAO network monitoring
-- API endpoint health checks
 
 ## 📚 Additional Resources
 
-- [Core DAO Documentation](https://docs.coredao.org)
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Prisma Documentation](https://www.prisma.io/docs)
-- [Hardhat Documentation](https://hardhat.org/getting-started)
+- [Open AI Documentation](https://platform.openai.com/)
+- [Core DAO Documentation](https://developer.coredao.org/)
+- [fal.ai Documentation](https://fal.ai/models/fal-ai/flux/dev/image-to-image)
+- [Prisma Documentation](https://www.prisma.io/docs/getting-started)
+- [Hardhat Documentation](https://hardhat.org/hardhat-runner/docs/getting-started)
 
 ## 🐛 Common Issues and Solutions
 
-1. **Prisma Generate Errors**
+1. **Prisma Issues**
 
    - Run `npx prisma generate` after schema changes
-   - Ensure DATABASE_URL is correct
+   - Verify MongoDB connection string
 
-2. **Smart Contract Deployment Failures**
+2. **Smart Contract Deployment**
 
-   - Check PRIVATE_KEY and RPC URL
+   - Check network configuration in hardhat.config.js
    - Ensure sufficient Core DAO tokens for gas
 
-3. **Character Generation Issues**
-   - Verify NIGHT_API_KEY
+3. **Image Generation Issues**
+   - Verify FAL_AI_KEY
    - Check API rate limits
 
 ## 👥 Contributing
