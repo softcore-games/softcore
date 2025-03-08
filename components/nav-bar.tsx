@@ -77,10 +77,10 @@ export default function Navbar() {
       </button>
 
       {/* Trapezoid */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/4">
+      <div className="hidden lg:block absolute top-0 left-1/2 -translate-x-1/2 w-2/4">
         <div className="w-full h-2 border-t-[60px] border-t-black border-l-[50px] border-l-transparent border-r-[50px] border-r-transparent"></div>
       </div>
-      <div className="absolute -top-10 left-5 w-[150px] h-10 bg-black rounded-t-lg"></div>
+      <div className="hidden lg:block absolute -top-10 left-5 w-[150px] h-10 bg-black rounded-t-lg"></div>
 
       {/* Navigation Links - Desktop */}
       <NavLinks
