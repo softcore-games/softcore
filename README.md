@@ -50,10 +50,10 @@ Welcome to SoftCORE, an exciting AI-powered dating game built for the Core DAO H
 
 ## 💫 Special Features
 
-- **Save Your Progress**: Your story continues where you left off
-- **Previous/Next Navigation**: Easily move between scenes
-- **Stamina System**: 3 stamina points per session
-- **NFT Minting**: Own your favorite moments forever
+- **Transaction System**: Track all your stamina purchases
+- **Blockchain Verification**: Verify transactions on Core DAO Scanner
+- **Transaction History**: View complete purchase history
+- **Real-time Status**: Monitor transaction status updates
 
 ## 🚀 Quick Start
 
@@ -71,15 +71,29 @@ Welcome to SoftCORE, an exciting AI-powered dating game built for the Core DAO H
 
 ## 🔒 Your Security Matters
 
-- Secure JWT-based authentication
-- Safe wallet integration
-- Protected game progress
-- Private user data
+- Secure transaction processing
+- Blockchain-verified purchases
+- Transaction history tracking
+- Treasury address verification
+
+## 💎 Core DAO Features
+
+- Fast transaction processing
+- Low gas fees for purchases
+- Transaction verification on Core DAO Scanner
+- Secure treasury management
 
 ## ❓ Need Help?
 
 - Check our [FAQ page](/faq)
 - Email us at contact@softcore.games or softcoregames69@gmail.com
+
+Common Transaction Issues:
+
+- Check your Core DAO wallet balance
+- Verify transaction status on Core DAO Scanner
+- Contact support for transaction issues
+- Monitor your transaction history
 
 ## 🏆 About the Core DAO Hackathon
 

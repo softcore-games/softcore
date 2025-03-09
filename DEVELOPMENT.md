@@ -53,6 +53,8 @@
 
 ## 🚀 Development Setup
 
+- NOTE: Make sure MetaMask is installed and connected to Core DAO network [Core DAO Documentation](https://docs.coredao.org/docs/Learn/introduction/quickstart)
+
 1. **Clone Repository**
 
 ```bash
@@ -92,6 +94,10 @@ NIGHT_API_KEY="your-night-api-key"
 # Blockchain
 NEXT_PUBLIC_CORE_DAO_RPC="your-rpc-url"
 NEXT_PUBLIC_NFT_CONTRACT_ADDRESS="your-contract-address"
+
+# Additional Transaction Variables
+NEXT_PUBLIC_TREASURY_ADDRESS="your-treasury-address"
+NEXT_PUBLIC_CORE_DAO_SCAN="https://scan.coredao.org"
 ```
 
 4. **Database Setup**
@@ -148,6 +154,13 @@ yarn build
 - NFT minting integration
 - Scene history tracking
 
+### Transactions
+
+- Stamina purchase transaction tracking
+- Transaction history management
+- Core DAO blockchain verification
+- Transaction status updates
+
 ## 💾 Database Schema
 
 ### User
@@ -163,6 +176,22 @@ model User {
   characters    Character[]
   scenes        Scene[]
   selectedCharacterId String? @db.ObjectId
+}
+```
+
+### StaminaTransaction
+
+```prisma
+model StaminaTransaction {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String    @db.ObjectId
+  user            User      @relation(fields: [userId], references: [id])
+  amount          Int
+  price           String
+  transactionHash String
+  status          String    @default("completed")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 ```
 
@@ -199,6 +228,9 @@ vercel deploy
 - Vercel Analytics
 - MongoDB Atlas monitoring
 - Core DAO network monitoring
+- Transaction status tracking
+- Core DAO transaction verification
+- Treasury balance monitoring
 
 ## 📚 Additional Resources
 

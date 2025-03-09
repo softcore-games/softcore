@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { FaBatteryThreeQuarters } from "react-icons/fa";
 import { useWallet } from "@/lib/contexts/WalletContext";
 import { ethers } from "ethers";
+import { useRouter } from "next/navigation";
 
 interface StaminaPlan {
   amount: number;
@@ -37,6 +38,7 @@ interface PurchaseStaminaProps {
 }
 
 export default function PurchaseStamina({ onSuccess }: PurchaseStaminaProps) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<StaminaPlan | null>(null);
@@ -90,20 +92,27 @@ export default function PurchaseStamina({ onSuccess }: PurchaseStaminaProps) {
       const receipt = await transaction.wait();
       console.log("Transaction confirmed:", receipt);
 
-      // Update stamina on the backend
-      const response = await fetch("/api/user/stamina/purchase", {
+      // Save transaction and update stamina
+      const response = await fetch("/api/user/stamina/transaction", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: plan.amount }),
+        body: JSON.stringify({
+          amount: plan.amount,
+          price: plan.price,
+          transactionHash: transaction.hash,
+        }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update stamina");
+        throw new Error("Failed to save transaction");
       }
 
       setIsOpen(false);
       setSelectedPlan(null);
       onSuccess?.();
+
+      // Redirect to transactions page
+      router.push("/transactions");
     } catch (error) {
       console.error("Purchase failed:", error);
       alert("Failed to purchase stamina. Please try again.");
