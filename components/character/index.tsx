@@ -6,6 +6,15 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import { Character } from "@/types/game";
 import Loading from "@/components/loading";
 
+// Custom image loader to handle localhost URLs
+const imageLoader = ({ src }: { src: string }) => {
+  // If it's a localhost URL, convert it to a relative URL
+  if (src.startsWith("http://localhost:3000/")) {
+    return src.replace("http://localhost:3000", "");
+  }
+  return src;
+};
+
 export default function CharacterSelection() {
   const { user } = useAuth();
   const router = useRouter();
@@ -41,7 +50,24 @@ export default function CharacterSelection() {
     try {
       const response = await fetch("/api/character");
       const data = await response.json();
-      setCharacters(data.characters);
+
+      // Transform image URLs to make them relative if they're from localhost
+      const transformedCharacters = data.characters.map(
+        (character: Character) => {
+          if (
+            character.imageUrl &&
+            character.imageUrl.startsWith("http://localhost:3000/")
+          ) {
+            return {
+              ...character,
+              imageUrl: character.imageUrl.replace("http://localhost:3000", ""),
+            };
+          }
+          return character;
+        }
+      );
+
+      setCharacters(transformedCharacters);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching characters:", error);
@@ -88,7 +114,24 @@ export default function CharacterSelection() {
       }
 
       const data = await response.json();
-      setCharacters(data.characters);
+
+      // Transform image URLs to make them relative if they're from localhost
+      const transformedCharacters = data.characters.map(
+        (character: Character) => {
+          if (
+            character.imageUrl &&
+            character.imageUrl.startsWith("http://localhost:3000/")
+          ) {
+            return {
+              ...character,
+              imageUrl: character.imageUrl.replace("http://localhost:3000", ""),
+            };
+          }
+          return character;
+        }
+      );
+
+      setCharacters(transformedCharacters);
     } catch (error) {
       console.error("Error generating characters:", error);
     } finally {
@@ -101,13 +144,17 @@ export default function CharacterSelection() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4  max-w-7xl">
+      <h1 className="text-4xl md:text-5xl font-bold text-center mb-8 text-white">
+        Choose Your Romance
+      </h1>
+
       {characters.length === 0 ? (
-        <div className="text-center mt-8">
+        <div className="text-center mt-8 bg-black/30 backdrop-blur-none p-10 rounded-xl max-w-md mx-auto">
           <button
             onClick={generateCharacters}
             disabled={generating}
-            className="bg-pink-500 hover:bg-pink-600 text-white px-8 py-3 rounded-lg text-lg font-semibold transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-8 py-4 rounded-lg text-lg font-semibold transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-1"
           >
             {generating ? (
               <span className="flex items-center justify-center">
@@ -139,32 +186,67 @@ export default function CharacterSelection() {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {characters.map((character) => (
             <div
               key={character.id}
-              className="bg-black bg-opacity-50 rounded-lg p-4 cursor-pointer transition duration-300 hover:bg-opacity-70 hover:ring-2 hover:ring-pink-500"
+              className="bg-black/40 backdrop-blur-sm rounded-xl p-6 transition duration-300 hover:bg-black/60 hover:shadow-xl group relative overflow-hidden border border-gray-800 hover:border-pink-500/50"
               onClick={() => handleCharacterSelect(character.id)}
             >
-              <div className="relative h-[400px] mb-4">
+              <div className="absolute inset-0 bg-gradient-to-b from-pink-500/10 to-purple-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+              <div className="relative rounded-full h-[180px] w-[180px] sm:h-[200px] sm:w-[200px] md:h-[220px] md:w-[220px] mb-6 mx-auto overflow-hidden border-4 border-pink-500/30 group-hover:border-pink-500 transition-all duration-300 shadow-lg">
                 <Image
                   src={character.imageUrl}
                   alt={character.name}
                   fill
-                  className="object-cover rounded-lg"
+                  className="object-cover rounded-full transform group-hover:scale-105 transition-transform duration-500"
                   priority
+                  loader={imageLoader}
                 />
               </div>
-              <div className="space-y-4">
-                <h2 className="text-2xl font-semibold text-white">
+
+              <div className="space-y-4 relative z-10">
+                <h2 className="text-2xl md:text-3xl font-bold text-white text-center">
                   {character.name}
                 </h2>
-                <p className="text-gray-300">{character.description}</p>
+                <div className="h-24 overflow-y-auto scrollbar-thin scrollbar-thumb-pink-500 scrollbar-track-transparent">
+                  <p className="text-gray-300 text-center px-2">
+                    {character.description}
+                  </p>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering the parent div's onClick
+                    handleCharacterSelect(character.id);
+                  }}
+                  className="mx-auto block w-3/4 py-3 bg-gradient-to-r from-pink-400 to-pink-600 hover:from-pink-500 hover:to-pink-700 text-white font-semibold rounded-lg transition duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1"
+                >
+                  Let&apos;s Date!
+                </button>
               </div>
             </div>
           ))}
         </div>
       )}
+
+      <style jsx>{`
+        /* Custom scrollbar styles */
+        .scrollbar-thin::-webkit-scrollbar {
+          width: 6px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+          background: #f1f1f1;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+          background-color: #888;
+          border-radius: 10px;
+          border: 2px solid #f1f1f1;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+          background: #555;
+        }
+      `}</style>
     </div>
   );
 }

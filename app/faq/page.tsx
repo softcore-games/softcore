@@ -2,14 +2,14 @@ import React from "react";
 
 const FAQPage = () => {
   return (
-    <div className="min-h-screen py-16 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-24 px-4 sm:px-6 lg:px-8 bg-gray-900">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-4xl font-bold text-center mb-12">
+        <h1 className="text-4xl font-bold text-center mb-12 text-white">
           Frequently Asked Questions
         </h1>
 
         <div className="space-y-8">
-          <div className="p-6 rounded-lg border border-gray-200">
+          <div className="p-6 rounded-lg border border-gray-200 bg-gray-800/50 text-gray-100">
             <h3 className="text-xl font-semibold mb-3">What is SoftCORE?</h3>
             <p>
               SoftCORE is an AI-powered dating simulation game built on the Core
@@ -19,7 +19,7 @@ const FAQPage = () => {
             </p>
           </div>
 
-          <div className="p-6 rounded-lg border border-gray-200">
+          <div className="p-6 rounded-lg border border-gray-200 bg-gray-800/50 text-gray-100">
             <h3 className="text-xl font-semibold mb-3">
               How do I start playing?
             </h3>
@@ -30,7 +30,7 @@ const FAQPage = () => {
             </p>
           </div>
 
-          <div className="p-6 rounded-lg border border-gray-200">
+          <div className="p-6 rounded-lg border border-gray-200 bg-gray-800/50 text-gray-100">
             <h3 className="text-xl font-semibold mb-3">What are Scene NFTs?</h3>
             <p>
               Special moments in your story can be minted as NFTs on the Core
@@ -39,7 +39,7 @@ const FAQPage = () => {
             </p>
           </div>
 
-          <div className="p-6 rounded-lg border border-gray-200">
+          <div className="p-6 rounded-lg border border-gray-200 bg-gray-800/50 text-gray-100">
             <h3 className="text-xl font-semibold mb-3">
               Do I need a crypto wallet?
             </h3>
@@ -50,7 +50,7 @@ const FAQPage = () => {
             </p>
           </div>
 
-          <div className="p-6 rounded-lg border border-gray-200">
+          <div className="p-6 rounded-lg border border-gray-200 bg-gray-800/50 text-gray-100">
             <h3 className="text-xl font-semibold mb-3">
               How does the stamina system work?
             </h3>
@@ -61,7 +61,7 @@ const FAQPage = () => {
             </p>
           </div>
 
-          <div className="p-6 rounded-lg border border-gray-200">
+          <div className="p-6 rounded-lg border border-gray-200 bg-gray-800/50 text-gray-100">
             <h3 className="text-xl font-semibold mb-3">
               Are the characters AI-generated?
             </h3>

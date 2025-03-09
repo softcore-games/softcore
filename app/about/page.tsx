@@ -2,12 +2,14 @@ import React from "react";
 
 const AboutPage = () => {
   return (
-    <div className="min-h-screen py-16 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-24 px-4 sm:px-6 lg:px-8 bg-gray-900">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold text-center mb-12">About SoftCORE</h1>
+        <h1 className="text-4xl font-bold text-center text-white mb-12">
+          About SoftCORE
+        </h1>
 
-        <div className="space-y-12">
-          <section className="p-8 rounded-lg border border-gray-200">
+        <div className="space-y-12 ">
+          <section className="p-8 rounded-lg shadow-md border  text-gray-100 border-gray-200 bg-gray-800/50">
             <h2 className="text-2xl font-semibold mb-4">Our Vision</h2>
             <p className="leading-relaxed">
               SoftCORE represents the future of interactive storytelling,
@@ -19,7 +21,7 @@ const AboutPage = () => {
             </p>
           </section>
 
-          <section className="p-8 rounded-lg border border-gray-200">
+          <section className="p-8 rounded-lg shadow-md border text-gray-100 border-gray-200 bg-gray-800/50">
             <h2 className="text-2xl font-semibold mb-4">
               Technology & Innovation
             </h2>
@@ -45,7 +47,7 @@ const AboutPage = () => {
             </div>
           </section>
 
-          <section className="p-8 rounded-lg border border-gray-200">
+          <section className="p-8 rounded-lg shadow-md border text-gray-100 border-gray-200 bg-gray-800/50">
             <h2 className="text-2xl font-semibold mb-4">Game Features</h2>
             <ul className="list-disc list-inside space-y-3 ml-4">
               <li>
@@ -59,7 +61,7 @@ const AboutPage = () => {
             </ul>
           </section>
 
-          <section className="p-8 rounded-lg border border-gray-200">
+          <section className="p-8 rounded-lg shadow-md border text-gray-100 border-gray-200 bg-gray-800/50">
             <h2 className="text-2xl font-semibold mb-4">Core DAO Hackathon</h2>
             <p className="leading-relaxed">
               SoftCORE is proudly developed as part of the Core DAO Hackathon,
