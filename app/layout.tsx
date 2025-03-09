@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Layout from "@/components/layout";
 import Navbar from "@/components/nav-bar";
 import { WalletProvider } from "@/lib/contexts/WalletContext";
+import AgeVerification from "@/components/age-verification";
 import "./globals.css";
 import PurchaseStamina from "@/components/stamina/purchase-stamina";
 
@@ -54,11 +55,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        cz-shortcut-listen="true"
-      >
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body>
+        <AgeVerification />
         <WalletProvider>
           <Navbar />
           <Layout>{children}</Layout>

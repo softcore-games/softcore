@@ -3,9 +3,24 @@ import prisma from "@/lib/prisma";
 import { verifyPassword, createAuthToken } from "@/lib/auth";
 import { cookies } from "next/headers";
 
+// async function verifyCaptcha(token: string) {
+//   const response = await fetch(
+//     `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${token}`,
+//     { method: "POST" }
+//   );
+//   const data = await response.json();
+//   return data.success;
+// }
+
 export async function POST(req: Request) {
   try {
-    const { login, password } = await req.json();
+    const { login, password, captchaToken } = await req.json();
+
+    // Verify CAPTCHA
+    // const isValidCaptcha = await verifyCaptcha(captchaToken);
+    // if (!isValidCaptcha) {
+    //   return NextResponse.json({ error: "Invalid CAPTCHA" }, { status: 400 });
+    // }
 
     if (!login || !password) {
       return NextResponse.json(

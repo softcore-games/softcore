@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3010",
+    "dev-domain": "next dev -H softcore.development -p 3010",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -13,6 +14,7 @@
     "@fal-ai/client": "^1.2.3",
     "@prisma/client": "^5.22.0",
     "bcryptjs": "^3.0.2",
+    "cookies-next": "^5.1.0",
     "date-fns": "^4.1.0",
     "ethers": "^6.13.5",
     "jose": "^6.0.8",
@@ -22,6 +24,7 @@
     "prisma": "^6.4.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-google-recaptcha": "^3.1.0",
     "react-icons": "^5.5.0"
   },
   "devDependencies": {
@@ -30,6 +33,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/react-google-recaptcha": "^2.1.9",
     "eslint": "^9",
     "eslint-config-next": "15.2.1",
     "tailwindcss": "^4",

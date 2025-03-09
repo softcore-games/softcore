@@ -9,6 +9,12 @@ interface User {
   selectedCharacterId?: string | null;
 }
 
+interface LoginCredentials {
+  email: string;
+  password: string;
+  captchaToken: string;
+}
+
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -35,7 +41,7 @@ export function useAuth() {
     verifyAuth();
   }, [verifyAuth]);
 
-  const login = async (credentials: { email: string; password: string }) => {
+  const login = async (credentials: LoginCredentials) => {
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
@@ -45,6 +51,7 @@ export function useAuth() {
         body: JSON.stringify({
           login: credentials.email,
           password: credentials.password,
+          captchaToken: credentials.captchaToken,
         }),
       });
 

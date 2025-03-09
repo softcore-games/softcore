@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import Link from "next/link";
+import ReCAPTCHA from "react-google-recaptcha";
 
 const Auth = () => {
   const { login, verifyAuth } = useAuth();
@@ -13,6 +14,7 @@ const Auth = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isLogin, setIsLogin] = useState(true);
+  const [captchaToken, setCaptchaToken] = useState("");
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -29,6 +31,11 @@ const Auth = () => {
     setError("");
     setSuccess("");
 
+    // if (!captchaToken) {
+    //   setError("Please complete the CAPTCHA");
+    //   return;
+    // }
+
     // Validation
     if (
       !formData.password ||
@@ -44,6 +51,7 @@ const Auth = () => {
         const result = await login({
           email: formData.login, // Using login field for email/username
           password: formData.password,
+          captchaToken,
         });
 
         if (!result.success) {
@@ -66,6 +74,7 @@ const Auth = () => {
             username: formData.username,
             email: formData.login, // Using login field for email
             password: formData.password,
+            captchaToken,
           }),
         });
 
@@ -104,7 +113,7 @@ const Auth = () => {
         backgroundAttachment: "fixed",
       }}
     >
-      <div className="bg-black/70 backdrop-blur-none p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-4xl shadow-lg w-full max-w-[90%] sm:max-w-[80%] md:max-w-[70%] lg:max-w-[580px] text-center pt-10 sm:pt-12 md:pt-16 lg:pt-20 px-4 sm:px-6 md:px-10 lg:px-20 relative z-10 ">
+      <div className="bg-black/70 backdrop-blur-none p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-4xl shadow-lg w-full max-w-[90%] sm:max-w-[80%] md:max-w-[70%] lg:max-w-[580px] text-center pt-10 sm:pt-12 md:pt-16 lg:pt-20 px-4 sm:px-6 md:px-10 lg:px-20 relative z-10">
         <form onSubmit={handleSubmit}>
           {!isLogin && (
             <input
@@ -132,6 +141,12 @@ const Auth = () => {
             onChange={handleInputChange}
             className="w-full p-2 sm:p-3 mb-3 sm:mb-1 rounded-full bg-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none shadow-inner border border-gray-300 text-sm sm:text-base"
           />
+          {/* <div className="my-4 flex justify-center">
+            <ReCAPTCHA
+              sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ""}
+              onChange={(token) => setCaptchaToken(token || "")}
+            />
+          </div> */}
           {error && (
             <div className="text-red-500 text-sm mb-3 bg-red-100/10 p-2 rounded">
               {error}
