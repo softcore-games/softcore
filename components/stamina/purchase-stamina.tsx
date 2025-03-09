@@ -4,6 +4,7 @@ import { FaBatteryThreeQuarters } from "react-icons/fa";
 import { useWallet } from "@/lib/contexts/WalletContext";
 import { ethers } from "ethers";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface StaminaPlan {
   amount: number;
@@ -135,12 +136,22 @@ export default function PurchaseStamina({ onSuccess }: PurchaseStaminaProps) {
         <div className="fixed bottom-20 right-4 bg-white rounded-lg shadow-xl p-4 w-80 border-2 border-black z-50">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-bold">Purchase Stamina</h3>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              ✕
-            </button>
+            <div className="flex items-center space-x-2">
+              <Link
+                href="/transactions"
+                target="_blank"
+                className="text-sm text-blue-600 hover:text-blue-800 underline"
+                title="View Transaction History"
+              >
+                History
+              </Link>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
           </div>
 
           <div className="space-y-3">
