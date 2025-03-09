@@ -38,7 +38,7 @@ const Contact = () => {
     <div
       className="w-full min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat fixed inset-0 px-3 py-4 sm:px-6 md:px-8 lg:px-10"
       style={{
-        backgroundImage: "url('/images/wmremove-transformed.png')",
+        backgroundImage: "url('/images/overview.png')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundAttachment: "fixed",

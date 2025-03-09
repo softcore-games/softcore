@@ -17,8 +17,35 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Softcore Games",
-  description: "Softcore Games",
+  title: "SoftCORE - AI Dating Game & NFT Collection | Core DAO",
+  description:
+    "Experience unique AI-powered dating stories and collect memorable moments as NFTs on Core DAO. Interactive storytelling meets blockchain technology.",
+  keywords:
+    "AI dating game, Core DAO, NFT collection, interactive story, blockchain gaming, visual novel, dating simulation",
+  openGraph: {
+    title: "SoftCORE - AI Dating Game & NFT Collection",
+    description:
+      "Experience unique AI-powered dating stories and collect memorable moments as NFTs on Core DAO.",
+    type: "website",
+    url: "https://softcore.games",
+    images: [
+      {
+        url: "/images/overview.png",
+        width: 1200,
+        height: 630,
+        alt: "SoftCORE Game Preview",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SoftCORE - AI Dating Game & NFT Collection",
+    description:
+      "Experience unique AI-powered dating stories and collect memorable moments as NFTs on Core DAO.",
+    images: ["/images/overview.png"],
+  },
+  robots: "index, follow",
+  themeColor: "#000000",
 };
 
 export default function RootLayout({

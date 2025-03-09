@@ -98,7 +98,7 @@ const Auth = () => {
     <div
       className="w-full min-h-screen grid place-items-center justify-center bg-cover bg-center bg-no-repeat fixed inset-0"
       style={{
-        backgroundImage: "url('/images/wmremove-transformed.png')",
+        backgroundImage: "url('/images/overview.png')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundAttachment: "fixed",
