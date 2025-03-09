@@ -6,15 +6,6 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import { Character } from "@/types/game";
 import Loading from "@/components/loading";
 
-// Custom image loader to handle localhost URLs
-const imageLoader = ({ src }: { src: string }) => {
-  // If it's a localhost URL, convert it to a relative URL
-  if (src.startsWith("http://localhost:3000/")) {
-    return src.replace("http://localhost:3000", "");
-  }
-  return src;
-};
-
 export default function CharacterSelection() {
   const { user } = useAuth();
   const router = useRouter();
@@ -51,23 +42,7 @@ export default function CharacterSelection() {
       const response = await fetch("/api/character");
       const data = await response.json();
 
-      // Transform image URLs to make them relative if they're from localhost
-      const transformedCharacters = data.characters.map(
-        (character: Character) => {
-          if (
-            character.imageUrl &&
-            character.imageUrl.startsWith("http://localhost:3000/")
-          ) {
-            return {
-              ...character,
-              imageUrl: character.imageUrl.replace("http://localhost:3000", ""),
-            };
-          }
-          return character;
-        }
-      );
-
-      setCharacters(transformedCharacters);
+      setCharacters(data.characters);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching characters:", error);
@@ -115,23 +90,7 @@ export default function CharacterSelection() {
 
       const data = await response.json();
 
-      // Transform image URLs to make them relative if they're from localhost
-      const transformedCharacters = data.characters.map(
-        (character: Character) => {
-          if (
-            character.imageUrl &&
-            character.imageUrl.startsWith("http://localhost:3000/")
-          ) {
-            return {
-              ...character,
-              imageUrl: character.imageUrl.replace("http://localhost:3000", ""),
-            };
-          }
-          return character;
-        }
-      );
-
-      setCharacters(transformedCharacters);
+      setCharacters(data.characters);
     } catch (error) {
       console.error("Error generating characters:", error);
     } finally {
@@ -202,7 +161,6 @@ export default function CharacterSelection() {
                   fill
                   className="object-cover rounded-full transform group-hover:scale-105 transition-transform duration-500"
                   priority
-                  loader={imageLoader}
                 />
               </div>
 
