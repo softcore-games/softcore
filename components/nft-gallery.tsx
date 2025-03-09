@@ -35,43 +35,50 @@ function NFTGallery() {
           provider
         );
 
+        // Get the total supply of tokens (if your contract has this function)
+        // If not, we'll keep the current approach of searching until we find a gap
+        let totalSupply;
+        try {
+          totalSupply = await contract.totalSupply();
+        } catch (error) {
+          console.warn(
+            "Contract doesn't have totalSupply function, using fallback method"
+          );
+          totalSupply = null;
+        }
+
         const nftPromises = [];
-        let tokenId = 0;
-        let continueSearching = true;
 
-        while (continueSearching) {
-          try {
-            const owner = await contract.ownerOf(tokenId);
-            nftPromises.push(
-              (async (id) => {
-                try {
-                  const uri = await contract.tokenURI(id);
-                  const base64Data = uri.replace(
-                    "data:application/json;base64,",
-                    ""
-                  );
-                  const metadata = JSON.parse(atob(base64Data));
+        if (totalSupply) {
+          // If we have totalSupply, we can iterate directly
+          for (let i = 0; i < totalSupply; i++) {
+            nftPromises.push(fetchNFTData(contract, i));
+          }
+        } else {
+          // Fallback: Search until we find a gap in token IDs
+          let tokenId = 0;
+          let consecutiveFailures = 0;
+          const MAX_CONSECUTIVE_FAILURES = 5; // Stop after 5 consecutive non-existent tokens
 
-                  return {
-                    tokenId: id.toString(),
-                    owner,
-                    metadata,
-                  };
-                } catch (error) {
-                  console.warn(`Failed to fetch NFT ${id} metadata:`, error);
-                  return null;
-                }
-              })(tokenId)
-            );
+          while (consecutiveFailures < MAX_CONSECUTIVE_FAILURES) {
+            try {
+              await contract.ownerOf(tokenId);
+              nftPromises.push(fetchNFTData(contract, tokenId));
+              consecutiveFailures = 0;
+            } catch (error) {
+              consecutiveFailures++;
+            }
             tokenId++;
-          } catch (error) {
-            continueSearching = false;
           }
         }
 
         const nftData = (await Promise.all(nftPromises)).filter(
           (nft): nft is NFT => nft !== null
         );
+
+        // Sort NFTs by token ID in descending order (newest first)
+        nftData.sort((a, b) => parseInt(b.tokenId) - parseInt(a.tokenId));
+
         setNfts(nftData);
       } catch (error) {
         console.error("Error fetching NFTs:", error);
@@ -83,6 +90,25 @@ function NFTGallery() {
     fetchAllNFTs();
   }, []);
 
+  // Helper function to fetch individual NFT data
+  const fetchNFTData = async (contract: ethers.Contract, tokenId: number) => {
+    try {
+      const owner = await contract.ownerOf(tokenId);
+      const uri = await contract.tokenURI(tokenId);
+      const base64Data = uri.replace("data:application/json;base64,", "");
+      const metadata = JSON.parse(atob(base64Data));
+
+      return {
+        tokenId: tokenId.toString(),
+        owner,
+        metadata,
+      };
+    } catch (error) {
+      console.warn(`Failed to fetch NFT ${tokenId} data:`, error);
+      return null;
+    }
+  };
+
   if (loading) {
     return <Loading />;
   }
@@ -93,10 +119,10 @@ function NFTGallery() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Your NFT Collection
+            SoftCORE NFT Gallery
           </h1>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            Discover your unique collection of SoftCORE story moments
+            Browse all minted SoftCORE story moments
           </p>
         </div>
 
@@ -159,8 +185,7 @@ function NFTGallery() {
               No NFTs Found
             </h3>
             <p className="text-gray-400 max-w-md mx-auto">
-              Start your collection by minting your favorite story moments as
-              NFTs during gameplay.
+              Be the first to mint a story moment as an NFT during gameplay!
             </p>
           </div>
         )}
