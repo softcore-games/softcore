@@ -109,7 +109,7 @@ const Contact = () => {
         <div className="text-center mt-4 sm:mt-5 md:mt-6">
           <Link
             href="/"
-            className="text-blue-400 hover:text-blue-300 hover:underline transition-colors text-xs sm:text-sm md:text-base"
+            className="text-pink-400 hover:text-pink-300 hover:underline transition-colors text-xs sm:text-sm md:text-base"
           >
             Back to Home page
           </Link>

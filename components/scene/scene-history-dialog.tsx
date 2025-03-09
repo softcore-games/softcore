@@ -27,7 +27,9 @@ export default function SceneHistoryDialog({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl p-4 sm:p-6 max-w-4xl w-11/12 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg sm:text-xl font-bold text-gray-800">Story History</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-gray-800">
+            Story History
+          </h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100"
@@ -46,14 +48,16 @@ export default function SceneHistoryDialog({
               <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                 <div className="flex-1 w-full">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                    <h3 className="font-semibold text-gray-800">{scene.title}</h3>
+                    <h3 className="font-semibold text-gray-800">
+                      {scene.title}
+                    </h3>
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-gray-500">
                         Scene {index + 1}
                       </span>
                       <button
                         onClick={() => onSceneSelect(index)}
-                        className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                        className="px-3 py-1 text-sm bg-pink-500 text-white rounded hover:bg-pink-600 transition-colors"
                         disabled={currentSceneIndex === index}
                       >
                         {currentSceneIndex === index ? "Current" : "View"}
@@ -62,7 +66,7 @@ export default function SceneHistoryDialog({
                   </div>
                   <p className="text-gray-600 text-sm mb-2">{scene.content}</p>
                   {scene.userChoices && scene.userChoices.length > 0 && (
-                    <div className="text-sm text-blue-600 bg-blue-50 p-2 rounded-md mb-2">
+                    <div className="text-sm text-pink-600 bg-pink-50 p-2 rounded-md mb-2">
                       <div className="font-semibold mb-1">Your choice:</div>
                       <div>{scene.userChoices[0].choiceText}</div>
                     </div>

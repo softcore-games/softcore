@@ -101,7 +101,7 @@ export default function SceneDialog({
         {isHistoricalScene && (
           <button
             onClick={goToLatestScene}
-            className="flex items-center space-x-2 px-3 py-1 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors text-sm"
+            className="flex items-center space-x-2 px-3 py-1 bg-pink-500 text-white rounded-full hover:bg-pink-600 transition-colors text-sm"
           >
             <span>Latest Scene</span>
             <FaArrowRight className="w-3 h-3" />

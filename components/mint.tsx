@@ -115,7 +115,7 @@ function Mint({ scene, onMint }: MintProps) {
       className={`flex items-center justify-center px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-xs sm:text-sm ${
         isMinting || scene.nftMinted || !signer
           ? "bg-gray-300 cursor-not-allowed"
-          : "bg-blue-500 hover:bg-blue-600"
+          : "bg-pink-500 hover:bg-pink-600"
       } text-white font-semibold`}
     >
       <GrDownload className="mr-1 sm:mr-2 w-2.5 h-2.5 sm:w-3 sm:h-3" />

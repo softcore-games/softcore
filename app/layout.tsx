@@ -4,6 +4,7 @@ import Layout from "@/components/layout";
 import Navbar from "@/components/nav-bar";
 import { WalletProvider } from "@/lib/contexts/WalletContext";
 import "./globals.css";
+import PurchaseStamina from "@/components/stamina/purchase-stamina";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,9 +23,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
       <body
@@ -34,6 +35,7 @@ export default function RootLayout({
         <WalletProvider>
           <Navbar />
           <Layout>{children}</Layout>
+          <PurchaseStamina />
         </WalletProvider>
       </body>
     </html>
