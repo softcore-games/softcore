@@ -81,18 +81,18 @@ export default function Navbar() {
             </span>
           </Link>
         </div>
-        <SocialIcons className="hidden md:flex items-center gap-2 relative lg:left-2 xl:left-10" />
+        <SocialIcons className="hidden lg:flex items-center gap-2 relative lg:left-2 xl:left-10" />
       </div>
 
-      {/* Mobile Menu Button */}
+      {/* Mobile/Tablet Menu Button */}
       <button
-        className="md:hidden text-white text-2xl"
+        className="lg:hidden text-white text-2xl"
         onClick={() => setIsMenuOpen(!isMenuOpen)}
       >
         {isMenuOpen ? <IoClose /> : <RiMenu3Line />}
       </button>
 
-      {/* Trapezoid */}
+      {/* Trapezoid - visible only on large screens */}
       <div className="hidden lg:block absolute top-0 left-1/2 -translate-x-1/2 w-2/4">
         <div className="w-full h-2 border-t-[60px] border-t-black border-l-[50px] border-l-transparent border-r-[50px] border-r-transparent"></div>
       </div>
@@ -102,11 +102,11 @@ export default function Navbar() {
       <NavLinks
         isLoggedIn={!!user}
         stamina={user?.stamina}
-        className="hidden md:flex"
+        className="hidden lg:flex"
       />
 
       {/* Connect/Login Buttons - Desktop */}
-      <div className="hidden md:flex items-center space-x-3">
+      <div className="hidden lg:flex items-center space-x-3">
         {user ? (
           <>
             <WalletConnect />
@@ -123,28 +123,36 @@ export default function Navbar() {
         )}
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile/Tablet Menu */}
       <div
         className={`${
           isMenuOpen ? "flex" : "hidden"
-        } md:hidden absolute top-full left-0 right-0 bg-black/90 flex-col items-center py-6 space-y-6`}
+        } lg:hidden fixed top-[60px] left-0 right-0 bottom-0 bg-black/95 backdrop-blur-sm flex-col items-center py-6 space-y-6`}
       >
-        <SocialIcons />
-        <NavLinks isLoggedIn={!!user} stamina={user?.stamina} />
-        {user ? (
-          <>
-            <WalletConnect />
-            <FiPower
-              className="text-white text-3xl cursor-pointer"
-              title="Logout"
-              onClick={handleLogout}
-            />
-          </>
-        ) : (
-          <Link href="/">
-            <CoreButton className="px-4 py-2" />
-          </Link>
-        )}
+        <div className="w-full max-w-3xl mx-auto px-6 md:px-12">
+          <SocialIcons className="flex justify-center mb-8" />
+          <NavLinks 
+            isLoggedIn={!!user} 
+            stamina={user?.stamina}
+            className="flex flex-col items-center space-y-6 md:space-y-8 text-center" 
+          />
+          <div className="mt-8 flex flex-col items-center gap-6">
+            {user ? (
+              <div className="flex flex-col items-center gap-6">
+                <WalletConnect />
+                <FiPower
+                  className="text-white text-3xl cursor-pointer"
+                  title="Logout"
+                  onClick={handleLogout}
+                />
+              </div>
+            ) : (
+              <Link href="/">
+                <CoreButton className="px-8 py-3 w-full md:w-auto" />
+              </Link>
+            )}
+          </div>
+        </div>
       </div>
     </nav>
   );
