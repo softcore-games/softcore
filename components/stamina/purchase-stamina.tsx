@@ -1,7 +1,8 @@
 "use client";
 import React, { useState } from "react";
-import { FaBatteryThreeQuarters } from "react-icons/fa";
+import { FaBatteryThreeQuarters, FaWallet } from "react-icons/fa";
 import { useWallet } from "@/lib/contexts/WalletContext";
+import { useAuth } from "@/lib/hooks/useAuth";
 import { ethers } from "ethers";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -40,14 +41,20 @@ interface PurchaseStaminaProps {
 
 export default function PurchaseStamina({ onSuccess }: PurchaseStaminaProps) {
   const router = useRouter();
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<StaminaPlan | null>(null);
-  const { signer, walletAddress } = useWallet();
+  const { signer, walletAddress, connectWallet } = useWallet();
+
+  // Only render if user is logged in
+  if (!user) {
+    return null;
+  }
 
   const handlePurchase = async (plan: StaminaPlan) => {
     if (!signer || !walletAddress) {
-      alert("Please connect your wallet first");
+      connectWallet();
       return;
     }
 
@@ -182,23 +189,31 @@ export default function PurchaseStamina({ onSuccess }: PurchaseStaminaProps) {
             ))}
           </div>
 
-          <button
-            onClick={() => selectedPlan && handlePurchase(selectedPlan)}
-            disabled={isPurchasing || !signer || !selectedPlan}
-            className={`w-full py-3 px-4 rounded-lg mt-4 font-semibold ${
-              isPurchasing || !signer || !selectedPlan
-                ? "bg-gray-300 cursor-not-allowed"
-                : "bg-pink-500 hover:bg-pink-600 text-white"
-            }`}
-          >
-            {isPurchasing
-              ? "Processing..."
-              : !signer
-              ? "Connect Wallet"
-              : !selectedPlan
-              ? "Select a Plan"
-              : `Purchase ${selectedPlan.name}`}
-          </button>
+          {!signer || !walletAddress ? (
+            <button
+              onClick={connectWallet}
+              className="w-full py-3 px-4 rounded-lg mt-4 font-semibold bg-yellow-400 hover:bg-yellow-500 text-black flex items-center justify-center gap-2"
+            >
+              <FaWallet className="text-xl" />
+              Connect Wallet
+            </button>
+          ) : (
+            <button
+              onClick={() => selectedPlan && handlePurchase(selectedPlan)}
+              disabled={isPurchasing}
+              className={`w-full py-3 px-4 rounded-lg mt-4 font-semibold ${
+                isPurchasing
+                  ? "bg-gray-300 cursor-not-allowed"
+                  : "bg-pink-500 hover:bg-pink-600 text-white"
+              }`}
+            >
+              {isPurchasing
+                ? "Processing..."
+                : !selectedPlan
+                ? "Select a Plan"
+                : `Purchase ${selectedPlan.name}`}
+            </button>
+          )}
         </div>
       )}
     </>
