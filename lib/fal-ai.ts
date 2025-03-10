@@ -1,5 +1,8 @@
 import { fal } from "@fal-ai/client";
 
+// Add cache implementation
+const imageCache = new Map<string, { url: string; timestamp: number }>();
+
 fal.config({
   credentials: process.env.FAL_AI_KEY,
 });
@@ -10,6 +13,16 @@ export async function generateSceneImage(
   sceneContent: string,
   previousChoice?: { text: string; index: number }
 ) {
+  const cacheKey = `${characterImageUrl}-${sceneTitle}-${
+    previousChoice?.text || ""
+  }`;
+  const cached = imageCache.get(cacheKey);
+
+  // Return cached image if it's less than 5 minutes old
+  if (cached && Date.now() - cached.timestamp < 300000) {
+    return cached.url;
+  }
+
   try {
     if (!process.env.FAL_AI_KEY) {
       throw new Error("FAL_AI_KEY is not configured");
@@ -23,16 +36,14 @@ export async function generateSceneImage(
 
     let contextPrompt = "";
     if (previousChoice) {
-      contextPrompt = ` "${previousChoice.text}". Maintain the character's confidence and outfit style.`;
+      contextPrompt = ` "${sceneContent}". Maintain the character's confidence and outfit style.`;
     }
 
     const prompt = `NSFW nude erotic boobs
    
     
      ${contextPrompt} 
-    
-    
-    **Negative prompt:** "different hairstyle, different eye color, different skin tone, altered face shape, unrealistic proportions, extra fingers, blurred details."`;
+    `;
 
     console.log("Prompt:", prompt);
 

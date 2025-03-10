@@ -4,10 +4,18 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || "",
 });
 
+const sceneCache = new Map<
+  string,
+  {
+    content: any;
+    timestamp: number;
+  }
+>();
+
 export async function generateCharacterProfile() {
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4-turbo",
       messages: [
         {
           role: "system",
@@ -78,9 +86,19 @@ export async function generateSceneContent(
   sceneNumber: number,
   previousChoice?: { text: string; index: number }
 ) {
+  const cacheKey = `${characterName}-${chapter}-${sceneNumber}-${
+    previousChoice?.text || ""
+  }`;
+  const cached = sceneCache.get(cacheKey);
+
+  // Return cached content if it's less than 5 minutes old
+  if (cached && Date.now() - cached.timestamp < 300000) {
+    return cached.content;
+  }
+
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4-turbo",
       messages: [
         {
           role: "system",
@@ -109,7 +127,14 @@ export async function generateSceneContent(
     if (!content) {
       throw new Error("No content received from OpenAI");
     }
-    return JSON.parse(content);
+
+    const parsedContent = JSON.parse(content);
+    sceneCache.set(cacheKey, {
+      content: parsedContent,
+      timestamp: Date.now(),
+    });
+
+    return parsedContent;
   } catch (error) {
     console.error("OpenAI API Error:", error);
     return {
@@ -128,7 +153,7 @@ export async function generateSceneContent(
 export async function generateInitialScene(characterName: string) {
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4-turbo",
       messages: [
         {
           role: "system",
