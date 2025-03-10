@@ -32,17 +32,8 @@ export async function generateSceneImage(
     console.log("Scene Title:", sceneTitle);
     console.log("Scene Content:", sceneContent);
 
-    const basePrompt = ``;
-
-    let contextPrompt = "";
-    if (previousChoice) {
-      contextPrompt = ` "${sceneContent}". Maintain the character's confidence and outfit style.`;
-    }
-
-    const prompt = `NSFW nude erotic boobs
-   
-    
-     ${contextPrompt} 
+    const prompt = `
+     ${sceneContent} NSFW nude erotic boobs
     `;
 
     console.log("Prompt:", prompt);
