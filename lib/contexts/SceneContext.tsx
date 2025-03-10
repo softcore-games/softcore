@@ -178,6 +178,11 @@ export function SceneProvider({ children }: { children: ReactNode }) {
     }
 
     if (!user?.stamina || user.stamina <= 0) {
+      // Show alert
+      alert(
+        "You need more stamina to continue. Please purchase stamina to proceed."
+      );
+
       // Create a custom event to trigger the PurchaseStamina component
       const event = new CustomEvent("showPurchaseStamina");
       window.dispatchEvent(event);
