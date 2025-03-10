@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaBatteryThreeQuarters, FaWallet } from "react-icons/fa";
 import { useWallet } from "@/lib/contexts/WalletContext";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -46,6 +46,21 @@ export default function PurchaseStamina({ onSuccess }: PurchaseStaminaProps) {
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<StaminaPlan | null>(null);
   const { signer, walletAddress, connectWallet } = useWallet();
+
+  useEffect(() => {
+    const handleShowPurchaseStamina = () => {
+      setIsOpen(true);
+    };
+
+    window.addEventListener("showPurchaseStamina", handleShowPurchaseStamina);
+
+    return () => {
+      window.removeEventListener(
+        "showPurchaseStamina",
+        handleShowPurchaseStamina
+      );
+    };
+  }, []);
 
   // Only render if user is logged in
   if (!user) {

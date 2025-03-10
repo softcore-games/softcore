@@ -97,6 +97,7 @@ export function SceneProvider({ children }: { children: ReactNode }) {
   );
   const [user, setUser] = useState<User | null>(null);
   const [isChoiceProcessing, setIsChoiceProcessing] = useState(false);
+  const [isStaminaPurchaseOpen, setIsStaminaPurchaseOpen] = useState(false);
 
   const fetchSceneData = async (characterId: string) => {
     try {
@@ -177,7 +178,9 @@ export function SceneProvider({ children }: { children: ReactNode }) {
     }
 
     if (!user?.stamina || user.stamina <= 0) {
-      alert("Insufficient stamina! Please purchase more to continue.");
+      // Create a custom event to trigger the PurchaseStamina component
+      const event = new CustomEvent("showPurchaseStamina");
+      window.dispatchEvent(event);
       return;
     }
 
@@ -352,6 +355,8 @@ export function SceneProvider({ children }: { children: ReactNode }) {
         setSelectedChoice,
         user,
         isChoiceProcessing,
+        isStaminaPurchaseOpen,
+        setIsStaminaPurchaseOpen,
         fetchSceneData,
         handleChoiceSelect,
         handleNextScene,
