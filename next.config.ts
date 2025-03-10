@@ -78,11 +78,11 @@ const nextConfig: NextConfig = {
     },
   ],
   serverRuntimeConfig: {
-    maxDuration: 300,
+    maxDuration: 60,
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: "4mb",
+      bodySizeLimit: "10mb",
     },
   },
 };
