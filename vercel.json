@@ -2,7 +2,7 @@
   "functions": {
     "app/api/**/*.ts": {
       "memory": 1024,
-      "maxDuration": 120
+      "maxDuration": 60
     }
   },
   "regions": ["hkg1"],
