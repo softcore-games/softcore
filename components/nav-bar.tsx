@@ -35,11 +35,7 @@ export default function Navbar() {
       <nav className="fixed top-0 left-0 right-0 flex items-center justify-between px-6 lg:px-12 py-2 pt-4 z-50">
         <div className="flex items-center">
           <Link href="/">
-            <span
-              className={`text-2xl font-bold ${
-                isStaticPage ? "text-black" : "text-white"
-              }`}
-            >
+            <span className={`text-2xl font-bold  text-white`}>
               {BRAND.name}
             </span>
           </Link>
@@ -72,11 +68,7 @@ export default function Navbar() {
       <div className="flex items-center">
         <div className="flex items-center gap-1">
           <Link href="/">
-            <span
-              className={`text-2xl font-bold ${
-                isStaticPage ? "text-black" : "text-white"
-              }`}
-            >
+            <span className={`text-2xl font-bold text-white`}>
               {BRAND.name}
             </span>
           </Link>
@@ -131,10 +123,10 @@ export default function Navbar() {
       >
         <div className="w-full max-w-3xl mx-auto px-6 md:px-12">
           <SocialIcons className="flex justify-center mb-8" />
-          <NavLinks 
-            isLoggedIn={!!user} 
+          <NavLinks
+            isLoggedIn={!!user}
             stamina={user?.stamina}
-            className="flex flex-col items-center space-y-6 md:space-y-8 text-center" 
+            className="flex flex-col items-center space-y-6 md:space-y-8 text-center"
           />
           <div className="mt-8 flex flex-col items-center gap-6">
             {user ? (
