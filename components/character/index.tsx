@@ -51,13 +51,13 @@ export default function CharacterSelection() {
   };
 
   const handleCharacterSelect = async (characterId: string) => {
-    const character = characters.find((c) => c.id === characterId);
-    if (!character) return;
-
     try {
+      setLoading(true);
       const response = await fetch("/api/character/select", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ characterId }),
       });
 
@@ -67,10 +67,15 @@ export default function CharacterSelection() {
 
       const data = await response.json();
       if (data.success) {
-        router.push(`/game/${characterId}`);
+        window.location.href = `/game/${characterId}?initial=true`;
+        // Redirect with the initial scene data
+        // router.push(`/game/${characterId}?initial=true`);
       }
     } catch (error) {
       console.error("Error selecting character:", error);
+      alert("Failed to select character. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Layout from "@/components/layout";
 import Navbar from "@/components/nav-bar";
@@ -46,6 +46,9 @@ export const metadata: Metadata = {
     images: ["/images/overview.png"],
   },
   robots: "index, follow",
+};
+
+export const viewport: Viewport = {
   themeColor: "#000000",
 };
 

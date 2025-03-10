@@ -39,8 +39,8 @@ export async function POST(req: Request) {
       );
     }
 
-    // First, update the selected character
-    const updatedUser = await prisma.user.update({
+    // Update the selected character
+    await prisma.user.update({
       where: { id: user.id },
       data: { selectedCharacterId: characterId },
     });
@@ -49,59 +49,39 @@ export async function POST(req: Request) {
     let initialScene = character.scenes[0];
 
     if (!initialScene) {
-      // Create a placeholder scene first
+      // Generate scene content synchronously
+      const sceneContent = await generateInitialScene(character.name);
+      const imageUrl = await generateSceneImage(
+        character.imageUrl,
+        sceneContent.title,
+        sceneContent.content
+      );
+
+      // Create the scene
       initialScene = await prisma.scene.create({
         data: {
-          title: "Generating...",
-          content: "Your story is being created...",
-          imageUrl: character.imageUrl, // Use character image temporarily
-          choices: [],
+          title: sceneContent.title,
+          content: sceneContent.content,
+          imageUrl,
+          choices: sceneContent.choices,
           chapter: 1,
           sceneNumber: 1,
           characterId,
           userId: user.id,
-          status: "GENERATING",
+          status: "COMPLETED",
         },
       });
-
-      // Generate the scene content asynchronously
-      generateInitialScene(character.name)
-        .then(async (sceneContent) => {
-          const imageUrl = await generateSceneImage(
-            character.imageUrl,
-            sceneContent.title,
-            sceneContent.content
-          );
-
-          await prisma.scene.update({
-            where: { id: initialScene.id },
-            data: {
-              title: sceneContent.title,
-              content: sceneContent.content,
-              imageUrl,
-              choices: sceneContent.choices,
-              status: "COMPLETED",
-            },
-          });
-        })
-        .catch(async (error) => {
-          console.error("Error generating initial scene:", error);
-          await prisma.scene.update({
-            where: { id: initialScene.id },
-            data: { status: "FAILED" },
-          });
-        });
     }
 
     return NextResponse.json({
       success: true,
-      user: updatedUser,
-      initialScene,
+      scene: initialScene,
+      character,
     });
   } catch (error) {
-    console.error("Error selecting character:", error);
+    console.error("Error in character selection:", error);
     return NextResponse.json(
-      { error: "Failed to select character" },
+      { error: "Failed to process character selection" },
       { status: 500 }
     );
   }
