@@ -2,7 +2,7 @@
   "functions": {
     "app/api/**/*.ts": {
       "memory": 1024,
-      "maxDuration": 60
+      "maxDuration": 90
     }
   },
   "regions": ["iad1"],

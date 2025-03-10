@@ -78,7 +78,7 @@ const nextConfig: NextConfig = {
     },
   ],
   serverRuntimeConfig: {
-    maxDuration: 60,
+    maxDuration: 90,
   },
   experimental: {
     serverActions: {
