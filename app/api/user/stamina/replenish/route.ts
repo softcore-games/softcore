@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 
-const STAMINA_MAX = 10;
-const STAMINA_PER_HOUR = 1;
+const STAMINA_MAX = 10; // Maximum stamina
+const STAMINA_PER_HOUR = 10;
 const MS_PER_HOUR = 3600000; // 1 hour in milliseconds
 
 export async function POST(req: Request) {
