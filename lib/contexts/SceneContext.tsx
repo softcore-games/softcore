@@ -1,5 +1,11 @@
 "use client";
-import { createContext, useContext, useState, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
 import { Scene, Character, User, SceneContextType } from "@/types/game";
 
 const SceneContext = createContext<SceneContextType | undefined>(undefined);
@@ -98,6 +104,30 @@ export function SceneProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isChoiceProcessing, setIsChoiceProcessing] = useState(false);
   const [isStaminaPurchaseOpen, setIsStaminaPurchaseOpen] = useState(false);
+
+  async function replenishStamina() {
+    const response = await fetch("/api/user/stamina/replenish", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to replenish stamina");
+    }
+
+    const { user: updatedUser } = await response.json();
+    setUser(updatedUser);
+  }
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (user && user.stamina < 10) {
+        replenishStamina();
+      }
+    }, 60000); // Check every minute
+
+    return () => clearInterval(interval);
+  }, [user]);
 
   const fetchSceneData = async (characterId: string) => {
     try {

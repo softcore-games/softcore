@@ -10,6 +10,7 @@ const JWT_SECRET = new TextEncoder().encode(
 
 // Add this type
 type User = {
+  lastStaminaUpdate: any;
   id: string;
   username: string;
   email: string;
@@ -58,6 +59,7 @@ export async function getAuthUser(): Promise<User | null> {
         stamina: true,
         walletAddress: true,
         selectedCharacterId: true,
+        lastStaminaUpdate: true,
       },
     });
 

@@ -13,7 +13,8 @@ model User {
   email         String        @unique
   walletAddress String?       @unique
   password      String
-  stamina       Int          @default(3)
+  stamina       Int           @default(10)
+  lastStaminaUpdate DateTime  @default(now())
   characters    Character[]
   scenes        Scene[]
   sceneChoices  SceneChoice[]

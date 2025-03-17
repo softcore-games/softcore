@@ -51,7 +51,7 @@ export async function POST(req: Request) {
         username,
         email,
         password: hashedPassword,
-        stamina: 3,
+        stamina: 10,
       },
     });
 
