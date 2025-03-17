@@ -1,9 +1,9 @@
-import OpenAI from "openai";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || "",
-});
-
+const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
+const routeUrl =
+  process.env.NEXT_IS_DEVELOPMENT === "yes"
+    ? "http://localhost:3010"
+    : `${process.env.NEXT_PUBLIC_URL}`;
+// Cache implementation remains the same
 const sceneCache = new Map<
   string,
   {
@@ -12,45 +12,64 @@ const sceneCache = new Map<
   }
 >();
 
+async function makeOpenRouterRequest(messages: any[]) {
+  const response = await fetch(OPENROUTER_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      "HTTP-Referer": routeUrl,
+      "X-Title": "SoftCORE Dating Sim",
+    },
+    body: JSON.stringify({
+      model: "pygmalionai/mythalion-13b",
+      messages,
+      temperature: 0.9, // Increased for more creative responses
+      response_format: { type: "json_object" },
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`OpenRouter API error: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
 export async function generateCharacterProfile() {
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a character generator for an adult dating simulation game. Create unique, interesting female characters with diverse backgrounds. Return the response as a JSON object containing 'name' and 'description' fields.",
-        },
-        {
-          role: "user",
-          content:
-            "Generate a character profile as a JSON object. Include a full name and a description (2-3 sentences about personality and background).",
-        },
-      ],
-      response_format: { type: "json_object" },
-      temperature: 0.8,
-    });
+    const completion = await makeOpenRouterRequest([
+      {
+        role: "system",
+        content:
+          "You are generating seductive character profiles for an adult erotic dating simulation. Create alluring, sensual characters with intriguing backgrounds and passionate personalities. Return ONLY valid JSON with 'name' and 'description' fields.",
+      },
+      {
+        role: "user",
+        content:
+          "Generate a seductive character profile as a JSON object. Include a full name and an alluring description (2-3 sentences about personality, physical attributes, and sensual background).",
+      },
+    ]);
 
     const content = completion.choices[0].message.content;
     if (!content) {
-      throw new Error("No content received from OpenAI");
+      throw new Error("No content received from OpenRouter");
     }
 
     const profile = JSON.parse(content);
 
     if (!profile.name || !profile.description) {
-      throw new Error("Invalid profile structure received from OpenAI");
+      throw new Error("Invalid profile structure received");
     }
 
     return profile;
   } catch (error) {
-    console.error("OpenAI API Error:", error);
+    console.error("OpenRouter API Error:", error);
     const fallbackProfiles = [
       {
         name: "Sofia Rodriguez",
         description:
-          "A passionate flamenco dancer who moved to the city to open her own dance studio. Her fiery personality and artistic soul draw others to her, though she keeps her troubled past carefully hidden.",
+          "A sultry flamenco dancer whose passionate movements entrance everyone watching. Her tight-fitting dance attire accentuates every curve, while her smoldering gaze hints at hidden desires waiting to be explored.",
       },
       {
         name: "Emma Chen",
@@ -91,41 +110,35 @@ export async function generateSceneContent(
   }`;
   const cached = sceneCache.get(cacheKey);
 
-  // Return cached content if it's less than 5 minutes old
   if (cached && Date.now() - cached.timestamp < 300000) {
     return cached.content;
   }
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
+    const completion = await makeOpenRouterRequest([
+      {
+        role: "system",
+        content:
+          "You are generating erotic visual novel scenes. Create passionate, seductive dialogue suitable for an adult dating simulation. Include sensual descriptions and intimate moments. Return ONLY valid JSON.",
+      },
+      {
+        role: "user",
+        content: `Generate an intimate scene for character ${characterName} in Chapter ${chapter}, Scene ${sceneNumber}${
+          previousChoice
+            ? `. This scene should be a seductive continuation after the player chose: "${previousChoice.text}"`
+            : ""
+        } with the following JSON structure:
         {
-          role: "system",
-          content:
-            "You are generating romantic visual novel scenes. Create engaging, flirtatious dialogue suitable for an adult dating simulation. Return ONLY valid JSON.",
-        },
-        {
-          role: "user",
-          content: `Generate a scene for character ${characterName} in Chapter ${chapter}, Scene ${sceneNumber}${
-            previousChoice
-              ? `. This scene should be a natural continuation after the player chose: "${previousChoice.text}"`
-              : ""
-          } with the following JSON structure:
-          {
-            "title": "Scene title",
-            "content": "Character's dialogue (2-3 sentences)",
-            "choices": ["Flirty response", "Romantic response", "Playful response"]
-          }`,
-        },
-      ],
-      response_format: { type: "json_object" },
-      temperature: 0.8,
-    });
+          "title": "Intimate scene title",
+          "content": "Character's seductive dialogue and actions (2-3 sentences with sensual descriptions)",
+          "choices": ["Passionate response", "Intimate response", "Seductive response"]
+        }`,
+      },
+    ]);
 
     const content = completion.choices[0].message.content;
     if (!content) {
-      throw new Error("No content received from OpenAI");
+      throw new Error("No content received from OpenRouter");
     }
 
     const parsedContent = JSON.parse(content);
@@ -136,15 +149,14 @@ export async function generateSceneContent(
 
     return parsedContent;
   } catch (error) {
-    console.error("OpenAI API Error:", error);
+    console.error("OpenRouter API Error:", error);
     return {
-      title: `Chapter ${chapter} - Scene ${sceneNumber}`,
-      content:
-        "The character gazes at you with a warm smile, creating a moment of intimate connection.",
+      title: `Intimate Encounter ${chapter}.${sceneNumber}`,
+      content: `${characterName} moves closer, their body radiating warmth as they gaze at you with unmistakable desire. Their fingers trace a teasing path along your arm, sending shivers down your spine.`,
       choices: [
-        "Tell them they look beautiful",
-        "Share a gentle compliment",
-        "Express your feelings",
+        "Pull them closer",
+        "Whisper sweet nothings",
+        "Return their teasing touch",
       ],
     };
   }
@@ -152,42 +164,37 @@ export async function generateSceneContent(
 
 export async function generateInitialScene(characterName: string) {
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
+    const completion = await makeOpenRouterRequest([
+      {
+        role: "system",
+        content:
+          "You are generating the first intimate encounter for a new character. Create an alluring, seductive first meeting dialogue suitable for an adult erotic dating simulation. Return ONLY valid JSON.",
+      },
+      {
+        role: "user",
+        content: `Generate the first passionate meeting scene with ${characterName}. Use this JSON structure:
         {
-          role: "system",
-          content:
-            "You are generating the first romantic visual novel scene for a new character. Create an engaging, flirtatious first meeting dialogue suitable for an adult dating simulation. Return ONLY valid JSON.",
-        },
-        {
-          role: "user",
-          content: `Generate the first meeting scene with ${characterName}. Use this JSON structure:
-          {
-            "title": "First Meeting",
-            "content": "First encounter dialogue (2-3 sentences describing the meeting and character's first impression)",
-            "choices": ["Flirty first response", "Friendly first response", "Playful first response"]
-          }`,
-        },
-      ],
-      response_format: { type: "json_object" },
-      temperature: 0.8,
-    });
+          "title": "First Encounter",
+          "content": "First meeting dialogue (2-3 sentences with sensual descriptions and immediate attraction)",
+          "choices": ["Flirtatious advance", "Seductive compliment", "Passionate response"]
+        }`,
+      },
+    ]);
 
     const content = completion.choices[0].message.content;
     if (!content) {
-      throw new Error("No content received from OpenAI");
+      throw new Error("No content received from OpenRouter");
     }
     return JSON.parse(content);
   } catch (error) {
-    console.error("OpenAI API Error:", error);
+    console.error("OpenRouter API Error:", error);
     return {
-      title: "First Meeting",
-      content: `You encounter ${characterName} for the first time, their presence immediately catching your attention. They give you a warm, inviting smile that suggests they're equally intrigued.`,
+      title: "First Encounter",
+      content: `${characterName} catches your eye from across the room, their gaze filled with unmistakable desire. As they approach, you can't help but notice their sensual movements and the way their outfit perfectly accentuates their form.`,
       choices: [
-        "Compliment their smile",
-        "Introduce yourself casually",
-        "Make a playful observation",
+        "Comment on their irresistible presence",
+        "Make a bold, flirtatious move",
+        "Suggest finding somewhere more private",
       ],
     };
   }
