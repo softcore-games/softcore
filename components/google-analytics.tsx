@@ -1,7 +1,7 @@
 "use client";
 import Script from "next/script";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 
 declare global {
   interface Window {
@@ -16,7 +16,7 @@ declare global {
 
 const googleAnalyticsId = "G-EWZ87Z62WL";
 
-const GoogleAnalytics = () => {
+const AnalyticsContent = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -29,6 +29,10 @@ const GoogleAnalytics = () => {
     }
   }, [pathname, searchParams]);
 
+  return null;
+};
+
+const GoogleAnalytics = () => {
   return (
     <>
       <Script
@@ -49,6 +53,9 @@ const GoogleAnalytics = () => {
           `,
         }}
       />
+      <Suspense fallback={null}>
+        <AnalyticsContent />
+      </Suspense>
     </>
   );
 };
