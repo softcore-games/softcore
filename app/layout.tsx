@@ -6,6 +6,7 @@ import { WalletProvider } from "@/lib/contexts/WalletContext";
 import AgeVerification from "@/components/age-verification";
 import "./globals.css";
 import PurchaseStamina from "@/components/stamina/purchase-stamina";
+import GoogleAnalytics from "@/components/google-analytics";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -63,6 +64,7 @@ export default function RootLayout({
         <AgeVerification />
         <WalletProvider>
           <Navbar />
+          <GoogleAnalytics />
           <Layout>{children}</Layout>
           <PurchaseStamina />
         </WalletProvider>
